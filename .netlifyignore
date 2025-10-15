@@ -1,0 +1,28 @@
+# Ignore development files
+node_modules/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore build artifacts
+dist/
+build/
+
+# Ignore test files
+src/test-firebase.js
+
+# Ignore Firebase debug logs
+firebase-debug.log
+.firebase/
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
