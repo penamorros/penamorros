@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { Sun, Moon, Briefcase, GraduationCap, Zap, MessageCircle, X, Send, Target, Code, Users, Award, Lightbulb, Rocket, Bot, ChevronLeft, ChevronRight, Home, Heart, FileText, Mail, FolderOpen } from 'lucide-react'
+import { chatService } from './services/chatService'
+import { analytics } from './services/analytics'
+import AdminPage from './AdminPage'
 
 const sections = [
 	{ id: 'about', label: 'Home', icon: Home },
@@ -154,6 +157,7 @@ export default function App() {
 	const [chatMessages, setChatMessages] = useState<Array<{role: string, content: string}>>([])
 	const [currentMessage, setCurrentMessage] = useState<string>('')
 	const [isLoading, setIsLoading] = useState<boolean>(false)
+	const [chatSessionId, setChatSessionId] = useState<string>('')
 	const [hoveredValue, setHoveredValue] = useState<string | null>(null)
 	const [scrollProgress, setScrollProgress] = useState<number>(0)
 	const [headerPosition, setHeaderPosition] = useState<number>(2)
@@ -171,6 +175,38 @@ export default function App() {
 			return () => clearTimeout(timer)
 		}
 	}, [showIntro])
+
+	// Initialize chat session ID when chat is first opened
+	useEffect(() => {
+		if (chatOpen && !chatSessionId) {
+			const sessionId = chatService.generateSessionId()
+			setChatSessionId(sessionId)
+			console.log('🆔 New chat session started:', sessionId)
+			analytics.trackChatEvent('chat_opened', { sessionId })
+		}
+	}, [chatOpen, chatSessionId])
+
+	// Initialize Google Analytics
+	useEffect(() => {
+		analytics.initialize()
+		analytics.trackPageView(window.location.pathname)
+	}, [])
+
+	// Track section changes
+	useEffect(() => {
+		if (active) {
+			analytics.trackSectionNavigation(active)
+		}
+	}, [active])
+
+	// Track time on page
+	useEffect(() => {
+		const startTime = Date.now()
+		return () => {
+			const timeSpent = (Date.now() - startTime) / 1000 // Convert to seconds
+			analytics.trackTimeOnPage(timeSpent)
+		}
+	}, [])
 
 
 	useEffect(() => {
@@ -353,6 +389,23 @@ export default function App() {
 			}
 		}, 100)
 
+		// Track chat message sent
+		analytics.trackChatEvent('message_sent', { 
+			messageLength: currentMessage.length,
+			sessionId: chatSessionId 
+		})
+
+		// Save user message to Firebase (non-blocking)
+		chatService.saveMessage({
+			role: 'user',
+			content: currentMessage,
+			sessionId: chatSessionId
+		}).then(() => {
+			console.log('💾 User message saved to Firebase')
+		}).catch((error) => {
+			console.error('❌ Error saving user message to Firebase:', error)
+		})
+
 		try {
 			const apiKey = (import.meta as any).env.VITE_OPENAI_API_KEY
 			console.log('🔑 API Key loaded:', apiKey ? 'Yes' : 'No')
@@ -392,7 +445,25 @@ export default function App() {
 			
 			if (data.choices && data.choices[0]) {
 				const aiMessage = { role: 'assistant', content: data.choices[0].message.content }
-				setChatMessages([...newMessages, aiMessage])
+				const finalMessages = [...newMessages, aiMessage]
+				setChatMessages(finalMessages)
+				
+				// Track AI response received
+				analytics.trackChatEvent('ai_response_received', {
+					responseLength: data.choices[0].message.content.length,
+					sessionId: chatSessionId
+				})
+
+				// Save AI response to Firebase (non-blocking)
+				chatService.saveMessage({
+					role: 'assistant',
+					content: data.choices[0].message.content,
+					sessionId: chatSessionId
+				}).then(() => {
+					console.log('💾 AI response saved to Firebase')
+				}).catch((error) => {
+					console.error('❌ Error saving AI response to Firebase:', error)
+				})
 				
 				// Auto-scroll to bottom when AI responds
 				setTimeout(() => {
@@ -410,10 +481,31 @@ export default function App() {
 				role: 'assistant', 
 				content: `Sorry, I'm having trouble connecting right now. Error: ${error instanceof Error ? error.message : 'Unknown error'}` 
 			}
-			setChatMessages([...newMessages, errorMessage])
+			const finalMessages = [...newMessages, errorMessage]
+			setChatMessages(finalMessages)
+			
+			// Save error message to Firebase (non-blocking)
+			chatService.saveMessage({
+				role: 'assistant',
+				content: errorMessage.content,
+				sessionId: chatSessionId
+			}).then(() => {
+				console.log('💾 Error message saved to Firebase')
+			}).catch((firebaseError) => {
+				console.error('❌ Error saving error message to Firebase:', firebaseError)
+			})
 		} finally {
 			setIsLoading(false)
 		}
+	}
+
+	// Check if admin mode is requested
+	const urlParams = new URLSearchParams(window.location.search)
+	const isAdminMode = urlParams.get('admin') === 'true'
+
+	// If admin mode, show admin page
+	if (isAdminMode) {
+		return <AdminPage />
 	}
 
 	return (
@@ -462,7 +554,13 @@ export default function App() {
 				{/* Theme Toggle */}
 				<button 
 					className="nav-theme-toggle" 
-					onClick={() => setColorMode(!colorMode)}
+					onClick={() => {
+						analytics.trackEvent('theme_toggle', {
+							event_category: 'ui',
+							event_label: colorMode ? 'light_mode' : 'dark_mode'
+						})
+						setColorMode(!colorMode)
+					}}
 					aria-label="Toggle theme"
 				>
 					{colorMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -4872,8 +4970,30 @@ export default function App() {
 								I build and scale businesses from concept to market — turning ideas into profitable ventures.
 							</p>
 							<div className="cta-row">
-								<button className="button primary" onClick={() => scrollTo('resume')}>See Resume</button>
-								<button className="button" onClick={() => scrollTo('contact')}>Get in Touch</button>
+								<button 
+									className="button primary" 
+									onClick={() => {
+										analytics.trackEvent('resume_button_click', {
+											event_category: 'navigation',
+											event_label: 'resume_section'
+										})
+										scrollTo('resume')
+									}}
+								>
+									See Resume
+								</button>
+								<button 
+									className="button" 
+									onClick={() => {
+										analytics.trackEvent('contact_button_click', {
+											event_category: 'navigation',
+											event_label: 'contact_section'
+										})
+										scrollTo('contact')
+									}}
+								>
+									Get in Touch
+								</button>
 							</div>
 						</div>
 						<div className="hero-visual">
@@ -5096,10 +5216,35 @@ export default function App() {
 												</div>
 												{project.title !== 'Health Education Platform' && (
 													<div className="project-links">
-														<a href={project.link} className="project-link" target="_blank" rel="noopener noreferrer">
+														<a 
+															href={project.link} 
+															className="project-link" 
+															target="_blank" 
+															rel="noopener noreferrer"
+															onClick={() => {
+																analytics.trackProjectView(project.title)
+																analytics.trackEvent('project_demo_click', {
+																	event_category: 'projects',
+																	event_label: project.title,
+																	project_url: project.link
+																})
+															}}
+														>
 															Live Demo
 														</a>
-														<a href={project.github} className="project-link" target="_blank" rel="noopener noreferrer">
+														<a 
+															href={project.github} 
+															className="project-link" 
+															target="_blank" 
+															rel="noopener noreferrer"
+															onClick={() => {
+																analytics.trackEvent('project_github_click', {
+																	event_category: 'projects',
+																	event_label: project.title,
+																	github_url: project.github
+																})
+															}}
+														>
 															GitHub
 														</a>
 													</div>
@@ -5263,15 +5408,36 @@ function BusinessCard() {
 					
 					{/* Contact information */}
 					<div className="business-card-contact">
-						<div className="contact-item">
+						<div 
+							className="contact-item"
+							onClick={() => {
+								analytics.trackContactAttempt('email')
+								window.open('mailto:penamorrosm@gmail.com', '_blank')
+							}}
+							style={{ cursor: 'pointer' }}
+						>
 							<Mail className="contact-icon" />
 							<span>penamorrosm@gmail.com</span>
 						</div>
-						<div className="contact-item">
+						<div 
+							className="contact-item"
+							onClick={() => {
+								analytics.trackContactAttempt('linkedin')
+								window.open('https://linkedin.com/in/manuelpenamorros', '_blank')
+							}}
+							style={{ cursor: 'pointer' }}
+						>
 							<MessageCircle className="contact-icon" />
 							<span>linkedin.com/in/manuelpenamorros</span>
 						</div>
-						<div className="contact-item">
+						<div 
+							className="contact-item"
+							onClick={() => {
+								analytics.trackContactAttempt('github')
+								window.open('https://github.com/penamorros', '_blank')
+							}}
+							style={{ cursor: 'pointer' }}
+						>
 							<Code className="contact-icon" />
 							<span>github.com/penamorros</span>
 						</div>
