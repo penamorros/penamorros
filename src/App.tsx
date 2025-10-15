@@ -5021,49 +5021,66 @@ export default function App() {
 								>
 									{projects.map((project, index) => (
 										<div key={project.id} className="project-item">
-											<video 
-												autoPlay
-												muted
-												loop
-												playsInline
-												width="100%" 
-												height="120"
-												className="project-video"
-												onClick={() => {
-													// Open video in fullscreen/modal
-													const video = document.createElement('video');
-													video.src = index === 0 ? '/bb.mp4' : index === 1 ? '/1.mov' : index === 2 ? '/Manuel R33 (1).mp4' : '/1.mov';
-													video.controls = true;
-													video.style.width = '80vw';
-													video.style.height = 'auto';
-													video.style.maxWidth = '800px';
-													
-													const modal = document.createElement('div');
-													modal.style.position = 'fixed';
-													modal.style.top = '0';
-													modal.style.left = '0';
-													modal.style.width = '100%';
-													modal.style.height = '100%';
-													modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-													modal.style.display = 'flex';
-													modal.style.alignItems = 'center';
-													modal.style.justifyContent = 'center';
-													modal.style.zIndex = '9999';
-													modal.style.cursor = 'pointer';
-													
-													modal.appendChild(video);
-													document.body.appendChild(modal);
-													
-													modal.onclick = () => {
-														document.body.removeChild(modal);
-													};
-													
-													video.play();
-												}}
-											>
-												<source src={index === 0 ? '/bb.mp4' : index === 1 ? '/1.mov' : index === 2 ? '/Manuel R33 (1).mp4' : '/1.mov'} type="video/mp4" />
-												Your browser does not support the video tag.
-											</video>
+											{index === 2 ? (
+												<iframe
+													width="100%"
+													height="120"
+													className="project-video"
+													src="https://www.youtube.com/embed/fSpEoc4jweE?autoplay=1&loop=1&playlist=fSpEoc4jweE&mute=1"
+													title="YouTube video player"
+													frameBorder="0"
+													allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+													allowFullScreen
+													style={{
+														borderRadius: '15px',
+														border: 'none'
+													}}
+												></iframe>
+											) : (
+												<video 
+													autoPlay
+													muted
+													loop
+													playsInline
+													width="100%" 
+													height="120"
+													className="project-video"
+													onClick={() => {
+														// Open video in fullscreen/modal
+														const video = document.createElement('video');
+														video.src = index === 0 ? '/bb.mp4' : index === 1 ? '/1.mov' : '/1.mov';
+														video.controls = true;
+														video.style.width = '80vw';
+														video.style.height = 'auto';
+														video.style.maxWidth = '800px';
+														
+														const modal = document.createElement('div');
+														modal.style.position = 'fixed';
+														modal.style.top = '0';
+														modal.style.left = '0';
+														modal.style.width = '100%';
+														modal.style.height = '100%';
+														modal.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+														modal.style.display = 'flex';
+														modal.style.alignItems = 'center';
+														modal.style.justifyContent = 'center';
+														modal.style.zIndex = '9999';
+														modal.style.cursor = 'pointer';
+														
+														modal.appendChild(video);
+														document.body.appendChild(modal);
+														
+														modal.onclick = () => {
+															document.body.removeChild(modal);
+														};
+														
+														video.play();
+													}}
+												>
+													<source src={index === 0 ? '/bb.mp4' : index === 1 ? '/1.mov' : '/1.mov'} type="video/mp4" />
+													Your browser does not support the video tag.
+												</video>
+											)}
 											<div className="project-card">
 												<h3 className="project-title">{project.title}</h3>
 												<p className="project-description">{project.description}</p>
