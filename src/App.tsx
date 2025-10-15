@@ -5483,11 +5483,8 @@ function AnimatedGif({ selectedValue }: { selectedValue: string | null }) {
 							video.play()
 							setHasPlayed(true)
 						}
-					} else {
-						setIsVisible(false)
-						// Pause when video is not visible
-						video.pause()
 					}
+					// Remove the pause behavior - let video continue playing once started
 				})
 			},
 			{ threshold: 0.5 } // Video must be 50% visible
