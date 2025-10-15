@@ -1,0 +1,1376 @@
+import { useEffect, useState } from 'react'
+import { Sun, Moon, Briefcase, GraduationCap, Zap } from 'lucide-react'
+
+const sections = [
+	{ id: 'about', label: 'About' },
+	{ id: 'reel', label: 'Video' },
+	{ id: 'resume', label: 'Resume' },
+	{ id: 'projects', label: 'Projects' },
+	{ id: 'skills', label: 'Skills' },
+	{ id: 'contact', label: 'Contact' },
+]
+
+export default function App() {
+	const [active, setActive] = useState<string>('about')
+	const [menuOpen, setMenuOpen] = useState<boolean>(false)
+	const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+	const [colorMode, setColorMode] = useState<boolean>(false)
+	const [videoStarted, setVideoStarted] = useState<boolean>(false)
+	const [showIntro, setShowIntro] = useState<boolean>(() => {
+		// Only show intro if it hasn't been shown in this session
+		const hasShownIntro = sessionStorage.getItem('hasShownIntro')
+		return !hasShownIntro
+	})
+
+	useEffect(() => {
+		// Hide intro after 4 seconds and mark as shown
+		if (showIntro) {
+			const timer = setTimeout(() => {
+				setShowIntro(false)
+				sessionStorage.setItem('hasShownIntro', 'true')
+			}, 4000)
+			
+			return () => clearTimeout(timer)
+		}
+	}, [showIntro])
+
+	useEffect(() => {
+		const canvas = document.getElementById('matrix-canvas') as HTMLCanvasElement
+		if (!canvas) return
+		
+		const ctx = canvas.getContext('2d')
+		if (!ctx) return
+		
+		canvas.width = window.innerWidth
+		canvas.height = window.innerHeight
+		
+		const fontSize = 18
+		const columns = Math.floor(canvas.width / (fontSize * 3))
+		const drops: number[] = []
+		
+		for (let i = 0; i < columns; i++) {
+			drops[i] = Math.floor(Math.random() * -100) - 1
+		}
+		
+		const chars = 'const let var function return if else for while class import export async await try catch new this'.split(' ')
+		
+		let lastTime = 0
+		const fps = 100 // Slower: was 16.67, now ~10fps
+		let animationId: number
+		
+		function draw(currentTime: number) {
+			if (!ctx || !canvas) return
+			
+			const deltaTime = currentTime - lastTime
+			
+			if (deltaTime >= fps) {
+				ctx.fillStyle = colorMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'
+				ctx.fillRect(0, 0, canvas.width, canvas.height)
+				
+				ctx.fillStyle = colorMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.25)'
+				ctx.font = `${fontSize}px monospace`
+				
+				for (let i = 0; i < drops.length; i++) {
+					const text = chars[Math.floor(Math.random() * chars.length)]
+					const x = i * fontSize * 3
+					const y = drops[i] * fontSize
+					
+					ctx.fillText(text, x, y)
+					
+					if (y > canvas.height && Math.random() > 0.985) {
+						drops[i] = 0
+					}
+					drops[i]++
+				}
+				
+				lastTime = currentTime
+			}
+			
+			animationId = requestAnimationFrame(draw)
+		}
+		
+		animationId = requestAnimationFrame(draw)
+		
+		const handleResize = () => {
+			canvas.width = window.innerWidth
+			canvas.height = window.innerHeight
+			const newColumns = Math.floor(canvas.width / (fontSize * 3))
+			drops.length = newColumns
+			for (let i = 0; i < newColumns; i++) {
+				if (drops[i] === undefined) {
+					drops[i] = Math.floor(Math.random() * -100) - 1
+				}
+			}
+		}
+		
+		window.addEventListener('resize', handleResize)
+		
+		return () => {
+			cancelAnimationFrame(animationId)
+			window.removeEventListener('resize', handleResize)
+		}
+	}, [colorMode])
+
+	useEffect(() => {
+		const handler = () => {
+			const scrollMiddle = window.scrollY + window.innerHeight / 3
+			for (const s of sections) {
+				const el = document.getElementById(s.id)
+				if (!el) continue
+				const { top, height } = el.getBoundingClientRect()
+				const y = top + window.scrollY
+				if (scrollMiddle >= y && scrollMiddle < y + height) {
+					setActive(s.id)
+					break
+				}
+			}
+		}
+		window.addEventListener('scroll', handler, { passive: true })
+		handler()
+		return () => window.removeEventListener('scroll', handler)
+	}, [])
+
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('in')
+						if (entry.target.id === 'reel' && !videoStarted) {
+							setVideoStarted(true)
+						}
+						observer.unobserve(entry.target)
+					}
+				}
+			},
+			{ threshold: 0.2 }
+		)
+		for (const s of sections) {
+			const el = document.getElementById(s.id)
+			if (el) observer.observe(el)
+		}
+		return () => observer.disconnect()
+	}, [videoStarted])
+
+	useEffect(() => {
+		const handleMouseMove = (e: MouseEvent) => {
+			setMousePos({ x: e.clientX, y: e.clientY })
+		}
+		window.addEventListener('mousemove', handleMouseMove)
+		return () => window.removeEventListener('mousemove', handleMouseMove)
+	}, [])
+
+	const scrollTo = (id: string) => {
+		const el = document.getElementById(id)
+		if (el) {
+			setMenuOpen(false)
+			el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+		}
+	}
+
+	return (
+		<div className={`app ${colorMode ? 'color-mode' : ''}`}>
+			{showIntro && (
+				<div className="intro-overlay">
+					<img src="/signature-intro.gif" alt="Signature animation" className="intro-signature" onError={(e) => {
+						console.error('Failed to load intro GIF');
+						setShowIntro(false);
+					}} />
+				</div>
+			)}
+			
+			<button className="color-toggle" onClick={() => setColorMode(!colorMode)} aria-label="Toggle theme">
+				{colorMode ? <Sun size={20} /> : <Moon size={20} />}
+			</button>
+			
+			<canvas id="matrix-canvas"></canvas>
+			<style>{`
+				* {
+					margin: 0;
+					padding: 0;
+					box-sizing: border-box;
+				}
+				
+				body {
+					font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+					line-height: 1.6;
+					color: #ffffff;
+					background-color: #000000;
+					overflow-x: hidden;
+					transition: color 0.5s ease, background-color 0.5s ease;
+					margin: 0;
+					padding: 0;
+				}
+				
+				/* Intro Animation Overlay */
+				.intro-overlay {
+					position: fixed;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					background-color: #000000;
+					z-index: 10000;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					animation: fadeOut 0.5s ease-out 3.5s forwards;
+				}
+				
+				@keyframes fadeOut {
+					to {
+						opacity: 0;
+						pointer-events: none;
+					}
+				}
+				
+				.intro-signature {
+					max-width: 80%;
+					max-height: 80vh;
+					width: auto;
+					height: auto;
+					object-fit: contain;
+				}
+				
+				.app {
+					min-height: 100vh;
+					transition: background-color 0.5s ease;
+					position: relative;
+				}
+				
+				#matrix-canvas {
+					position: fixed;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					z-index: 1;
+					pointer-events: none;
+				}
+				
+				.app::before {
+					display: none;
+				}
+				
+				/* White mode styles */
+				.app.color-mode {
+					background-color: #ffffff;
+					color: #000000;
+				}
+				
+				.app.color-mode::before {
+					display: none;
+				}
+				
+				.app.color-mode * {
+					color: #000000;
+					border-color: #000000;
+				}
+				
+				.app.color-mode .site-header {
+					background: #ffffff;
+					border-bottom-color: #000000;
+				}
+				
+				.app.color-mode .signature-img {
+					filter: invert(0) brightness(0.5) contrast(1);
+				}
+				
+				.app.color-mode .color-toggle {
+					background: #ffffff;
+					border-color: #000000;
+					color: #000000;
+				}
+				
+				.app.color-mode .color-toggle:hover {
+					background: rgba(0, 0, 0, 0.1);
+					border-color: #000000;
+					color: #000000;
+				}
+				
+				.app.color-mode .nav-link {
+					background: none;
+				}
+				
+				.app.color-mode .nav-link:hover {
+					background: rgba(0, 0, 0, 0.1);
+				}
+				
+				.app.color-mode .nav-link.active {
+					background: rgba(0, 0, 0, 0.15);
+				}
+				
+				.app.color-mode .nav-link.active::after {
+					background: #000000;
+				}
+				
+				.app.color-mode .button {
+					background: #ffffff;
+					border-color: #000000;
+					color: #000000;
+				}
+				
+				.app.color-mode .button:hover {
+					background: #000000;
+					color: #ffffff;
+				}
+				
+				.app.color-mode .button.primary {
+					background: #000000;
+					color: #ffffff;
+					border-color: #000000;
+				}
+				
+				.app.color-mode .button.primary:hover {
+					background: #ffffff;
+					color: #000000;
+				}
+				
+				.app.color-mode .photo-wrap,
+				.app.color-mode .coin-front,
+				.app.color-mode .coin-back {
+					border-color: #000000;
+					box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+					background: #ffffff;
+				}
+				
+				.app.color-mode .resume-item,
+				.app.color-mode .card,
+				.app.color-mode .skills li,
+				.app.color-mode .video-card,
+				.app.color-mode .tag {
+					background: #ffffff;
+					border-color: #000000;
+				}
+				
+				.app.color-mode .card:hover {
+					background: #ffffff;
+					box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+				}
+				
+				.app.color-mode .skills li:hover {
+					background: #ffffff;
+					box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+				}
+				
+				.app.color-mode .tone-sep {
+					border-top-color: #000000;
+				}
+				
+				.app.color-mode .site-footer {
+					border-top-color: #000000;
+				}
+				
+				.app.color-mode .section {
+					background: transparent;
+				}
+				
+				.app.color-mode .alt {
+					background: transparent;
+				}
+				
+				.container {
+					max-width: 1200px;
+					margin: 0 auto;
+					padding: 0 2rem;
+				}
+				
+				/* Header - Hidden */
+				.site-header {
+					display: none;
+				}
+				
+				/* Color toggle button - Fixed position */
+				.color-toggle {
+					position: fixed;
+					right: 2rem;
+					top: 2rem;
+					background: none;
+					border: 1px solid #ffffff;
+					color: #ffffff;
+					padding: 0.5rem;
+					border-radius: 50%;
+					cursor: pointer;
+					font-size: 1.25rem;
+					transition: all 0.3s;
+					z-index: 1000;
+					width: 40px;
+					height: 40px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+				}
+				
+				.color-toggle:hover {
+					background: rgba(255, 255, 255, 0.1);
+				}
+				
+				.app.color-mode .color-toggle {
+					border-color: #000000;
+					color: #000000;
+				}
+				
+				.app.color-mode .color-toggle:hover {
+					background: rgba(0, 0, 0, 0.1);
+				}
+				
+				/* Enhanced Hero Section */
+				.hero {
+					min-height: auto;
+					display: flex;
+					align-items: center;
+					padding-top: 3rem;
+					padding-bottom: 4rem;
+					position: relative;
+					overflow: hidden;
+				}
+				
+				.hero::before {
+					display: none;
+				}
+				
+				@keyframes gradientShift {
+					0%, 100% { transform: translate(0, 0) rotate(0deg); }
+					33% { transform: translate(5%, -5%) rotate(120deg); }
+					66% { transform: translate(-5%, 5%) rotate(240deg); }
+				}
+				
+				.hero-wrap {
+					position: relative;
+					z-index: 1;
+					display: grid;
+					grid-template-columns: 1fr 1fr;
+					gap: 4rem;
+					align-items: center;
+				}
+				
+				.site-header,
+				.hero-wrap,
+				.section,
+				.main,
+				.container {
+					position: relative;
+					z-index: 10;
+				}
+				
+				.title {
+					font-size: clamp(2.5rem, 5vw, 4rem);
+					font-weight: 800;
+					line-height: 1.1;
+					margin-bottom: 1.5rem;
+					color: #ffffff;
+					animation: fadeInUp 0.8s ease-out;
+				}
+				
+				@keyframes fadeInUp {
+					from {
+						opacity: 0;
+						transform: translateY(30px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+				
+				.subtitle {
+					font-size: 1.25rem;
+					color: #ffffff;
+					margin-bottom: 2.5rem;
+					line-height: 1.7;
+					animation: fadeInUp 0.8s ease-out 0.2s backwards;
+				}
+				
+				.cta-row {
+					display: flex;
+					gap: 1rem;
+					flex-wrap: wrap;
+					animation: fadeInUp 0.8s ease-out 0.4s backwards;
+				}
+				
+				.button {
+					padding: 0.875rem 2rem;
+					border: 2px solid #ffffff;
+					background: #000000;
+					color: #ffffff;
+					font-weight: 600;
+					font-size: 1rem;
+					cursor: pointer;
+					border-radius: 12px;
+					transition: all 0.3s;
+					text-decoration: none;
+					display: inline-block;
+				}
+				
+				.button:hover {
+					background: #ffffff;
+					color: #000000;
+					transform: translateY(-2px);
+				}
+				
+				.button.primary {
+					background: #ffffff;
+					border: 2px solid #ffffff;
+					color: #000000;
+				}
+				
+				.button.primary:hover {
+					background: #000000;
+					color: #ffffff;
+					transform: translateY(-2px);
+				}
+				
+				/* Enhanced Hero Visual */
+				.hero-visual {
+					position: relative;
+					height: 600px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					animation: fadeIn 1s ease-out 0.6s backwards;
+					padding: 2rem;
+				}
+				
+				@keyframes fadeIn {
+					from { opacity: 0; }
+					to { opacity: 1; }
+				}
+				
+				.photo-wrap {
+					position: relative;
+					z-index: 3;
+					width: 480px;
+					height: 480px;
+					border-radius: 50%;
+					perspective: 1000px;
+					cursor: pointer;
+					animation: lightsaberGlow 15s ease-in-out infinite;
+				}
+				
+				@keyframes lightsaberGlow {
+					0% {
+						box-shadow: 
+							0 0 60px rgba(0, 100, 255, 0.8),
+							0 0 120px rgba(0, 100, 255, 0.6),
+							0 0 180px rgba(0, 100, 255, 0.3),
+							inset 0 0 80px rgba(0, 100, 255, 0.4);
+					}
+					20% {
+						box-shadow: 
+							0 0 60px rgba(255, 0, 150, 0.8),
+							0 0 120px rgba(255, 0, 150, 0.6),
+							0 0 180px rgba(255, 0, 150, 0.3),
+							inset 0 0 80px rgba(255, 0, 150, 0.4);
+					}
+					40% {
+						box-shadow: 
+							0 0 60px rgba(0, 255, 100, 0.8),
+							0 0 120px rgba(0, 255, 100, 0.6),
+							0 0 180px rgba(0, 255, 100, 0.3),
+							inset 0 0 80px rgba(0, 255, 100, 0.4);
+					}
+					60% {
+						box-shadow: 
+							0 0 60px rgba(150, 0, 255, 0.8),
+							0 0 120px rgba(150, 0, 255, 0.6),
+							0 0 180px rgba(150, 0, 255, 0.3),
+							inset 0 0 80px rgba(150, 0, 255, 0.4);
+					}
+					80% {
+						box-shadow: 
+							0 0 60px rgba(255, 100, 0, 0.8),
+							0 0 120px rgba(255, 100, 0, 0.6),
+							0 0 180px rgba(255, 100, 0, 0.3),
+							inset 0 0 80px rgba(255, 100, 0, 0.4);
+					}
+					100% {
+						box-shadow: 
+							0 0 60px rgba(0, 100, 255, 0.8),
+							0 0 120px rgba(0, 100, 255, 0.6),
+							0 0 180px rgba(0, 100, 255, 0.3),
+							inset 0 0 80px rgba(0, 100, 255, 0.4);
+					}
+				}
+				
+				.coin-inner {
+					position: relative;
+					width: 100%;
+					height: 100%;
+					transition: transform 0.8s;
+					transform-style: preserve-3d;
+				}
+				
+				.photo-wrap:hover .coin-inner {
+					transform: rotateY(180deg);
+				}
+				
+				.coin-front,
+				.coin-back {
+					position: absolute;
+					width: 100%;
+					height: 100%;
+					border-radius: 50%;
+					backface-visibility: hidden;
+					border: 1px solid #ffffff;
+					box-shadow: 0 20px 60px rgba(255, 255, 255, 0.1);
+					overflow: hidden;
+				}
+				
+				.coin-front {
+					background: #000000;
+				}
+				
+				.coin-back {
+					background: #000000;
+					transform: rotateY(180deg);
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					padding: 3rem;
+				}
+				
+				.coin-back-content {
+					text-align: center;
+					color: #ffffff;
+				}
+				
+				.coin-back-content h3 {
+					font-size: 1.5rem;
+					margin-bottom: 1rem;
+					font-weight: 700;
+				}
+				
+				.coin-back-content p {
+					font-size: 1rem;
+					line-height: 1.6;
+				}
+				
+				.hero-photo {
+					width: 100%;
+					height: 100%;
+					object-fit: contain;
+					object-position: center center;
+					background: transparent;
+				}
+				
+				.orbit { display: none !important; }
+				
+				@keyframes spin {
+					from { transform: rotate(0deg); }
+					to { transform: rotate(360deg); }
+				}
+				
+				.orbit-a {
+					width: 580px;
+					height: 580px;
+					border-color: #ffffff;
+				}
+				
+				.orbit-b {
+					width: 680px;
+					height: 680px;
+					border-color: #ffffff;
+				}
+				
+				.orbit::before,
+				.orbit::after {
+					content: '';
+					position: absolute;
+					width: 12px;
+					height: 12px;
+					border-radius: 50%;
+					background: #ffffff;
+					box-shadow: 0 0 16px rgba(255, 255, 255, 0.5);
+				}
+				
+				.orbit-a::before {
+					top: 0;
+					left: 50%;
+					transform: translateX(-50%);
+				}
+				
+				.orbit-b::after {
+					bottom: 0;
+					right: 50%;
+					transform: translateX(50%);
+				}
+				
+				/* Floating particles */
+				.hero::after {
+					display: none;
+				}
+				
+				@keyframes particles {
+					0%, 100% { background-position: 0% 0%; }
+					50% { background-position: 100% 100%; }
+				}
+				
+				/* Other Sections */
+				.section {
+					padding: 6rem 0;
+					opacity: 0;
+					transform: translateY(30px);
+					transition: all 0.8s ease-out;
+					background: transparent;
+				}
+				
+				.section.in {
+					opacity: 1;
+					transform: translateY(0);
+				}
+				
+				.section h2 {
+					font-size: 2.5rem;
+					font-weight: 700;
+					margin-bottom: 3rem;
+					text-align: center;
+					color: #ffffff;
+				}
+				
+				.alt {
+					background: transparent;
+				}
+				
+				.tone-sep {
+					border-top: 1px solid #ffffff;
+				}
+				
+				/* Resume */
+				.experience-grid {
+					display: grid;
+					grid-template-columns: 1fr;
+					gap: 4rem;
+					max-width: 1000px;
+					margin: 0 auto;
+				}
+				
+				.experience-section {
+					position: relative;
+				}
+				
+				.section-icon {
+					font-size: 3rem;
+					margin-bottom: 1rem;
+					text-align: center;
+					display: flex;
+					justify-content: center;
+					color: #ffffff;
+				}
+				
+				.app.color-mode .section-icon {
+					color: #000000;
+				}
+				
+				.experience-section h2 {
+					font-size: 2rem;
+					font-weight: 700;
+					margin-bottom: 2.5rem;
+					text-align: center;
+					color: #ffffff;
+				}
+				
+				.timeline {
+					position: relative;
+					padding-left: 2rem;
+				}
+				
+				.timeline::before {
+					content: '';
+					position: absolute;
+					left: 0;
+					top: 0;
+					bottom: 0;
+					width: 2px;
+					background: linear-gradient(to bottom, 
+						rgba(255, 255, 255, 0) 0%,
+						rgba(255, 255, 255, 0.5) 10%,
+						rgba(255, 255, 255, 0.5) 90%,
+						rgba(255, 255, 255, 0) 100%);
+				}
+				
+				.app.color-mode .timeline::before {
+					background: linear-gradient(to bottom, 
+						rgba(0, 0, 0, 0) 0%,
+						rgba(0, 0, 0, 0.3) 10%,
+						rgba(0, 0, 0, 0.3) 90%,
+						rgba(0, 0, 0, 0) 100%);
+				}
+				
+				.timeline-item {
+					position: relative;
+					margin-bottom: 3rem;
+				}
+				
+				.timeline-item:last-child {
+					margin-bottom: 0;
+				}
+				
+				.timeline-marker {
+					position: absolute;
+					left: -2.5rem;
+					top: 0.5rem;
+					width: 12px;
+					height: 12px;
+					border-radius: 50%;
+					background: #ffffff;
+					box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+					z-index: 1;
+				}
+				
+				.app.color-mode .timeline-marker {
+					background: #000000;
+					box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.15);
+				}
+				
+				.timeline-content {
+					padding: 1.5rem 2rem;
+					background: rgba(255, 255, 255, 0.03);
+					border: 1px solid rgba(255, 255, 255, 0.1);
+					border-radius: 12px;
+					transition: all 0.3s;
+				}
+				
+				.app.color-mode .timeline-content {
+					background: rgba(0, 0, 0, 0.03);
+					border: 1px solid rgba(0, 0, 0, 0.15);
+				}
+				
+				.timeline-content:hover {
+					background: rgba(255, 255, 255, 0.05);
+					border-color: rgba(255, 255, 255, 0.2);
+					transform: translateX(8px);
+				}
+				
+				.app.color-mode .timeline-content:hover {
+					background: rgba(0, 0, 0, 0.06);
+					border-color: rgba(0, 0, 0, 0.25);
+				}
+				
+				.timeline-content h3 {
+					font-size: 1.5rem;
+					margin-bottom: 0.5rem;
+					color: #ffffff;
+				}
+				
+				.education-header {
+					display: flex;
+					justify-content: space-between;
+					align-items: flex-start;
+					gap: 2rem;
+				}
+				
+				.university-logo {
+					width: 120px;
+					height: 60px;
+					object-fit: contain;
+					flex-shrink: 0;
+					background: white;
+					padding: 0.5rem;
+					border-radius: 8px;
+				}
+				
+				.app.color-mode .university-logo {
+					background: white;
+					filter: none;
+				}
+				
+				.company {
+					font-size: 1.1rem;
+					color: #ffffff;
+					font-weight: 600;
+					margin-bottom: 0.25rem;
+					opacity: 0.9;
+				}
+				
+				.resume {
+					max-width: 800px;
+					margin: 0 auto 2rem;
+				}
+				
+				.resume-item {
+					margin-bottom: 2.5rem;
+					padding: 2rem;
+					background: #000000;
+					border-radius: 12px;
+					border: 1px solid #ffffff;
+				}
+				
+				.resume-item h3 {
+					font-size: 1.5rem;
+					margin-bottom: 0.5rem;
+					color: #ffffff;
+				}
+				
+				.muted {
+					color: rgba(255, 255, 255, 0.6);
+					margin-bottom: 1rem;
+					font-size: 0.95rem;
+				}
+				
+				.timeline-content ul {
+					list-style: none;
+					padding-left: 0;
+					margin-top: 1rem;
+				}
+				
+				.timeline-content li {
+					padding-left: 1.5rem;
+					position: relative;
+					margin-bottom: 0.75rem;
+					color: rgba(255, 255, 255, 0.85);
+					line-height: 1.6;
+				}
+				
+				.timeline-content li::before {
+					content: '▹';
+					position: absolute;
+					left: 0;
+					color: #ffffff;
+					font-weight: bold;
+				}
+				
+				.resume-item ul {
+					list-style: none;
+					padding-left: 0;
+				}
+				
+				.resume-item li {
+					padding-left: 1.5rem;
+					position: relative;
+					margin-bottom: 0.75rem;
+					color: #ffffff;
+				}
+				
+				.resume-item li::before {
+					content: '→';
+					position: absolute;
+					left: 0;
+					color: #ffffff;
+				}
+				
+				/* Projects */
+				.cards {
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+					gap: 2rem;
+				}
+				
+				.card {
+					padding: 2rem;
+					background: #000000;
+					border: 1px solid #ffffff;
+					border-radius: 12px;
+					transition: all 0.3s;
+				}
+				
+				.card:hover {
+					background: #000000;
+					border-color: #ffffff;
+					transform: translateY(-4px);
+					box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+				}
+				
+				.card h3 {
+					font-size: 1.5rem;
+					margin-bottom: 1rem;
+					color: #ffffff;
+				}
+				
+				.card p {
+					color: #ffffff;
+					margin-bottom: 1.5rem;
+				}
+				
+				.tags {
+					display: flex;
+					gap: 0.5rem;
+					flex-wrap: wrap;
+				}
+				
+				.tag {
+					padding: 0.375rem 0.875rem;
+					background: #000000;
+					color: #ffffff;
+					font-size: 0.875rem;
+					border-radius: 6px;
+					border: 1px solid #ffffff;
+				}
+				
+				/* Skills */
+				.skills {
+					list-style: none;
+					max-width: 800px;
+					margin: 0 auto;
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+					gap: 1rem;
+				}
+				
+				.skills li {
+					padding: 1.25rem 1.5rem;
+					background: #000000;
+					border: 1px solid #ffffff;
+					border-radius: 8px;
+					color: #ffffff;
+					transition: all 0.3s;
+				}
+				
+				.skills li:hover {
+					background: #000000;
+					border-color: #ffffff;
+					transform: translateX(4px);
+					box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+				}
+				
+				/* Contact */
+				.contact {
+					display: flex;
+					justify-content: center;
+					gap: 1rem;
+					flex-wrap: wrap;
+					margin-top: 2rem;
+				}
+				
+				/* Featured Video */
+				.video-section { padding: 4rem 0; }
+				.video-card { position: relative; border: 1px solid #ffffff; border-radius: 16px; overflow: hidden; background: #000000; box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1); }
+				.video-wrap { position: relative; aspect-ratio: 16 / 9; }
+				.video-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+				.video-card::after { display: none; }
+				
+				/* Footer */
+				.site-footer {
+					padding: 2rem 0;
+					border-top: 1px solid #ffffff;
+					text-align: center;
+				}
+				
+				/* Responsive */
+				@media (max-width: 768px) {
+					.menu-toggle {
+						display: block;
+					}
+					
+					.nav {
+						position: absolute;
+						top: 100%;
+						left: 0;
+						right: 0;
+						background: #000000;
+						backdrop-filter: blur(12px);
+						flex-direction: column;
+						padding: 1rem;
+						border-bottom: 1px solid #ffffff;
+						opacity: 0;
+						pointer-events: none;
+						transform: translateY(-10px);
+						transition: all 0.3s;
+					}
+					
+					.nav.open {
+						opacity: 1;
+						pointer-events: all;
+						transform: translateY(0);
+					}
+					
+					.hero-wrap {
+						grid-template-columns: 1fr;
+						gap: 3rem;
+						text-align: center;
+					}
+					
+					.hero-visual {
+						height: 500px;
+						padding: 1rem;
+					}
+					
+					.photo-wrap {
+						width: 340px;
+						height: 340px;
+					}
+					
+					.cta-row {
+						justify-content: center;
+					}
+					
+					.timeline {
+						padding-left: 1.5rem;
+					}
+					
+					.timeline-marker {
+						left: -2rem;
+					}
+					
+					.timeline-content {
+						padding: 1.25rem 1.5rem;
+					}
+				}
+			`}</style>
+
+			<header className="site-header">
+				<div className="container header-inner">
+					<div className="brand" onClick={() => scrollTo('about')} aria-label="Go to top">
+						<span className="brand-mark">M</span>
+						<span className="brand-name">Manuel Peña Morros</span>
+					</div>
+					<div className="signature" aria-hidden>
+						<Signature />
+					</div>
+					<button className="color-toggle" onClick={() => setColorMode(!colorMode)} aria-label="Toggle theme">
+						{colorMode ? <Sun size={20} /> : <Moon size={20} />}
+					</button>
+				</div>
+			</header>
+
+			<main className="main">
+				<section id="about" className="section hero reveal tone-1">
+					<div className="container hero-wrap">
+						<div>
+							<h1 className="title">Engineer. Builder. Problem Solver.</h1>
+							<p className="subtitle">
+								I design and ship resilient products end‑to‑end — from clean architectures to delightful user experiences.
+							</p>
+							<div className="cta-row">
+								<button className="button primary" onClick={() => scrollTo('projects')}>See Projects</button>
+								<button className="button" onClick={() => scrollTo('contact')}>Get in Touch</button>
+							</div>
+						</div>
+						<div className="hero-visual">
+							<div className="orbit orbit-a" aria-hidden></div>
+							<div className="orbit orbit-b" aria-hidden></div>
+							<div className="photo-wrap">
+								<div className="coin-inner">
+									<div className="coin-front">
+										<img
+											src="/Diseno-sin-titulo-97.png"
+											alt="Portrait of Manuel Peña Morros"
+											className="hero-photo"
+											decoding="async"
+											loading="eager"
+										/>
+									</div>
+									<div className="coin-back">
+										<div className="coin-back-content">
+											<h3>About Myself</h3>
+											<p>Full-stack engineer passionate about building scalable systems and elegant user experiences. I thrive on solving complex problems and turning ideas into reality.</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* Featured Video Section */}
+				<section id="reel" className="section alt reveal tone-2 tone-sep video-section">
+					<div className="container">
+						<div className="video-card">
+							<div className="video-wrap">
+								{videoStarted && (
+									<iframe
+										className="video-frame"
+										width="1038"
+										height="584"
+										src="https://www.youtube.com/embed/fSpEoc4jweE?autoplay=1&mute=0"
+										title="Manuel Peña Morros"
+										frameBorder={0}
+										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+										referrerPolicy="strict-origin-when-cross-origin"
+										allowFullScreen
+									/>
+								)}
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section id="resume" className="section reveal tone-2 tone-sep">
+					<div className="container">
+						<div className="experience-grid">
+							<div className="experience-section">
+								<div className="section-icon">
+									<Briefcase size={48} strokeWidth={1.5} />
+								</div>
+								<h2>Work Experience</h2>
+								<div className="timeline">
+									<div className="timeline-item">
+										<div className="timeline-marker"></div>
+										<div className="timeline-content">
+											<h3>Senior Software Engineer</h3>
+											<p className="company">Tech Company</p>
+											<p className="muted">2021 — Present</p>
+											<ul>
+												<li>Led development of high‑impact features improving performance by 40% and system reliability</li>
+												<li>Architected component libraries adopted by 5+ teams, accelerating delivery by 3x</li>
+												<li>Mentored 8 junior engineers, establishing best practices and code review standards</li>
+											</ul>
+										</div>
+									</div>
+									<div className="timeline-item">
+										<div className="timeline-marker"></div>
+										<div className="timeline-content">
+											<h3>Software Engineer</h3>
+											<p className="company">Innovation Labs</p>
+											<p className="muted">2018 — 2021</p>
+											<ul>
+												<li>Shipped 15+ end‑to‑end features across web, mobile, and API layers</li>
+												<li>Improved observability with comprehensive logging and monitoring infrastructure</li>
+												<li>Increased test coverage from 40% to 85%, reducing production bugs by 60%</li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div className="experience-section">
+								<div className="section-icon">
+									<GraduationCap size={48} strokeWidth={1.5} />
+								</div>
+								<h2>Education</h2>
+								<div className="timeline">
+									<div className="timeline-item">
+										<div className="timeline-marker"></div>
+										<div className="timeline-content">
+											<div className="education-header">
+												<div>
+													<h3>Bachelor of Science in Computer Science</h3>
+													<p className="company">Tulane University</p>
+													<p className="muted">2014 — 2018</p>
+												</div>
+												<img src="/Tulane-University-Logo.png" alt="Tulane University" className="university-logo" />
+											</div>
+											<ul>
+												<li>Graduated with Honors, GPA 3.8/4.0</li>
+												<li>Relevant Coursework: Data Structures, Algorithms, Machine Learning, Distributed Systems</li>
+												<li>Dean's List all semesters</li>
+											</ul>
+										</div>
+									</div>
+									<div className="timeline-item">
+										<div className="timeline-marker"></div>
+										<div className="timeline-content">
+											<div className="education-header">
+												<div>
+													<h3>High School Diploma</h3>
+													<p className="company">High School Name</p>
+													<p className="muted">2010 — 2014</p>
+												</div>
+												<img src="/lg-logo.png" alt="High School" className="university-logo" />
+											</div>
+											<ul>
+												<li>Valedictorian, GPA 4.0/4.0</li>
+												<li>National Honor Society Member</li>
+												<li>Computer Science Club President</li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div className="experience-section">
+								<div className="section-icon">
+									<Zap size={48} strokeWidth={1.5} />
+								</div>
+								<h2>Leadership</h2>
+								<div className="timeline">
+									<div className="timeline-item">
+										<div className="timeline-marker"></div>
+										<div className="timeline-content">
+											<h3>Tech Lead</h3>
+											<p className="company">Platform Team</p>
+											<p className="muted">2022 — Present</p>
+											<ul>
+												<li>Leading a cross-functional team of 10 engineers across 3 time zones</li>
+												<li>Drove architectural decisions impacting 50+ microservices</li>
+												<li>Established engineering culture focused on innovation and quality</li>
+											</ul>
+										</div>
+									</div>
+									<div className="timeline-item">
+										<div className="timeline-marker"></div>
+										<div className="timeline-content">
+											<h3>Open Source Contributor</h3>
+											<p className="company">Community Projects</p>
+											<p className="muted">2019 — Present</p>
+											<ul>
+												<li>Maintainer of 3 popular npm packages with 10k+ weekly downloads</li>
+												<li>Contributed to React, Next.js, and other major open source projects</li>
+												<li>Speaker at 5 tech conferences and meetups</li>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div style={{ textAlign: 'center', marginTop: '3rem' }}>
+							<a className="button" href="#" onClick={(e) => e.preventDefault()}>Download Full Resume PDF</a>
+						</div>
+					</div>
+				</section>
+
+				<section id="projects" className="section alt reveal tone-3 tone-sep">
+					<div className="container">
+						<h2>Projects</h2>
+						<div className="cards">
+							<ProjectCard title="Realtime Dashboard" tags={["React", "WebSockets", "Vite"]} description="Streaming analytics UI with sub‑second updates and offline fallbacks." />
+							<ProjectCard title="Design System" tags={["TypeScript", "Accessibility"]} description="Theming, tokens, and accessible components adopted across teams." />
+							<ProjectCard title="Edge Functions" tags={["Node", "CDN", "Serverless"]} description="Latency‑sensitive APIs deployed to edge regions with observability." />
+						</div>
+					</div>
+				</section>
+
+				<section id="skills" className="section reveal tone-2 tone-sep">
+					<div className="container">
+						<h2>Skills</h2>
+						<ul className="skills">
+							<li>TypeScript, React, React Query, Redux Toolkit</li>
+							<li>Node.js, Express, tRPC, GraphQL</li>
+							<li>PostgreSQL, Redis, Prisma</li>
+							<li>Testing: Vitest, Playwright, Jest</li>
+							<li>CI/CD: GitHub Actions, Docker</li>
+							<li>Cloud: Fly.io, Vercel, AWS</li>
+						</ul>
+					</div>
+				</section>
+
+				<section id="contact" className="section alt reveal tone-1 tone-sep">
+					<div className="container">
+						<h2>Contact</h2>
+						<p>Want to collaborate or just say hi? Send me an email and I will get back to you.</p>
+						<div className="contact">
+							<a className="button primary" href="mailto:manuel.penamorros@gmail.com">Email Me</a>
+							<a className="button" href="https://www.linkedin.com/in/manuelpenamorros" target="_blank" rel="noreferrer">LinkedIn</a>
+							<a className="button" href="https://github.com/penamorros" target="_blank" rel="noreferrer">GitHub</a>
+						</div>
+					</div>
+				</section>
+			</main>
+
+			<footer className="site-footer">
+				<div className="container">
+					<p className="muted">© {new Date().getFullYear()} Manuel Peña Morros. All rights reserved.</p>
+				</div>
+			</footer>
+		</div>
+	)
+}
+
+function ProjectCard({ title, description, tags }: { title: string; description: string; tags: string[] }) {
+	return (
+		<div className="card">
+			<h3>{title}</h3>
+			<p>{description}</p>
+			<div className="tags">
+				{tags.map(t => (
+					<span key={t} className="tag">{t}</span>
+				))}
+			</div>
+		</div>
+	)
+}
+
+function Signature() {
+	return (
+		<img src="/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png" alt="Manuel Peña-Morros signature" className="signature-img" />
+	)
+}
