@@ -6,6 +6,7 @@ const sections = [
 	{ id: 'values', label: 'Values', icon: Heart },
 	{ id: 'resume', label: 'Resume', icon: FileText },
 	{ id: 'projects', label: 'Projects', icon: FolderOpen },
+	{ id: 'articles', label: 'Articles', icon: FileText },
 	{ id: 'contact', label: 'Contact', icon: Mail },
 ]
 
@@ -36,6 +37,53 @@ const projects = [
 		image: '/project3.jpg',
 		link: 'https://chart-app-demo.netlify.app/',
 		github: 'https://github.com/penamorros/chart-app-front'
+	}
+]
+
+const articles = [
+	{
+		id: 'article1',
+		title: 'Javier Smiley and Manuel Peña-Morros Lead "Aventuras en Salud"',
+		publication: 'CHIC Magazine',
+		date: 'February 2024',
+		description: 'Two young visionaries are reshaping children\'s health education through a foundation that inspires healthy habits and positive lifestyle change across Mexico.',
+		link: 'https://www.chicmagazine.com.mx/personajes/javier-smiley-y-manuel-pena-morros-al-frente-de-aventuras-en-salud',
+		category: 'Health & Leadership',
+		readTime: '5 min read',
+		image: '/END (3).png'
+	},
+	{
+		id: 'article2',
+		title: 'Aventuras en Salud: Manuel Peña and Javier Smiley',
+		publication: 'TV Azteca',
+		date: 'January 2024',
+		description: 'A new generation of leaders is transforming health awareness through multimedia education, connecting hospitals, schools, and families with fun, interactive learning.',
+		link: 'https://www.tvazteca.com/aventuras-salud-manuel-pena-javier-smiley',
+		category: 'Media & Education',
+		readTime: '6 min read',
+		image: '/END (2).png'
+	},
+	{
+		id: 'article3',
+		title: 'Manuel Peña-Morros and Javier Smiley: Revolutionizing the Future of Children\'s Health',
+		publication: 'El Sol de Toluca',
+		date: 'December 2023',
+		description: 'Their initiative, Aventuras en Salud, blends creativity and science to make health education accessible, engaging, and transformative for the next generation.',
+		link: 'https://oem.com.mx/elsoldetoluca/gossip/manuel-pena-morros-y-javier-smiley-dos-jovenes-revolucionando-el-futuro-de-la-salud-infantil-en-toluca-13019690',
+		category: 'Innovation & Impact',
+		readTime: '7 min read',
+		image: '/END.png'
+	},
+	{
+		id: 'article4',
+		title: 'Foundation Launches "Aventuras en Salud" to Promote Healthy Habits Among Children',
+		publication: 'Heraldo Estado de México',
+		date: 'February 2024',
+		description: 'Created by the Diaita Foundation, this manual and educational program aims to teach kids aged 6–12 about wellness, nutrition, and physical activity through interactive experiences.',
+		link: '#',
+		category: 'Public Health',
+		readTime: '4 min read',
+		image: '/END (1).png'
 	}
 ]
 
@@ -307,22 +355,20 @@ export default function App() {
 
 		try {
 			const apiKey = (import.meta as any).env.VITE_OPENAI_API_KEY
-			console.log('API Key loaded:', apiKey ? 'Yes' : 'No')
-			console.log('API Key length:', apiKey ? apiKey.length : 0)
+			console.log('🔑 API Key loaded:', apiKey ? 'Yes' : 'No')
 			
 			if (!apiKey) {
 				throw new Error('OpenAI API key not found in environment variables')
 			}
 
-			console.log('Making request to OpenAI API...')
-			const response = await fetch('/api/openai/v1/chat/completions', {
+			console.log('📤 Making request to OpenAI API...')
+			
+			const response = await fetch('https://api.openai.com/v1/chat/completions', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 					'Authorization': `Bearer ${apiKey}`
 				},
-				mode: 'cors',
-				credentials: 'omit',
 				body: JSON.stringify({
 					model: 'gpt-3.5-turbo',
 					messages: [
@@ -338,7 +384,7 @@ export default function App() {
 			})
 
 			const data = await response.json()
-			console.log('OpenAI Response:', data)
+			console.log('📥 OpenAI Response:', data)
 			
 			if (!response.ok) {
 				throw new Error(`HTTP ${response.status}: ${data.error?.message || 'Unknown error'}`)
@@ -359,7 +405,7 @@ export default function App() {
 				throw new Error('No response from AI')
 			}
 		} catch (error) {
-			console.error('Error sending message:', error)
+			console.error('❌ Error sending message:', error)
 			const errorMessage = { 
 				role: 'assistant', 
 				content: `Sorry, I'm having trouble connecting right now. Error: ${error instanceof Error ? error.message : 'Unknown error'}` 
@@ -3270,6 +3316,286 @@ export default function App() {
 						height: 60px;
 					}
 				}
+
+				/* Articles Section */
+				.articles-grid {
+					display: grid;
+					grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+					gap: 2rem;
+					margin-top: 3rem;
+					max-width: 1200px;
+					margin-left: auto;
+					margin-right: auto;
+				}
+
+				.article-card {
+					background: #1a1a1a;
+					border: 1px solid #333333;
+					border-radius: 20px;
+					padding: 0;
+					position: relative;
+					overflow: hidden;
+					transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+					transform-style: preserve-3d;
+					animation: articleSlideIn 0.8s ease-out forwards;
+					opacity: 0;
+					transform: translateY(50px);
+				}
+
+				.article-image-container {
+					position: relative;
+					width: 100%;
+					height: 300px;
+					overflow: hidden;
+					border-radius: 20px 20px 0 0;
+				}
+
+				.article-image {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+					object-position: center top;
+					transition: transform 0.6s ease;
+					display: block;
+				}
+
+				.article-overlay {
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
+					opacity: 0.7;
+					transition: opacity 0.3s ease;
+				}
+
+				.article-card:hover .article-image {
+					transform: scale(1.05);
+				}
+
+				.article-card:hover .article-overlay {
+					opacity: 0.5;
+				}
+
+				@keyframes articleSlideIn {
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+
+				.article-card::before {
+					content: '';
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+					opacity: 0;
+					transition: opacity 0.3s ease;
+					border-radius: 20px;
+				}
+
+				.article-card:hover::before {
+					opacity: 1;
+				}
+
+				.article-card:hover {
+					transform: 
+						translateY(-15px) 
+						translateZ(20px) 
+						rotateX(5deg) 
+						rotateY(2deg) 
+						scale(1.02);
+					border-color: #444444;
+					box-shadow: 
+						0 20px 40px rgba(0, 0, 0, 0.3),
+						0 0 0 1px rgba(255, 255, 255, 0.1);
+				}
+
+				.article-header {
+					display: flex;
+					justify-content: space-between;
+					align-items: flex-start;
+					margin-bottom: 1.5rem;
+					padding: 0 2rem;
+					padding-top: 2rem;
+				}
+
+				.article-category {
+					background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+					color: white;
+					padding: 0.5rem 1rem;
+					border-radius: 20px;
+					font-size: 0.8rem;
+					font-weight: 600;
+					text-transform: uppercase;
+					letter-spacing: 0.5px;
+				}
+
+				.article-card:nth-child(1) .article-category {
+					background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+				}
+
+				.article-card:nth-child(2) .article-category {
+					background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+				}
+
+				.article-card:nth-child(3) .article-category {
+					background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+				}
+
+				.article-card:nth-child(4) .article-category {
+					background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+				}
+
+				.article-meta {
+					display: flex;
+					flex-direction: column;
+					align-items: flex-end;
+					gap: 0.25rem;
+				}
+
+				.article-date {
+					color: #888;
+					font-size: 0.8rem;
+					font-weight: 500;
+				}
+
+				.article-read-time {
+					color: #666;
+					font-size: 0.7rem;
+				}
+
+				.article-content {
+					margin-bottom: 2rem;
+					padding: 0 2rem;
+				}
+
+				.article-title {
+					font-size: 1.4rem;
+					font-weight: 700;
+					color: #ffffff;
+					margin-bottom: 0.5rem;
+					line-height: 1.3;
+				}
+
+				.article-publication {
+					color: #888;
+					font-size: 0.9rem;
+					font-weight: 500;
+					margin-bottom: 1rem;
+				}
+
+				.article-description {
+					color: #ccc;
+					font-size: 0.95rem;
+					line-height: 1.6;
+					margin: 0;
+				}
+
+				.article-footer {
+					display: flex;
+					justify-content: flex-end;
+					padding: 0 2rem 2rem 2rem;
+				}
+
+				.article-link {
+					color: #667eea;
+					text-decoration: none;
+					font-weight: 600;
+					font-size: 0.9rem;
+					transition: all 0.3s ease;
+					display: flex;
+					align-items: center;
+					gap: 0.5rem;
+					cursor: pointer;
+					position: relative;
+					z-index: 10;
+				}
+
+				.article-link:hover {
+					color: #764ba2;
+					transform: translateX(5px);
+					text-decoration: underline;
+				}
+
+				.article-link:active {
+					transform: translateX(2px);
+				}
+
+				/* Dark mode adjustments for articles */
+				.app.color-mode .article-card {
+					background: #f5f5f5;
+					border: 1px solid #e0e0e0;
+				}
+
+				.app.color-mode .article-card::before {
+					background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
+				}
+
+				.app.color-mode .article-card:hover {
+					border-color: #d0d0d0;
+				}
+
+				.app.color-mode .article-title {
+					color: #000000;
+				}
+
+				.app.color-mode .article-description {
+					color: #333;
+				}
+
+				.app.color-mode .article-date {
+					color: #666;
+				}
+
+				.app.color-mode .article-read-time {
+					color: #888;
+				}
+
+				.app.color-mode .article-publication {
+					color: #666;
+				}
+
+				/* Responsive design for articles */
+				@media (max-width: 768px) {
+					.articles-grid {
+						grid-template-columns: 1fr;
+						gap: 1.5rem;
+						margin-top: 2rem;
+					}
+
+					.article-image-container {
+						height: 200px;
+					}
+
+					.article-title {
+						font-size: 1.2rem;
+					}
+
+					.article-header {
+						flex-direction: column;
+						gap: 1rem;
+						align-items: flex-start;
+						padding: 0 1.5rem;
+						padding-top: 1.5rem;
+					}
+
+					.article-content {
+						padding: 0 1.5rem;
+					}
+
+					.article-footer {
+						padding: 0 1.5rem 1.5rem 1.5rem;
+					}
+
+					.article-meta {
+						align-items: flex-start;
+					}
+				}
 				
 				/* Projects Section */
 				.projects-carousel-wrapper {
@@ -4706,7 +5032,7 @@ export default function App() {
 												onClick={() => {
 													// Open video in fullscreen/modal
 													const video = document.createElement('video');
-													video.src = index === 0 ? '/bb.mp4' : index === 2 ? '/Manuel R33 (1).mp4' : '/1.mov';
+													video.src = index === 0 ? '/bb.mp4' : index === 1 ? '/1.mov' : index === 2 ? '/Manuel R33 (1).mp4' : '/1.mov';
 													video.controls = true;
 													video.style.width = '80vw';
 													video.style.height = 'auto';
@@ -4735,7 +5061,7 @@ export default function App() {
 													video.play();
 												}}
 											>
-												<source src={index === 0 ? '/bb.mp4' : index === 2 ? '/Manuel R33 (1).mp4' : '/1.mov'} type="video/mp4" />
+												<source src={index === 0 ? '/bb.mp4' : index === 1 ? '/1.mov' : index === 2 ? '/Manuel R33 (1).mp4' : '/1.mov'} type="video/mp4" />
 												Your browser does not support the video tag.
 											</video>
 											<div className="project-card">
@@ -4783,6 +5109,18 @@ export default function App() {
 					</div>
 				</section>
 
+				{/* Articles Section */}
+				<section id="articles" className="section reveal tone-1 tone-sep">
+					<div className="container">
+						<h2>Article Mentions</h2>
+						<div className="articles-grid">
+							{articles.map((article, index) => (
+								<ArticleCard key={article.id} article={article} index={index} />
+							))}
+						</div>
+					</div>
+				</section>
+
 				<section id="contact" className="section alt reveal tone-1 tone-sep">
 					<div className="container">
 						<h2>Contact Card</h2>
@@ -4824,6 +5162,48 @@ function ProjectCard({ title, description, tags, status, link }: {
 			<div className="card-footer">
 				<a href={link} target="_blank" rel="noreferrer" className="card-link">
 					View Project →
+				</a>
+			</div>
+		</div>
+	)
+}
+
+function ArticleCard({ article, index }: { article: any, index: number }) {
+	return (
+		<div className="article-card" style={{ animationDelay: `${index * 0.2}s` }}>
+			<div className="article-image-container">
+				<img src={article.image} alt={article.title} className="article-image" />
+				<div className="article-overlay"></div>
+			</div>
+			<div className="article-header">
+				<div className="article-category">{article.category}</div>
+				<div className="article-meta">
+					<span className="article-date">{article.date}</span>
+					<span className="article-read-time">{article.readTime}</span>
+				</div>
+			</div>
+			<div className="article-content">
+				<h3 className="article-title">{article.title}</h3>
+				<p className="article-publication">{article.publication}</p>
+				<p className="article-description">{article.description}</p>
+			</div>
+			<div className="article-footer">
+				<a 
+					href={article.link} 
+					className="article-link" 
+					target="_blank" 
+					rel="noopener noreferrer"
+					onClick={(e) => {
+						if (article.link === '#') {
+							e.preventDefault();
+							alert('Article link not available yet');
+						} else {
+							console.log('Opening article:', article.link);
+							window.open(article.link, '_blank');
+						}
+					}}
+				>
+					Read Article →
 				</a>
 			</div>
 		</div>
