@@ -1,16 +1,7 @@
 <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <style>
-      @font-face {
-        font-family: 'Organical';
-        src: url('/ORGANICAL PERSONAL USE.ttf') format('truetype');
-      }
-    </style>
-  </defs>
-  
   <!-- Black background with rounded corners -->
   <rect width="32" height="32" rx="6" ry="6" fill="#000000"/>
   
-  <!-- White M using Organical font -->
-  <text x="16" y="24" font-family="Organical, Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#ffffff">M</text>
+  <!-- White M with bold, clean design -->
+  <path d="M6 6 L6 24 L10 24 L10 12 L16 20 L22 12 L22 24 L26 24 L26 6 L22 6 L16 14 L10 6 Z" fill="#ffffff"/>
 </svg>
