@@ -5913,7 +5913,7 @@ function TimelineComponent() {
 			type: 'work',
 			logo: '/tvazteca.svg',
 			achievements: [
-				'Developed Python-based web application for Lighthouse metrics monitoring',
+				'Developed Python-based web application for Google Lighthouse metrics',
 				'Monitored weekly performance for 600+ internal and competition URLs',
 				'Improved efficiency by 40% with automated deployment in AWS'
 			],
