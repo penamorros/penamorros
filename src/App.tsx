@@ -4536,66 +4536,71 @@ export default function App() {
 				
 				@media (max-width: 768px) {
 					.left-nav {
-						left: 1rem;
-						padding: 0.75rem 0.4rem;
-						gap: 0.5rem;
+						left: 0.5rem;
+						padding: 0.5rem 0.3rem;
+						gap: 0.3rem;
 					}
 					
 					.nav-logo {
-						width: 45px;
-						height: 45px;
-						padding: 0.6rem;
-						font-size: 1.3rem;
+						width: 40px;
+						height: 40px;
+						padding: 0.5rem;
+						font-size: 1.1rem;
 					}
 					
 					.nav-theme-toggle {
-						width: 45px;
-						height: 45px;
-						padding: 0.6rem;
+						width: 40px;
+						height: 40px;
+						padding: 0.5rem;
 					}
 					
 					.nav-item {
-						width: 45px;
-						height: 45px;
-						padding: 0.6rem;
+						width: 40px;
+						height: 40px;
+						padding: 0.5rem;
 					}
 					
 					.section h2 {
-						font-size: 2.8rem;
+						font-size: 2.2rem;
+						line-height: 1.2;
 					}
 					
 					.values-content h2 {
-						font-size: 2.8rem;
+						font-size: 2.2rem;
 						text-align: center;
+						line-height: 1.2;
 					}
 					
 					.experience-section h2 {
-						font-size: 2.5rem;
+						font-size: 2rem;
+						line-height: 1.2;
 					}
 					
 					.values-container {
 						grid-template-columns: 1fr;
-						gap: 3rem;
+						gap: 2rem;
 						text-align: center;
+						padding: 0 1rem;
 					}
 					
 					.values-visual {
-						height: 500px;
+						height: 400px;
+						margin: 2rem 0;
 					}
 					
 					.values-image {
-						width: 300px;
-						height: 300px;
+						width: 250px;
+						height: 250px;
 					}
 					
 					.pixel-trace-container {
-						width: 300px;
-						height: 300px;
+						width: 250px;
+						height: 250px;
 					}
 					
 					.values-circle {
-						width: 400px;
-						height: 400px;
+						width: 300px;
+						height: 300px;
 						border-color: rgba(0, 0, 0, 0.2);
 						background: rgba(0, 0, 0, 0.02);
 						box-shadow: 
@@ -4605,22 +4610,23 @@ export default function App() {
 					}
 					
 					.value-icon {
-						width: 40px;
-						height: 40px;
+						width: 35px;
+						height: 35px;
 					}
 
 					.value-label {
-						font-size: 0.8rem;
+						font-size: 0.75rem;
 					}
 					
 					.hero-wrap {
 						grid-template-columns: 1fr;
-						gap: 3rem;
+						gap: 2rem;
 						text-align: center;
+						padding: 0 1rem;
 					}
 					
 					.hero-visual {
-						height: 500px;
+						height: 400px;
 						padding: 1rem;
 						text-align: center;
 					}
@@ -4629,8 +4635,8 @@ export default function App() {
 						background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
 									radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.01) 0%, transparent 50%);
 						animation: portraitGlowStatic 4s ease-in-out infinite alternate;
-						width: 340px;
-						height: 340px;
+						width: 280px;
+						height: 280px;
 						margin: 0 auto;
 					}
 					
@@ -4651,29 +4657,31 @@ export default function App() {
 					}
 					
 					.chat-bubble-container {
+						position: fixed;
 						top: 0;
 						left: 0;
-						width: 100%;
-						height: 100%;
+						width: 100vw;
+						height: 100vh;
+						z-index: 1000;
 					}
 					
 					.chat-toggle {
-						top: 60px;
-						right: -220px;
-						width: 40px;
-						height: 40px;
-						padding: 0.5rem;
+						position: fixed;
+						top: 20px;
+						right: 20px;
+						width: 50px;
+						height: 50px;
+						padding: 0.75rem;
+						z-index: 1001;
 					}
 					
 					.thinking-bubbles {
-						top: 40px;
-						right: -112px;
+						top: 15px;
+						right: 15px;
 					}
 					
 					.chat-toggle-text {
-						top: 70px;
-						right: -250px;
-						font-size: 0.6rem;
+						display: none;
 					}
 					
 					.bubble-1 {
@@ -4717,25 +4725,70 @@ export default function App() {
 					}
 					
 					.chat-bubble {
-						width: 250px;
-						height: 250px;
+						width: 90vw;
+						height: 80vh;
+						max-width: 400px;
+						max-height: 600px;
+						border-radius: 20px;
 					}
 					
 					.chat-messages {
-						max-height: none;
+						max-height: 60vh;
+						padding: 1rem;
 					}
 					
 					.avatar-gif {
-						width: 90px;
-						height: 90px;
+						width: 60px;
+						height: 60px;
 					}
 					
 					.chat-message {
-						font-size: 0.7rem;
+						font-size: 0.9rem;
+						line-height: 1.4;
+						margin-bottom: 0.5rem;
 					}
 					
 					.chat-input {
-						font-size: 0.7rem;
+						font-size: 1rem;
+						padding: 0.75rem;
+					}
+					
+					.chat-send {
+						padding: 0.75rem;
+					}
+					
+					.container {
+						width: 95%;
+						padding: 0 1rem;
+					}
+					
+					.section {
+						padding: 3rem 0;
+					}
+					
+					.hero {
+						padding: 2rem 0;
+					}
+					
+					.title {
+						font-size: 2.5rem;
+						line-height: 1.2;
+					}
+					
+					.subtitle {
+						font-size: 1.1rem;
+						line-height: 1.4;
+					}
+					
+					.button {
+						padding: 0.75rem 1.5rem;
+						font-size: 1rem;
+					}
+					
+					.cta-row {
+						flex-direction: column;
+						gap: 1rem;
+						align-items: center;
 					}
 					
 					.chat-welcome {
@@ -4794,9 +4847,83 @@ export default function App() {
 				
 				@media (max-width: 480px) {
 					.left-nav {
-						left: 0.5rem;
-						padding: 0.5rem 0.3rem;
-						gap: 0.3rem;
+						left: 0.25rem;
+						padding: 0.25rem 0.2rem;
+						gap: 0.2rem;
+					}
+					
+					.nav-logo {
+						width: 35px;
+						height: 35px;
+						padding: 0.4rem;
+						font-size: 1rem;
+					}
+					
+					.nav-theme-toggle {
+						width: 35px;
+						height: 35px;
+						padding: 0.4rem;
+					}
+					
+					.nav-item {
+						width: 35px;
+						height: 35px;
+						padding: 0.4rem;
+					}
+					
+					.container {
+						width: 98%;
+						padding: 0 0.5rem;
+					}
+					
+					.section h2 {
+						font-size: 1.8rem;
+						line-height: 1.2;
+					}
+					
+					.title {
+						font-size: 2rem;
+						line-height: 1.2;
+					}
+					
+					.subtitle {
+						font-size: 1rem;
+						line-height: 1.4;
+					}
+					
+					.hero-visual {
+						height: 300px;
+					}
+					
+					.photo-wrap {
+						width: 220px;
+						height: 220px;
+					}
+					
+					.values-visual {
+						height: 300px;
+					}
+					
+					.values-image {
+						width: 200px;
+						height: 200px;
+					}
+					
+					.values-circle {
+						width: 250px;
+						height: 250px;
+					}
+					
+					.chat-bubble {
+						width: 95vw;
+						height: 85vh;
+						border-radius: 15px;
+					}
+					
+					.chat-toggle {
+						width: 45px;
+						height: 45px;
+						padding: 0.6rem;
 					}
 					
 					.nav-logo {
