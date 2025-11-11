@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react'
-import { Sun, Moon, Briefcase, GraduationCap, Zap, MessageCircle, X, Send, Target, Code, Users, Award, Lightbulb, Rocket, Bot, ChevronLeft, ChevronRight, Home, Heart, FileText, Mail, FolderOpen } from 'lucide-react'
+ import React, { useEffect, useState, useRef, useCallback } from 'react'
+import { Sun, Moon, Briefcase, GraduationCap, Zap, MessageCircle, X, Send, Target, Code, Users, Award, Lightbulb, Rocket, Bot, ChevronLeft, ChevronRight, Home, Heart, FileText, Mail, FolderOpen, Database, Server, Palette, Terminal, Globe, Smartphone, Layers, Cpu, GitBranch, Cloud } from 'lucide-react'
 import { chatService } from './services/chatService'
 import { analytics } from './services/analytics'
 import AdminPage from './AdminPage'
@@ -141,6 +141,41 @@ const values = [
 	},
 ]
 
+const skills = [
+	// Frontend
+	{ id: 'react', name: 'React', category: 'Frontend', icon: Code, color: '#61dafb' },
+	{ id: 'javascript', name: 'JavaScript', category: 'Frontend', icon: Code, color: '#f7df1e' },
+	{ id: 'typescript', name: 'TypeScript', category: 'Frontend', icon: Code, color: '#3178c6' },
+	{ id: 'html', name: 'HTML', category: 'Frontend', icon: Globe, color: '#e34f26' },
+	{ id: 'css', name: 'CSS', category: 'Frontend', icon: Palette, color: '#1572b6' },
+	{ id: 'tailwind', name: 'Tailwind CSS', category: 'Frontend', icon: Layers, color: '#06b6d4' },
+	{ id: 'nextjs', name: 'Next.js', category: 'Frontend', icon: Rocket, color: '#000000' },
+	{ id: 'react-native', name: 'React Native', category: 'Frontend', icon: Smartphone, color: '#61dafb' },
+	
+	// Backend
+	{ id: 'node', name: 'Node.js', category: 'Backend', icon: Server, color: '#339933' },
+	{ id: 'express', name: 'Express', category: 'Backend', icon: Server, color: '#000000' },
+	{ id: 'rest-api', name: 'REST API', category: 'Backend', icon: Globe, color: '#ff6b6b' },
+	{ id: 'sql', name: 'SQL', category: 'Backend', icon: Database, color: '#336791' },
+	{ id: 'postgres', name: 'PostgreSQL', category: 'Backend', icon: Database, color: '#336791' },
+	{ id: 'supabase', name: 'Supabase', category: 'Backend', icon: Database, color: '#3ecf8e' },
+	{ id: 'python', name: 'Python', category: 'Backend', icon: Cpu, color: '#3776ab' },
+	{ id: 'csharp', name: 'C#', category: 'Backend', icon: Cpu, color: '#239120' },
+	
+	// Tools & Platforms
+	{ id: 'git', name: 'Git', category: 'Tools', icon: GitBranch, color: '#f05032' },
+	{ id: 'github', name: 'GitHub', category: 'Tools', icon: GitBranch, color: '#181717' },
+	{ id: 'linux', name: 'Linux', category: 'Tools', icon: Terminal, color: '#fcc624' },
+	{ id: 'vercel', name: 'Vercel', category: 'Tools', icon: Cloud, color: '#000000' },
+	{ id: 'netlify', name: 'Netlify', category: 'Tools', icon: Cloud, color: '#00c7b7' },
+	{ id: 'wordpress', name: 'WordPress', category: 'Tools', icon: Globe, color: '#21759b' },
+	
+	// Design
+	{ id: 'figma', name: 'Figma', category: 'Design', icon: Palette, color: '#f24e1e' },
+	{ id: 'ux-ui', name: 'UX/UI Design', category: 'Design', icon: Palette, color: '#ff6b6b' },
+	{ id: 'wireframe', name: 'Wireframing', category: 'Design', icon: Layers, color: '#8b5cf6' },
+]
+
 export default function App() {
 	const [menuOpen, setMenuOpen] = useState<boolean>(false)
 	const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -162,7 +197,19 @@ export default function App() {
 	const [scrollProgress, setScrollProgress] = useState<number>(0)
 	const [headerPosition, setHeaderPosition] = useState<number>(2)
 	const [currentProjectIndex, setCurrentProjectIndex] = useState<number>(0)
+	const [currentArticleIndex, setCurrentArticleIndex] = useState<number>(0)
+	const [currentSkillIndex, setCurrentSkillIndex] = useState<number>(0)
 	const [rotationAngle, setRotationAngle] = useState<number>(0)
+	const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
+	const [birdPosition, setBirdPosition] = useState<number>(40) // Vertical position percentage
+	const [birdVelocity, setBirdVelocity] = useState<number>(0) // Vertical velocity
+	const [gameStarted, setGameStarted] = useState<boolean>(false)
+	const [gameOver, setGameOver] = useState<boolean>(false)
+	const [collectedSkillsCount, setCollectedSkillsCount] = useState<number>(0)
+	const [scrollOffset, setScrollOffset] = useState<number>(0)
+	const birdPositionRef = useRef<number>(40)
+	const collectedSkillsSet = useRef<Set<number>>(new Set())
+	const lastCountRef = useRef<number>(0)
 
 	useEffect(() => {
 		// Hide intro after 4 seconds and mark as shown
@@ -262,6 +309,9 @@ export default function App() {
 			const el = document.getElementById(s.id)
 			if (el) observer.observe(el)
 		}
+		// Also observe skills section
+		const skillsSection = document.getElementById('skills')
+		if (skillsSection) observer.observe(skillsSection)
 		return () => observer.disconnect()
 	}, [])
 
@@ -371,6 +421,188 @@ export default function App() {
 		})
 		setRotationAngle((prev) => prev + 120)
 	}
+
+	const nextArticle = () => {
+		setCurrentArticleIndex((prev) => {
+			const next = prev + 1
+			return next >= articles.length ? 0 : next
+		})
+	}
+
+	const prevArticle = () => {
+		setCurrentArticleIndex((prev) => {
+			const prevIndex = prev - 1
+			return prevIndex < 0 ? articles.length - 1 : prevIndex
+		})
+	}
+
+	const nextSkill = () => {
+		setCurrentSkillIndex((prev) => {
+			const next = prev + 1
+			return next >= skills.length ? 0 : next
+		})
+		setSelectedSkill(null)
+	}
+
+	const prevSkill = () => {
+		setCurrentSkillIndex((prev) => {
+			const prevIndex = prev - 1
+			return prevIndex < 0 ? skills.length - 1 : prevIndex
+		})
+		setSelectedSkill(null)
+	}
+
+	const selectSkill = (skillId: string) => {
+		setSelectedSkill(skillId)
+	}
+
+	// Flappy Bird Game Functions
+	const jumpBird = useCallback(() => {
+		if (!gameStarted && !gameOver) {
+			setGameStarted(true)
+		}
+		if (gameStarted && !gameOver) {
+			setBirdVelocity(-8) // Jump up
+		}
+		if (gameOver) {
+			// Reset game
+			setGameStarted(false)
+			setGameOver(false)
+			setBirdPosition(40)
+			birdPositionRef.current = 40
+			setBirdVelocity(0)
+			setCollectedSkillsCount(0)
+			collectedSkillsSet.current = new Set()
+			lastCountRef.current = 0
+			setScrollOffset(0)
+			setCurrentSkillIndex(0)
+		}
+	}, [gameStarted, gameOver])
+
+	// Update refs when state changes
+	useEffect(() => {
+		birdPositionRef.current = birdPosition
+	}, [birdPosition])
+
+	// Sync collected skills count from ref
+	useEffect(() => {
+		const checkCount = () => {
+			const currentCount = collectedSkillsSet.current.size
+			if (currentCount !== lastCountRef.current) {
+				lastCountRef.current = currentCount
+				setCollectedSkillsCount(currentCount)
+			}
+		}
+		
+		const interval = setInterval(checkCount, 50) // Check every 50ms
+		return () => clearInterval(interval)
+	}, [gameStarted])
+
+
+	// Game loop - gravity and movement
+	useEffect(() => {
+		if (!gameStarted || gameOver) return
+
+		const gameLoop = setInterval(() => {
+			// Apply gravity and update bird
+			setBirdVelocity(prev => {
+				const newVel = prev + 0.5
+				setBirdPosition(prevPos => {
+					const newPos = prevPos + (newVel * 0.3)
+					const minPos = 5
+					const maxPos = 85
+					const clampedPos = Math.max(minPos, Math.min(maxPos, newPos))
+					
+					// Check collision with ground or ceiling
+					if (clampedPos >= maxPos || clampedPos <= minPos) {
+						setGameOver(true)
+					}
+					
+					birdPositionRef.current = clampedPos
+					return clampedPos
+				})
+				return newVel
+			})
+
+			// Auto-scroll pipes and check collisions
+			setScrollOffset(prev => {
+				const newOffset = prev + 2
+				const birdX = 200 // Bird's X position (20% of 1000px = 200px)
+				const currentBirdPos = birdPositionRef.current
+				
+				// Check each pipe for collision/collection
+				for (let index = 0; index < skills.length; index++) {
+					const skill = skills[index]
+					
+					// Skip if already collected
+					if (collectedSkillsSet.current.has(index)) continue
+					
+					const pipeX = 400 + (index * 200)
+					const pipeScreenX = pipeX - newOffset
+					const gapPosition = 15 + (index % 3) * 20
+					const gapSize = 70
+					
+					// Calculate gap boundaries with very generous tolerance
+					const gapTop = gapPosition - 15
+					const gapBottom = gapPosition + gapSize + 15
+					const birdTop = currentBirdPos
+					const birdBottom = currentBirdPos + 12
+					
+					// Collection check: bird is at pipe position AND in gap
+					const distanceFromPipe = Math.abs(pipeScreenX - birdX)
+					const isAtPipe = distanceFromPipe < 80
+					const isInGap = birdTop >= gapTop && birdBottom <= gapBottom
+					
+					if (isAtPipe && isInGap) {
+						// Collect the skill immediately
+						if (!collectedSkillsSet.current.has(index)) {
+							collectedSkillsSet.current.add(index)
+							const newCount = collectedSkillsSet.current.size
+							lastCountRef.current = newCount
+							console.log(`✅ Collected skill ${index}: ${skill.name}, New count: ${newCount}`)
+							// Update state immediately
+							setCollectedSkillsCount(newCount)
+							setCurrentSkillIndex(index)
+							break // Exit loop after collecting
+						}
+					}
+					
+					// Collision check: bird passed pipe but wasn't in gap
+					if (pipeScreenX < birdX - 70) {
+						if (birdTop < gapTop || birdBottom > gapBottom) {
+							setGameOver(true)
+							break
+						}
+					}
+				}
+				
+				// Check if reached end flag
+				const endFlagX = 400 + (skills.length * 200) + 50
+				if (newOffset + birdX >= endFlagX - 50) {
+					if (collectedSkillsSet.current.size === skills.length) {
+						setGameOver(true)
+					}
+				}
+				
+				return newOffset
+			})
+		}, 16) // ~60fps
+
+		return () => clearInterval(gameLoop)
+	}, [gameStarted, gameOver, skills])
+
+	// Keyboard controls
+	useEffect(() => {
+		const handleKeyPress = (e: KeyboardEvent) => {
+			if (e.code === 'Space' || e.key === ' ') {
+				e.preventDefault()
+				jumpBird()
+			}
+		}
+
+		window.addEventListener('keydown', handleKeyPress)
+		return () => window.removeEventListener('keydown', handleKeyPress)
+	}, [jumpBird])
 
 	const sendMessage = async () => {
 		if (!currentMessage.trim() || isLoading) return
@@ -3416,287 +3648,361 @@ export default function App() {
 				}
 
 				/* Articles Section */
-				.articles-grid {
-					display: grid;
-					grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-					gap: 2rem;
+				.articles-carousel-wrapper {
+					position: relative;
 					margin-top: 3rem;
 					max-width: 1200px;
+					width: 100%;
 					margin-left: auto;
 					margin-right: auto;
+					padding: 0 80px;
 				}
 
-				.article-card {
-					background: rgba(255, 255, 255, 0.03);
-					backdrop-filter: blur(10px);
-					-webkit-backdrop-filter: blur(10px);
-					border: 1px solid rgba(255, 255, 255, 0.1);
-					border-radius: 20px;
-					padding: 0;
+				.articles-carousel-wrapper .carousel-arrows {
+					position: absolute;
+					top: 50%;
+					transform: translateY(-50%);
+					z-index: 20;
+				}
+
+				.articles-carousel-wrapper .carousel-prev {
+					left: 10px;
+				}
+
+				.articles-carousel-wrapper .carousel-next {
+					right: 10px;
+				}
+
+				.articles-carousel-wrapper .carousel-indicators {
+					margin-top: 2rem;
+					margin-bottom: 0;
+				}
+
+				.articles-carousel {
 					position: relative;
 					overflow: hidden;
-					transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-					transform-style: preserve-3d;
-					animation: articleSlideIn 0.8s ease-out forwards;
-					opacity: 0;
-					transform: translateY(50px);
-				}
-
-				.article-image-container {
-					position: relative;
 					width: 100%;
-					height: 300px;
-					overflow: hidden;
-					border-radius: 20px 20px 0 0;
 				}
 
-				.article-image {
+				.articles-container {
+					display: flex;
+					transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+					will-change: transform;
 					width: 100%;
 					height: 100%;
-					object-fit: cover;
-					object-position: center top;
-					transition: transform 0.6s ease;
-					display: block;
 				}
 
-				.article-overlay {
-					position: absolute;
-					top: 0;
-					left: 0;
-					right: 0;
-					bottom: 0;
-					background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
-					opacity: 0.7;
-					transition: opacity 0.3s ease;
-				}
-
-				.article-card:hover .article-image {
-					transform: scale(1.05);
-				}
-
-				.article-card:hover .article-overlay {
-					opacity: 0.5;
-				}
-
-				@keyframes articleSlideIn {
-					to {
-						opacity: 1;
-						transform: translateY(0);
-					}
-				}
-
-				.article-card::before {
-					content: '';
-					position: absolute;
-					top: 0;
-					left: 0;
-					right: 0;
-					bottom: 0;
-					background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-					opacity: 0;
-					transition: opacity 0.3s ease;
-					border-radius: 20px;
-				}
-
-				.article-card:hover::before {
-					opacity: 1;
-				}
-
-				.article-card:hover {
-					background: rgba(255, 255, 255, 0.05);
-					border-color: rgba(255, 255, 255, 0.2);
-					transform: 
-						translateY(-15px) 
-						translateZ(20px) 
-						rotateX(5deg) 
-						rotateY(2deg) 
-						scale(1.02);
+				/* Newspaper Card Styles - Dark Mode (Default) */
+				.newspaper-card {
+					background: rgba(20, 20, 25, 0.95);
+					border: 3px solid rgba(255, 255, 255, 0.2);
 					box-shadow: 
-						0 20px 40px rgba(0, 0, 0, 0.3),
-						0 0 0 1px rgba(255, 255, 255, 0.1);
+						0 10px 30px rgba(0, 0, 0, 0.5),
+						inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+					flex: 0 0 100%;
+					width: 100%;
+					max-width: 100%;
+					min-width: 0;
+					margin-right: 0;
+					padding: 2rem;
+					position: relative;
+					transition: all 0.4s ease;
+					font-family: 'Georgia', 'Times New Roman', serif;
+					backdrop-filter: blur(10px);
+					-webkit-backdrop-filter: blur(10px);
+					box-sizing: border-box;
+					overflow: visible;
 				}
 
-				.article-header {
+				.articles-container .newspaper-card:last-child {
+					margin-right: 0;
+				}
+
+				.newspaper-card:hover {
+					box-shadow: 
+						0 15px 40px rgba(0, 0, 0, 0.6),
+						inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+					border-color: rgba(255, 255, 255, 0.3);
+					transform: translateY(-5px);
+				}
+
+				/* Newspaper Header */
+				.newspaper-header {
+					margin-bottom: 1.5rem;
+				}
+
+				.newspaper-masthead {
 					display: flex;
 					justify-content: space-between;
-					align-items: flex-start;
-					margin-bottom: 1.5rem;
-					padding: 0 2rem;
-					padding-top: 2rem;
+					align-items: baseline;
+					margin-bottom: 0.75rem;
 				}
 
-				.article-category {
-					background: rgba(255, 255, 255, 0.1);
+				.newspaper-name {
+					font-size: 2.5rem;
+					font-weight: 900;
 					color: #ffffff;
-					padding: 0.5rem 1rem;
-					border-radius: 20px;
-					font-size: 0.8rem;
-					font-weight: 600;
+					letter-spacing: -1px;
 					text-transform: uppercase;
-					letter-spacing: 0.5px;
+					font-family: 'Times New Roman', serif;
+					line-height: 1;
+				}
+
+				.newspaper-date {
+					font-size: 0.9rem;
+					color: rgba(255, 255, 255, 0.7);
+					font-weight: 500;
+					text-transform: uppercase;
+					letter-spacing: 1px;
+				}
+
+				.newspaper-divider {
+					height: 3px;
+					background: rgba(255, 255, 255, 0.3);
+					margin: 0.5rem 0;
+				}
+
+				.newspaper-divider-small {
+					height: 1px;
+					background: rgba(255, 255, 255, 0.2);
+					margin: 1rem 0;
+				}
+
+				/* Newspaper Body - Two Column Layout */
+				.newspaper-body {
+					display: grid;
+					grid-template-columns: 1fr 1.5fr;
+					gap: 2rem;
+					margin-bottom: 1.5rem;
+					width: 100%;
+					max-width: 100%;
+					box-sizing: border-box;
+				}
+
+				.newspaper-column {
+					display: flex;
+					flex-direction: column;
+					min-width: 0;
+					overflow: hidden;
+				}
+
+				/* Image Column */
+				.newspaper-image-wrapper {
+					position: relative;
+					border: 2px solid rgba(255, 255, 255, 0.3);
+					padding: 0.5rem;
+					background: rgba(0, 0, 0, 0.3);
+				}
+
+				.newspaper-image {
+					width: 100%;
+					height: auto;
+					display: block;
+					object-fit: contain;
 					border: 1px solid rgba(255, 255, 255, 0.2);
 				}
 
-				.article-meta {
-					display: flex;
-					flex-direction: column;
-					align-items: flex-end;
-					gap: 0.25rem;
+				.newspaper-image-caption {
+					font-size: 0.75rem;
+					color: rgba(255, 255, 255, 0.6);
+					font-style: italic;
+					margin-top: 0.5rem;
+					text-align: center;
+					text-transform: uppercase;
+					letter-spacing: 0.5px;
 				}
 
-				.article-date {
-					color: #888;
-					font-size: 0.8rem;
-					font-weight: 500;
-				}
-
-				.article-read-time {
-					color: #666;
-					font-size: 0.7rem;
-				}
-
-				.article-content {
-					margin-bottom: 2rem;
-					padding: 0 2rem;
-				}
-
-				.article-title {
-					font-size: 1.4rem;
-					font-weight: 700;
+				/* Text Column */
+				.newspaper-headline {
+					font-size: 2rem;
+					font-weight: 900;
 					color: #ffffff;
-					margin-bottom: 0.5rem;
-					line-height: 1.3;
+					line-height: 1.2;
+					margin-bottom: 0.75rem;
+					text-transform: uppercase;
+					letter-spacing: -0.5px;
+					font-family: 'Times New Roman', serif;
 				}
 
-				.article-publication {
-					color: #888;
-					font-size: 0.9rem;
-					font-weight: 500;
-					margin-bottom: 1rem;
-				}
-
-				.article-description {
-					color: #ccc;
-					font-size: 0.95rem;
-					line-height: 1.6;
-					margin: 0;
-				}
-
-				.article-footer {
-					display: flex;
-					justify-content: flex-end;
-					padding: 0 2rem 2rem 2rem;
-				}
-
-				.article-link {
-					color: #ffffff;
-					text-decoration: none;
-					font-weight: 600;
-					font-size: 0.9rem;
-					transition: all 0.3s ease;
+				.newspaper-byline {
 					display: flex;
 					align-items: center;
 					gap: 0.5rem;
-					cursor: pointer;
-					position: relative;
-					z-index: 10;
+					font-size: 0.85rem;
+					color: rgba(255, 255, 255, 0.7);
+					margin-bottom: 0.5rem;
+					text-transform: uppercase;
+					letter-spacing: 0.5px;
 				}
 
-				.article-link:hover {
+				.newspaper-section {
+					font-weight: 700;
+					color: #ffffff;
+				}
+
+				.newspaper-separator {
+					color: rgba(255, 255, 255, 0.5);
+				}
+
+				.newspaper-read-time {
+					color: rgba(255, 255, 255, 0.6);
+				}
+
+				.newspaper-body-text {
+					font-size: 1rem;
+					line-height: 1.8;
+					color: rgba(255, 255, 255, 0.9);
+					text-align: justify;
+					margin-bottom: 1rem;
+				}
+
+				.newspaper-continued {
+					margin-top: auto;
+					padding-top: 1rem;
+				}
+
+				.newspaper-link {
+					color: #ffffff;
+					text-decoration: none;
+					font-weight: 700;
+					font-size: 0.9rem;
+					text-transform: uppercase;
+					letter-spacing: 1px;
+					border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+					transition: all 0.3s ease;
+					display: inline-block;
+				}
+
+				.newspaper-link:hover {
 					color: rgba(255, 255, 255, 0.8);
+					border-bottom-color: rgba(255, 255, 255, 0.8);
 					transform: translateX(5px);
-					text-decoration: underline;
 				}
 
-				.article-link:active {
-					transform: translateX(2px);
+				.newspaper-footer {
+					margin-top: 1rem;
 				}
 
-				/* Light mode adjustments for articles */
-				.app.color-mode .article-card {
-					background: rgba(0, 0, 0, 0.03);
-					backdrop-filter: blur(10px);
-					-webkit-backdrop-filter: blur(10px);
-					border: 1px solid rgba(0, 0, 0, 0.15);
+				/* Light Mode Adjustments for Newspaper */
+				.app.color-mode .newspaper-card {
+					background: #faf9f6;
+					border-color: #1a1a1a;
+					box-shadow: 
+						0 10px 30px rgba(0, 0, 0, 0.2),
+						inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 				}
 
-				.app.color-mode .article-card::before {
-					background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
+				.app.color-mode .newspaper-card:hover {
+					box-shadow: 
+						0 15px 40px rgba(0, 0, 0, 0.3),
+						inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+					border-color: #1a1a1a;
 				}
 
-				.app.color-mode .article-card:hover {
-					background: rgba(0, 0, 0, 0.06);
-					border-color: rgba(0, 0, 0, 0.25);
+				.app.color-mode .newspaper-name {
+					color: #1a1a1a;
 				}
 
-				.app.color-mode .article-title {
-					color: #000000;
-				}
-
-				.app.color-mode .article-description {
-					color: #333;
-				}
-
-				.app.color-mode .article-date {
+				.app.color-mode .newspaper-date {
 					color: #666;
 				}
 
-				.app.color-mode .article-read-time {
+				.app.color-mode .newspaper-divider {
+					background: #1a1a1a;
+				}
+
+				.app.color-mode .newspaper-divider-small {
+					background: #ccc;
+				}
+
+				.app.color-mode .newspaper-image-wrapper {
+					border-color: #1a1a1a;
+					background: #fff;
+				}
+
+				.app.color-mode .newspaper-image {
+					border-color: #ddd;
+				}
+
+				.app.color-mode .newspaper-image-caption {
+					color: #666;
+				}
+
+				.app.color-mode .newspaper-headline {
+					color: #1a1a1a;
+				}
+
+				.app.color-mode .newspaper-byline {
+					color: #666;
+				}
+
+				.app.color-mode .newspaper-section {
+					color: #1a1a1a;
+				}
+
+				.app.color-mode .newspaper-separator {
+					color: #999;
+				}
+
+				.app.color-mode .newspaper-read-time {
 					color: #888;
 				}
 
-				.app.color-mode .article-publication {
+				.app.color-mode .newspaper-body-text {
+					color: #333;
+				}
+
+				.app.color-mode .newspaper-link {
+					color: #1a1a1a;
+					border-bottom-color: #1a1a1a;
+				}
+
+				.app.color-mode .newspaper-link:hover {
 					color: #666;
+					border-bottom-color: #666;
 				}
 
-				.app.color-mode .article-category {
-					background: rgba(0, 0, 0, 0.1);
-					color: #000000;
-					border: 1px solid rgba(0, 0, 0, 0.2);
-				}
-
-				.app.color-mode .article-link {
-					color: #000000;
-				}
-
-				.app.color-mode .article-link:hover {
-					color: rgba(0, 0, 0, 0.8);
-				}
-
-				/* Responsive design for articles */
+				/* Responsive design for newspaper */
 				@media (max-width: 768px) {
-					.articles-grid {
-						grid-template-columns: 1fr;
-						gap: 1.5rem;
+					.articles-carousel-wrapper {
+						padding: 0 60px;
 						margin-top: 2rem;
 					}
 
-					.article-image-container {
-						height: 200px;
+					.articles-carousel-wrapper .carousel-prev {
+						left: 5px;
 					}
 
-					.article-title {
-						font-size: 1.2rem;
+					.articles-carousel-wrapper .carousel-next {
+						right: 5px;
 					}
 
-					.article-header {
+					.newspaper-card {
+						margin-right: 0;
+						padding: 1.5rem;
+					}
+
+					.newspaper-name {
+						font-size: 1.8rem;
+					}
+
+					.newspaper-body {
+						grid-template-columns: 1fr;
+						gap: 1.5rem;
+					}
+
+					.newspaper-headline {
+						font-size: 1.5rem;
+					}
+
+					.newspaper-masthead {
 						flex-direction: column;
-						gap: 1rem;
 						align-items: flex-start;
-						padding: 0 1.5rem;
-						padding-top: 1.5rem;
+						gap: 0.5rem;
 					}
 
-					.article-content {
-						padding: 0 1.5rem;
-					}
-
-					.article-footer {
-						padding: 0 1.5rem 1.5rem 1.5rem;
-					}
-
-					.article-meta {
-						align-items: flex-start;
+					.newspaper-date {
+						font-size: 0.8rem;
 					}
 				}
 				
@@ -4410,6 +4716,1019 @@ export default function App() {
 
 				.app.color-mode .tooltip-description {
 					color: rgba(0, 0, 0, 0.8);
+				}
+
+				/* Flappy Bird Skills Section Styles */
+				.skills-flappy-section {
+					padding: 6rem 0;
+					position: relative;
+					background: transparent;
+				}
+
+				.flappy-game-wrapper {
+					max-width: 1200px;
+					width: 100%;
+					margin: 3rem auto 0;
+					position: relative;
+				}
+
+				/* Instructions */
+				.flappy-instructions {
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					z-index: 100;
+					background: rgba(0, 0, 0, 0.9);
+					border: 4px solid #4CAF50;
+					border-radius: 16px;
+					padding: 2rem 3rem;
+					text-align: center;
+					backdrop-filter: blur(10px);
+				}
+
+				.instructions-content h3 {
+					font-size: 2rem;
+					color: #4CAF50;
+					margin: 0 0 1rem 0;
+					text-transform: uppercase;
+					font-weight: 900;
+				}
+
+				.instructions-content p {
+					color: #ffffff;
+					font-size: 1.1rem;
+					margin: 0.5rem 0;
+				}
+
+				.spacebar-hint {
+					margin-top: 1.5rem;
+					font-size: 1.5rem;
+					color: #FFD700;
+					font-weight: 700;
+					background: rgba(255, 215, 0, 0.2);
+					padding: 1rem 2rem;
+					border-radius: 8px;
+					border: 2px solid #FFD700;
+					display: inline-block;
+				}
+
+				/* Game Over Screen */
+				.flappy-game-over {
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					z-index: 100;
+					background: rgba(0, 0, 0, 0.95);
+					border: 4px solid #FFD700;
+					border-radius: 16px;
+					padding: 2rem 3rem;
+					text-align: center;
+					backdrop-filter: blur(10px);
+				}
+
+				.game-over-content h3 {
+					font-size: 2.5rem;
+					color: #FFD700;
+					margin: 0 0 1rem 0;
+					text-transform: uppercase;
+					font-weight: 900;
+				}
+
+				.game-over-content p {
+					color: #ffffff;
+					font-size: 1.2rem;
+					margin: 0.5rem 0;
+				}
+
+				.flappy-btn-restart {
+					margin-top: 1.5rem;
+					background: #4CAF50;
+					border: 3px solid #2E7D32;
+					color: white;
+					padding: 1rem 2rem;
+					font-size: 1rem;
+					font-weight: 700;
+					text-transform: uppercase;
+					cursor: pointer;
+					border-radius: 8px;
+					transition: all 0.3s ease;
+				}
+
+				.flappy-btn-restart:hover {
+					background: #66BB6A;
+					transform: scale(1.05);
+				}
+
+				/* Game Area */
+				.flappy-game-area {
+					position: relative;
+					background: #000000;
+					border: 4px solid #4A90E2;
+					border-radius: 12px;
+					padding: 0;
+					min-height: 600px;
+					overflow: visible;
+					box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+					user-select: none;
+				}
+
+				/* Sky Background */
+				.flappy-sky {
+					position: relative;
+					width: 100%;
+					height: 100%;
+					min-height: 600px;
+					background: #000000;
+					overflow: hidden;
+				}
+
+				/* Clouds */
+				.flappy-cloud {
+					position: absolute;
+					background: rgba(255, 255, 255, 0.8);
+					border-radius: 50px;
+					opacity: 0.7;
+					animation: cloudFloat 20s infinite linear;
+				}
+
+				.cloud-1 {
+					width: 80px;
+					height: 40px;
+					top: 10%;
+					left: 10%;
+					animation-duration: 25s;
+				}
+
+				.cloud-2 {
+					width: 100px;
+					height: 50px;
+					top: 20%;
+					left: 50%;
+					animation-duration: 30s;
+				}
+
+				.cloud-3 {
+					width: 60px;
+					height: 30px;
+					top: 5%;
+					left: 80%;
+					animation-duration: 20s;
+				}
+
+				@keyframes cloudFloat {
+					from { transform: translateX(-100px); }
+					to { transform: translateX(calc(100vw + 100px)); }
+				}
+
+				/* Flappy Bird Character */
+				.flappy-bird {
+					position: absolute;
+					width: 60px;
+					height: 60px;
+					z-index: 20;
+					transition: transform 0.1s ease;
+					animation: birdFlap 0.3s infinite;
+				}
+
+				.flappy-bird.crashed {
+					animation: birdCrash 0.5s ease forwards;
+				}
+
+				@keyframes birdCrash {
+					0% { transform: rotate(0deg); }
+					100% { transform: rotate(90deg) translateY(100px); }
+				}
+
+				.flappy-bird-face {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+					border-radius: 50%;
+					border: 3px solid #FFD700;
+					box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+					position: relative;
+					z-index: 2;
+				}
+
+				.flappy-wings {
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					width: 100%;
+					height: 100%;
+					z-index: 1;
+				}
+
+				.wing {
+					position: absolute;
+					width: 20px;
+					height: 15px;
+					background: rgba(255, 215, 0, 0.6);
+					border-radius: 50%;
+					top: 50%;
+					transform: translateY(-50%);
+				}
+
+				.wing-left {
+					left: -10px;
+					animation: wingFlapLeft 0.3s infinite;
+				}
+
+				.wing-right {
+					right: -10px;
+					animation: wingFlapRight 0.3s infinite;
+				}
+
+				@keyframes birdFlap {
+					0%, 100% { transform: rotate(-5deg); }
+					50% { transform: rotate(5deg); }
+				}
+
+				@keyframes wingFlapLeft {
+					0%, 100% { transform: translateY(-50%) rotate(-20deg); }
+					50% { transform: translateY(-50%) rotate(20deg); }
+				}
+
+				@keyframes wingFlapRight {
+					0%, 100% { transform: translateY(-50%) rotate(20deg); }
+					50% { transform: translateY(-50%) rotate(-20deg); }
+				}
+
+				/* Pipes Container */
+				.pipes-container {
+					position: absolute;
+					width: 100%;
+					height: 100%;
+					top: 0;
+					left: 0;
+					overflow: visible;
+				}
+
+				/* Pipes (Skills) */
+				.flappy-pipe {
+					position: absolute;
+					width: 80px;
+					height: 100%;
+					z-index: 10;
+					pointer-events: none;
+					cursor: default;
+				}
+
+				.pipe-segment {
+					position: absolute;
+					width: 100%;
+					left: 0;
+					pointer-events: none;
+					background: linear-gradient(to right, #4CAF50 0%, #45a049 50%, #4CAF50 100%);
+					border-left: 4px solid #2E7D32;
+					border-right: 4px solid #2E7D32;
+					display: flex;
+					flex-direction: column;
+				}
+
+				.pipe-top {
+					top: 0;
+				}
+
+				.pipe-bottom {
+					bottom: 60px;
+				}
+
+				.pipe-cap {
+					width: 100%;
+					height: 30px;
+					background: linear-gradient(to right, #66BB6A 0%, #4CAF50 50%, #66BB6A 100%);
+					border-left: 4px solid #2E7D32;
+					border-right: 4px solid #2E7D32;
+					border-top: 4px solid #2E7D32;
+					border-radius: 8px 8px 0 0;
+					box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
+					flex-shrink: 0;
+				}
+
+				.pipe-bottom .pipe-cap {
+					border-radius: 0 0 8px 8px;
+					border-top: none;
+					border-bottom: 4px solid #2E7D32;
+					box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+					order: 2;
+				}
+
+				.pipe-body {
+					flex: 1;
+					min-height: 50px;
+					background: repeating-linear-gradient(
+						90deg,
+						#4CAF50 0px,
+						#4CAF50 10px,
+						#45a049 10px,
+						#45a049 20px
+					);
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					position: relative;
+				}
+
+				.pipe-bottom .pipe-body {
+					order: 1;
+				}
+
+				.pipe-gap {
+					position: absolute;
+					width: 100%;
+					left: 0;
+					z-index: 15;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					pointer-events: none;
+					cursor: default;
+				}
+
+				.gap-label {
+					background: rgba(255, 255, 255, 0.98);
+					color: #1B5E20;
+					padding: 0.6rem 1.2rem;
+					border-radius: 10px;
+					font-size: 0.95rem;
+					font-weight: 900;
+					text-transform: uppercase;
+					border: 3px solid #2E7D32;
+					box-shadow: 0 0 15px rgba(255, 255, 255, 1), 0 4px 10px rgba(0, 0, 0, 0.3);
+					white-space: nowrap;
+					position: absolute;
+					left: 50%;
+					z-index: 30;
+					letter-spacing: 1px;
+					text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+					min-width: max-content;
+					pointer-events: none;
+				}
+
+				.pipe-skill-icon {
+					width: 40px;
+					height: 40px;
+					background: rgba(255, 255, 255, 0.9);
+					border-radius: 8px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					color: var(--skill-color);
+					border: 2px solid var(--skill-color);
+					box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+				}
+
+				.flappy-pipe.current {
+					animation: pipePulse 1s infinite;
+				}
+
+				.flappy-pipe.collected {
+					opacity: 0.5;
+					filter: grayscale(50%);
+				}
+
+				.pipe-collected-effect {
+					position: absolute;
+					left: 50%;
+					transform: translateX(-50%) translateY(-50%);
+					width: 60px;
+					height: 60px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					z-index: 25;
+					pointer-events: none;
+				}
+
+				.collected-check {
+					width: 40px;
+					height: 40px;
+					background: #4CAF50;
+					border-radius: 50%;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					color: white;
+					font-size: 24px;
+					font-weight: 900;
+					box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+					animation: checkPop 0.5s ease;
+				}
+
+				@keyframes pipePulse {
+					0%, 100% { transform: scaleX(1); }
+					50% { transform: scaleX(1.05); }
+				}
+
+				@keyframes checkPop {
+					0% { transform: scale(0); }
+					50% { transform: scale(1.2); }
+					100% { transform: scale(1); }
+				}
+
+				/* Ground */
+				.flappy-ground {
+					position: absolute;
+					bottom: 0;
+					left: 0;
+					width: 100%;
+					height: 60px;
+					background: linear-gradient(to bottom, #8B4513 0%, #654321 100%);
+					border-top: 4px solid #5D4037;
+					z-index: 5;
+				}
+
+				.flappy-ground::before {
+					content: '';
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 10px;
+					background: repeating-linear-gradient(
+						90deg,
+						#8B4513 0px,
+						#8B4513 20px,
+						#654321 20px,
+						#654321 40px
+					);
+				}
+
+				/* Skill Info Card */
+				.flappy-skill-info {
+					position: absolute;
+					bottom: 2rem;
+					left: 50%;
+					transform: translateX(-50%);
+					width: 90%;
+					max-width: 500px;
+					z-index: 50;
+				}
+
+				.flappy-skill-card {
+					background: rgba(0, 0, 0, 0.95);
+					border: 3px solid #4CAF50;
+					border-radius: 16px;
+					padding: 1.5rem 2rem;
+					display: flex;
+					align-items: center;
+					gap: 1.5rem;
+					backdrop-filter: blur(10px);
+					box-shadow: 0 10px 30px rgba(76, 175, 80, 0.5);
+					transition: all 0.3s ease;
+				}
+
+				.flappy-skill-card.collected {
+					border-color: #FFD700;
+					box-shadow: 0 10px 30px rgba(255, 215, 0, 0.5);
+				}
+
+				.flappy-skill-icon {
+					width: 60px;
+					height: 60px;
+					background: rgba(76, 175, 80, 0.2);
+					border-radius: 12px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					border: 2px solid #4CAF50;
+					color: #4CAF50;
+					flex-shrink: 0;
+				}
+
+				.flappy-skill-card.collected .flappy-skill-icon {
+					background: rgba(255, 215, 0, 0.2);
+					border-color: #FFD700;
+					color: #FFD700;
+				}
+
+				.flappy-skill-details {
+					flex: 1;
+				}
+
+				.flappy-skill-name {
+					font-size: 1.5rem;
+					font-weight: 900;
+					color: #4CAF50;
+					margin: 0 0 0.5rem 0;
+					text-transform: uppercase;
+				}
+
+				.flappy-skill-category {
+					font-size: 0.9rem;
+					color: rgba(255, 255, 255, 0.7);
+					font-weight: 600;
+					text-transform: uppercase;
+					display: block;
+					margin-bottom: 0.5rem;
+				}
+
+				.flappy-skill-description {
+					font-size: 0.95rem;
+					color: rgba(255, 255, 255, 0.9);
+					font-weight: 600;
+					margin-top: 0.5rem;
+				}
+
+				.flappy-skill-card.collected .flappy-skill-name {
+					color: #FFD700;
+				}
+
+				.flappy-skill-card.collected .flappy-skill-description {
+					color: #FFD700;
+				}
+
+				/* Score Display */
+				.flappy-score {
+					position: absolute;
+					top: 2rem;
+					right: 2rem;
+					z-index: 50;
+					background: rgba(0, 0, 0, 0.8);
+					border: 3px solid #4CAF50;
+					border-radius: 12px;
+					padding: 1rem 1.5rem;
+					backdrop-filter: blur(10px);
+				}
+
+				.score-item {
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					gap: 0.5rem;
+				}
+
+				.score-label {
+					font-size: 0.9rem;
+					color: #4CAF50;
+					font-weight: 700;
+					text-transform: uppercase;
+					letter-spacing: 1px;
+				}
+
+				.score-value {
+					font-size: 2rem;
+					color: #FFD700;
+					font-weight: 900;
+					font-family: 'Courier New', monospace;
+				}
+
+				/* End Flag */
+				.flappy-flag {
+					position: absolute;
+					bottom: 60px;
+					z-index: 15;
+				}
+
+				.flag-pole {
+					width: 8px;
+					height: 200px;
+					background: #8B4513;
+					border: 2px solid #654321;
+					position: relative;
+				}
+
+				.flag-banner {
+					position: absolute;
+					top: 0;
+					left: 8px;
+					width: 120px;
+					height: 80px;
+					background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+					border: 3px solid #FF8C00;
+					clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+					animation: flagWave 2s ease-in-out infinite;
+				}
+
+				.flag-text {
+					font-size: 1.2rem;
+					font-weight: 900;
+					color: #000000;
+					text-transform: uppercase;
+					letter-spacing: 2px;
+					transform: rotate(-5deg);
+				}
+
+				@keyframes flagWave {
+					0%, 100% { transform: rotateY(0deg); }
+					50% { transform: rotateY(10deg); }
+				}
+
+				/* Light Mode */
+				.app.color-mode .skills-flappy-section {
+					background: transparent;
+				}
+
+				.app.color-mode .flappy-game-area {
+					background: #ffffff;
+					border-color: #4CAF50;
+				}
+
+				.app.color-mode .flappy-sky {
+					background: #ffffff;
+				}
+
+				.app.color-mode .flappy-skill-card {
+					background: rgba(255, 255, 255, 0.98);
+				}
+
+				.app.color-mode .flappy-instructions {
+					background: rgba(255, 255, 255, 0.95);
+					border-color: #4CAF50;
+				}
+
+				.app.color-mode .instructions-content p {
+					color: #000000;
+				}
+
+				.app.color-mode .spacebar-hint {
+					color: #000000;
+					background: rgba(0, 0, 0, 0.1);
+					border-color: #000000;
+				}
+
+				.app.color-mode .flappy-game-over {
+					background: rgba(255, 255, 255, 0.95);
+					border-color: #FFD700;
+				}
+
+				.app.color-mode .game-over-content p {
+					color: #000000;
+				}
+
+				.app.color-mode .pipe-skill-icon {
+					background: rgba(0, 0, 0, 0.9);
+					box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+				}
+
+				/* Responsive */
+				@media (max-width: 768px) {
+					.flappy-game-area {
+						min-height: 400px;
+					}
+
+					.flappy-bird {
+						width: 40px;
+						height: 40px;
+					}
+
+					.flappy-pipe {
+						width: 60px;
+					}
+
+					.flappy-controls {
+						flex-direction: column;
+					}
+
+					.flappy-btn {
+						width: 100%;
+					}
+				}
+
+				/* Game Style Skill Card */
+				.skill-game-card {
+					flex: 0 0 100%;
+					width: 100%;
+					max-width: 100%;
+					min-width: 0;
+					margin-right: 0;
+					padding: 2rem;
+					position: relative;
+					cursor: pointer;
+					box-sizing: border-box;
+				}
+
+				.skill-game-card-inner {
+					background: rgba(20, 20, 25, 0.95);
+					border: 3px solid rgba(255, 255, 255, 0.2);
+					border-radius: 24px;
+					padding: 2rem;
+					display: grid;
+					grid-template-columns: 250px 1fr;
+					gap: 2rem;
+					position: relative;
+					overflow: hidden;
+					transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+					backdrop-filter: blur(10px);
+					-webkit-backdrop-filter: blur(10px);
+				}
+
+				.skill-game-card.active .skill-game-card-inner {
+					border-color: var(--skill-color);
+					box-shadow: 
+						0 0 30px rgba(var(--skill-color-rgb, 97, 218, 251), 0.3),
+						0 10px 40px rgba(0, 0, 0, 0.4);
+					transform: scale(1.02);
+				}
+
+				.skill-game-card.selected .skill-game-card-inner {
+					border-color: var(--skill-color);
+					box-shadow: 
+						0 0 50px rgba(var(--skill-color-rgb, 97, 218, 251), 0.5),
+						0 15px 50px rgba(0, 0, 0, 0.5);
+					animation: skillPulse 0.6s ease;
+				}
+
+				/* Profile Section */
+				.skill-profile-section {
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					justify-content: center;
+					gap: 1rem;
+				}
+
+				.skill-profile-image-wrapper {
+					position: relative;
+					width: 180px;
+					height: 180px;
+					border-radius: 50%;
+					overflow: hidden;
+					border: 4px solid var(--skill-color);
+					box-shadow: 0 0 30px rgba(var(--skill-color-rgb, 97, 218, 251), 0.4);
+					transition: all 0.4s ease;
+				}
+
+				.skill-game-card.active .skill-profile-image-wrapper {
+					transform: scale(1.05);
+					box-shadow: 0 0 40px rgba(var(--skill-color-rgb, 97, 218, 251), 0.6);
+				}
+
+				.skill-profile-image {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+					display: block;
+				}
+
+				.skill-profile-glow {
+					position: absolute;
+					top: -50%;
+					left: -50%;
+					width: 200%;
+					height: 200%;
+					background: radial-gradient(circle, var(--skill-color) 0%, transparent 70%);
+					opacity: 0.3;
+					animation: skillGlowRotate 3s linear infinite;
+				}
+
+				.skill-profile-name {
+					font-size: 1.5rem;
+					font-weight: 900;
+					color: #ffffff;
+					text-transform: uppercase;
+					letter-spacing: 2px;
+				}
+
+				.skill-profile-level {
+					font-size: 0.9rem;
+					color: var(--skill-color);
+					font-weight: 700;
+					text-transform: uppercase;
+					letter-spacing: 1px;
+					padding: 0.5rem 1rem;
+					background: rgba(var(--skill-color-rgb, 97, 218, 251), 0.1);
+					border-radius: 20px;
+					border: 1px solid var(--skill-color);
+				}
+
+				/* Skill Card Section */
+				.skill-card-section {
+					display: flex;
+					flex-direction: column;
+					justify-content: space-between;
+					gap: 1.5rem;
+				}
+
+				.skill-card-header {
+					display: flex;
+					align-items: center;
+					gap: 1.5rem;
+				}
+
+				.skill-card-icon-wrapper {
+					width: 80px;
+					height: 80px;
+					border-radius: 16px;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					background: rgba(var(--skill-color-rgb, 97, 218, 251), 0.2);
+					color: var(--skill-color);
+					border: 2px solid var(--skill-color);
+					transition: all 0.3s ease;
+				}
+
+				.skill-game-card.active .skill-card-icon-wrapper {
+					background: var(--skill-color);
+					color: #ffffff;
+					transform: rotate(5deg) scale(1.1);
+				}
+
+				.skill-card-info {
+					flex: 1;
+				}
+
+				.skill-card-name {
+					font-size: 2rem;
+					font-weight: 900;
+					color: #ffffff;
+					margin: 0 0 0.5rem 0;
+					text-transform: uppercase;
+					letter-spacing: 1px;
+				}
+
+				.skill-card-category {
+					font-size: 0.9rem;
+					color: var(--skill-color);
+					font-weight: 600;
+					text-transform: uppercase;
+					letter-spacing: 1px;
+				}
+
+				.skill-card-stats {
+					display: flex;
+					flex-direction: column;
+					gap: 1rem;
+				}
+
+				.skill-stat {
+					display: flex;
+					flex-direction: column;
+					gap: 0.5rem;
+				}
+
+				.skill-stat-label {
+					font-size: 0.85rem;
+					color: rgba(255, 255, 255, 0.7);
+					font-weight: 600;
+					text-transform: uppercase;
+					letter-spacing: 0.5px;
+				}
+
+				.skill-stat-bar {
+					height: 8px;
+					background: rgba(255, 255, 255, 0.1);
+					border-radius: 4px;
+					overflow: hidden;
+					position: relative;
+				}
+
+				.skill-stat-fill {
+					height: 100%;
+					background: linear-gradient(90deg, var(--skill-color), rgba(var(--skill-color-rgb, 97, 218, 251), 0.6));
+					border-radius: 4px;
+					transition: width 0.6s ease;
+					box-shadow: 0 0 10px var(--skill-color);
+				}
+
+				/* Skill Card Effect */
+				.skill-card-effect {
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					pointer-events: none;
+					overflow: hidden;
+					border-radius: 24px;
+				}
+
+				.skill-effect-particles {
+					position: absolute;
+					width: 100%;
+					height: 100%;
+				}
+
+				.skill-particle {
+					position: absolute;
+					width: 8px;
+					height: 8px;
+					background: var(--skill-color);
+					border-radius: 50%;
+					animation: skillParticleFloat 1.5s ease-out forwards;
+					box-shadow: 0 0 10px var(--skill-color);
+				}
+
+				.skill-effect-text {
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					font-size: 3rem;
+					font-weight: 900;
+					color: var(--skill-color);
+					text-transform: uppercase;
+					letter-spacing: 4px;
+					text-shadow: 0 0 20px var(--skill-color);
+					animation: skillTextPulse 0.6s ease;
+				}
+
+				/* Animations */
+				@keyframes skillPulse {
+					0%, 100% { transform: scale(1); }
+					50% { transform: scale(1.05); }
+				}
+
+				@keyframes skillGlowRotate {
+					from { transform: rotate(0deg); }
+					to { transform: rotate(360deg); }
+				}
+
+				@keyframes skillParticleFloat {
+					0% {
+						opacity: 1;
+						transform: translate(-50%, -50%) translate(0, 0) scale(1);
+					}
+					100% {
+						opacity: 0;
+						transform: translate(-50%, -50%) translate(var(--tx, 0), var(--ty, -100px)) scale(0);
+					}
+				}
+
+				@keyframes skillTextPulse {
+					0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+					50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+					100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+				}
+
+				/* Light Mode Adjustments */
+				.app.color-mode .skill-game-card-inner {
+					background: #faf9f6;
+					border-color: rgba(0, 0, 0, 0.2);
+				}
+
+				.app.color-mode .skill-profile-name,
+				.app.color-mode .skill-card-name {
+					color: #1a1a1a;
+				}
+
+				.app.color-mode .skill-stat-label {
+					color: rgba(0, 0, 0, 0.7);
+				}
+
+				.app.color-mode .skill-stat-bar {
+					background: rgba(0, 0, 0, 0.1);
+				}
+
+				/* Responsive */
+				@media (max-width: 960px) {
+					.skills-game-wrapper {
+						padding: 0 60px;
+					}
+
+					.skill-game-card-inner {
+						grid-template-columns: 1fr;
+						gap: 1.5rem;
+					}
+
+					.skill-profile-image-wrapper {
+						width: 120px;
+						height: 120px;
+					}
+
+					.skill-card-name {
+						font-size: 1.5rem;
+					}
+
+					.skill-effect-text {
+						font-size: 2rem;
+					}
+				}
+
+				@media (max-width: 720px) {
+					.skills-section {
+						padding: 4rem 0;
+					}
+
+					.skills-grid {
+						gap: 0.75rem;
+					}
+
+					.skill-card {
+						width: 100px;
+					}
+
+					.skills-category-title {
+						font-size: 1.25rem;
+					}
+
+					.skill-icon-wrapper {
+						width: 40px;
+						height: 40px;
+					}
+
+					.skill-name {
+						font-size: 0.8rem;
+					}
 				}
 
 
@@ -5254,6 +6573,159 @@ export default function App() {
 					</div>
 				</section>
 
+				{/* Skills Section - Flappy Bird Style */}
+				<section id="skills" className="section reveal tone-2 tone-sep skills-flappy-section">
+					<div className="container">
+						<h2>My Skills</h2>
+						<div className="flappy-game-wrapper">
+							{/* Instructions */}
+							{!gameStarted && !gameOver && (
+								<div className="flappy-instructions">
+									<div className="instructions-content">
+										<h3>Press SPACEBAR to Play!</h3>
+										<p>Use SPACEBAR to make the bird fly up</p>
+										<p>Collect all {skills.length} skills by flying through the pipes</p>
+										<div className="spacebar-hint">⌨️ SPACE</div>
+									</div>
+								</div>
+							)}
+
+							{/* Game Over Screen */}
+							{gameOver && (
+								<div className="flappy-game-over">
+									<div className="game-over-content">
+										<h3>{collectedSkillsCount === skills.length ? '🎉 All Skills Collected!' : 'Game Over!'}</h3>
+										<button className="flappy-btn-restart" onClick={jumpBird}>
+											Press SPACEBAR to Restart
+										</button>
+									</div>
+								</div>
+							)}
+
+							{/* Flappy Bird Game Area */}
+							<div className="flappy-game-area" onClick={jumpBird} style={{ cursor: 'pointer' }}>
+								{/* Sky Background */}
+								<div className="flappy-sky">
+									{/* Clouds */}
+									<div className="flappy-cloud cloud-1"></div>
+									<div className="flappy-cloud cloud-2"></div>
+									<div className="flappy-cloud cloud-3"></div>
+
+									{/* Bird Character (Profile) */}
+									<div className={`flappy-bird ${gameOver ? 'crashed' : ''}`} style={{ 
+										top: `${birdPosition}%`,
+										left: '20%',
+										transform: `rotate(${Math.min(30, birdVelocity * 3)}deg)`
+									}}>
+										<img 
+											src="/iniciativa-propone-enfoque-integral-educacion.png" 
+											alt="Manuel" 
+											className="flappy-bird-face"
+										/>
+										<div className="flappy-wings">
+											<div className="wing wing-left"></div>
+											<div className="wing wing-right"></div>
+										</div>
+									</div>
+
+									{/* Skills as Pipes/Bars */}
+									<div className="pipes-container" style={{
+										transform: `translateX(${-scrollOffset}px)`
+									}}>
+										{skills.map((skill, index) => {
+												const SkillIcon = skill.icon
+											const isCollected = collectedSkillsSet.current.has(index)
+											
+											// Calculate pipe position (spaced 200px apart for easier gameplay)
+											const pipePosition = 400 + (index * 200)
+											const gapPosition = 15 + (index % 3) * 20 // Gap position varies (15-55%)
+											const gapSize = 70 // Much larger gap size for easier passage
+											
+											// Only render pipes near viewport - wider range to prevent cutoffs
+											const viewportLeft = scrollOffset - 300
+											const viewportRight = scrollOffset + 1200
+											if (pipePosition < viewportLeft || pipePosition > viewportRight) {
+												return null
+											}
+											
+												return (
+													<div
+														key={skill.id}
+													className={`flappy-pipe ${isCollected ? 'collected' : ''}`}
+														style={{
+														left: `${pipePosition}px`,
+														'--skill-color': skill.color,
+														'--gap-top': `${gapPosition}%`,
+														'--gap-size': `${gapSize}%`
+														} as React.CSSProperties}
+													>
+													{/* Top Pipe */}
+													<div className="pipe-segment pipe-top" style={{
+														height: `${gapPosition}%`
+													} as React.CSSProperties}>
+														<div className="pipe-cap"></div>
+														<div className="pipe-body">
+															<div className="pipe-skill-icon">
+																<SkillIcon size={32} />
+															</div>
+														</div>
+													</div>
+
+													{/* Gap (where bird flies through) */}
+													<div className="pipe-gap" style={{
+														top: `${gapPosition}%`,
+														height: `${gapSize}%`
+													} as React.CSSProperties}>
+														<div className="gap-label" style={{
+															top: gapPosition + gapSize > 80 ? '20%' : '50%',
+															transform: gapPosition + gapSize > 80 ? 'translate(-50%, 0)' : 'translate(-50%, -50%)'
+														} as React.CSSProperties}>{skill.name}</div>
+													</div>
+
+													{/* Bottom Pipe */}
+													<div className="pipe-segment pipe-bottom" style={{
+														top: `${gapPosition + gapSize}%`,
+														bottom: '60px'
+													} as React.CSSProperties}>
+														<div className="pipe-body">
+															<div className="pipe-skill-icon">
+																<SkillIcon size={32} />
+															</div>
+														</div>
+														<div className="pipe-cap"></div>
+													</div>
+
+													{/* Collection Effect */}
+													{isCollected && (
+														<div className="pipe-collected-effect" style={{
+															top: `${gapPosition + gapSize / 2}%`
+														} as React.CSSProperties}>
+															<div className="collected-check">✓</div>
+														</div>
+													)}
+									</div>
+								)
+							})}
+
+										{/* End Flag */}
+										<div className="flappy-flag" style={{
+											left: `${400 + (skills.length * 200) + 50}px`
+										}}>
+											<div className="flag-pole"></div>
+											<div className="flag-banner">
+												<div className="flag-text">FINISH</div>
+											</div>
+										</div>
+									</div>
+
+									{/* Ground */}
+									<div className="flappy-ground"></div>
+								</div>
+
+							</div>
+						</div>
+					</div>
+				</section>
 
 				<section id="resume" className="section reveal tone-2 tone-sep">
 					<div className="container">
@@ -5407,10 +6879,32 @@ export default function App() {
 				<section id="articles" className="section reveal tone-1 tone-sep">
 					<div className="container">
 						<h2>Article Mentions</h2>
-						<div className="articles-grid">
+						<div className="articles-carousel-wrapper">
+							<div className="articles-carousel">
+								<div 
+									className="articles-container"
+									style={{ transform: `translateX(-${currentArticleIndex * 100}%)` }}
+								>
 							{articles.map((article, index) => (
 								<ArticleCard key={article.id} article={article} index={index} />
 							))}
+								</div>
+							</div>
+							<button className="carousel-arrows carousel-prev" onClick={prevArticle}>
+								<ChevronLeft size={24} />
+							</button>
+							<button className="carousel-arrows carousel-next" onClick={nextArticle}>
+								<ChevronRight size={24} />
+							</button>
+							<div className="carousel-indicators">
+								{articles.map((_, index) => (
+									<button
+										key={index}
+										className={`carousel-indicator ${currentArticleIndex === index ? 'active' : ''}`}
+										onClick={() => setCurrentArticleIndex(index)}
+									/>
+								))}
+							</div>
 						</div>
 					</div>
 				</section>
@@ -5464,27 +6958,42 @@ function ProjectCard({ title, description, tags, status, link }: {
 
 function ArticleCard({ article, index }: { article: any, index: number }) {
 	return (
-		<div className="article-card" style={{ animationDelay: `${index * 0.2}s` }}>
-			<div className="article-image-container">
-				<img src={article.image} alt={article.title} className="article-image" />
-				<div className="article-overlay"></div>
+		<div className="newspaper-card">
+			{/* Newspaper Header */}
+			<div className="newspaper-header">
+				<div className="newspaper-masthead">
+					<div className="newspaper-name">{article.publication}</div>
+					<div className="newspaper-date">{article.date}</div>
 			</div>
-			<div className="article-header">
-				<div className="article-category">{article.category}</div>
-				<div className="article-meta">
-					<span className="article-date">{article.date}</span>
-					<span className="article-read-time">{article.readTime}</span>
+				<div className="newspaper-divider"></div>
 				</div>
+
+			{/* Main Content Area */}
+			<div className="newspaper-body">
+				{/* Left Column - Image */}
+				<div className="newspaper-column newspaper-image-column">
+					<div className="newspaper-image-wrapper">
+						<img src={article.image} alt={article.title} className="newspaper-image" />
+						<div className="newspaper-image-caption">{article.category}</div>
 			</div>
-			<div className="article-content">
-				<h3 className="article-title">{article.title}</h3>
-				<p className="article-publication">{article.publication}</p>
-				<p className="article-description">{article.description}</p>
 			</div>
-			<div className="article-footer">
+
+				{/* Right Column - Article */}
+				<div className="newspaper-column newspaper-text-column">
+					<div className="newspaper-headline">{article.title}</div>
+					<div className="newspaper-byline">
+						<span className="newspaper-section">{article.category}</span>
+						<span className="newspaper-separator">•</span>
+						<span className="newspaper-read-time">{article.readTime}</span>
+					</div>
+					<div className="newspaper-divider-small"></div>
+					<div className="newspaper-body-text">
+						{article.description}
+					</div>
+					<div className="newspaper-continued">
 				<a 
 					href={article.link} 
-					className="article-link" 
+							className="newspaper-link" 
 					target="_blank" 
 					rel="noopener noreferrer"
 					onClick={(e) => {
@@ -5497,8 +7006,15 @@ function ArticleCard({ article, index }: { article: any, index: number }) {
 						}
 					}}
 				>
-					Read Article →
-				</a>
+							Continue Reading →
+						</a>
+					</div>
+				</div>
+			</div>
+
+			{/* Newspaper Footer */}
+			<div className="newspaper-footer">
+				<div className="newspaper-divider"></div>
 			</div>
 		</div>
 	)
