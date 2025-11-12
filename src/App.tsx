@@ -1305,7 +1305,7 @@ export default function App() {
 				}
 				
 				.title {
-					font-family: 'Futura', sans-serif;
+					font-family: 'Pacifico', cursive;
 					font-size: clamp(2.5rem, 5vw, 4rem);
 					font-weight: normal;
 					line-height: 1.1;
@@ -2185,7 +2185,7 @@ export default function App() {
 				}
 				
 				.section h2 {
-					font-family: 'Futura', sans-serif;
+					font-family: 'Pacifico', cursive;
 					font-size: 3.5rem;
 					font-weight: normal;
 					margin-bottom: 3rem;
