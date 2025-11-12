@@ -5365,8 +5365,15 @@ export default function App() {
 				}
 
 				.app.color-mode .pipe-skill-icon {
-					background: rgba(0, 0, 0, 0.9);
-					box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+					background: rgba(255, 255, 255, 0.95);
+					border: 2px solid var(--skill-color);
+					color: var(--skill-color);
+					box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+				}
+
+				.app.color-mode .pipe-skill-icon svg {
+					color: var(--skill-color);
+					fill: var(--skill-color);
 				}
 
 				/* Responsive */
@@ -6461,7 +6468,7 @@ export default function App() {
 											{/* 3D Avatar - Fixed at top */}
 											<div className="chat-avatar">
 												<img 
-													src="/b5d45f39-8e44-4be3-a96d-f6d5a7d75eee.mp4 (1).gif" 
+													src="/b5d45f39-8e44-4be3-a96d-f6d5a7d75eee.mp4 (1) (1).gif" 
 													alt="Manuel Peña Morros 3D Avatar" 
 													className="avatar-gif"
 												/>
