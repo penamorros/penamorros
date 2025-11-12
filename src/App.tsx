@@ -6456,7 +6456,7 @@ export default function App() {
 								<div className="coin-inner">
 									<div className="coin-front">
 										<img
-											src="/Diseno-sin-titulo-97.png"
+											src="/Untitled design (1).gif"
 											alt="Portrait of Manuel Peña Morros"
 											className="hero-photo"
 											decoding="async"
