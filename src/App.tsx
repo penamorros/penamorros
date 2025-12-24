@@ -640,35 +640,84 @@ export default function App() {
 		})
 
 		try {
-			console.log('📤 Making request to OpenAI API via Netlify Function...')
+			// Check if we're in development mode and have API key for local testing
+			const isDev = import.meta.env.DEV
+			const devApiKey = import.meta.env.VITE_OPENAI_API_KEY
+			const useDirectApi = isDev && devApiKey
 			
-			// Use Netlify Function to proxy OpenAI API calls
-			const functionUrl = '/.netlify/functions/chat'
+			let response: Response
+			let data: any
 			
-			const response = await fetch(functionUrl, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					model: 'gpt-3.5-turbo',
-					messages: [
-						{
-							role: 'system',
-							content: 'You are Manuel Peña-Morros, a full-stack engineer passionate about building scalable systems and elegant user experiences. You enjoy solving complex problems with clean, data-driven solutions and intuitive design. You are friendly, professional, and genuinely enthusiastic about technology, thriving in environments that combine creativity with engineering precision. Currently studying Computer Science at Tulane University (Dean\'s List, Fall 2025) after graduating from The American School Foundation\'s International Baccalaureate program in Mexico City, you bring both analytical rigor and creative vision to your work. At TV Azteca, you engineered a Python-based automation system that collects and monitors weekly Lighthouse performance metrics for over 600 URLs (HTML and AMP), boosting efficiency by 40% through automation, while developing link-tracking tools and digital dashboards in React to visualize over 2,000 real-time events. At UnifAI in New York (June 2025 - August 2025), you focused on the frontend, creating responsive UIs with React, TypeScript, and TailwindCSS, implementing real-time charts and drill-down features, and delivering a UI refactor that improved engagement by 25%. As founder and CEO of Diaita, a wellness startup addressing obesity and diabetes in Mexico, you led product design and strategy, collaborated with nutrition pioneer Barry Sears, achieved 1,000+ downloads and $3,000 USD in revenue, and helped 500 clients build sustainable health habits. Keep responses conversational and concise, as if you\'re chatting with someone who visited your portfolio.'
-						},
-						...newMessages
-					],
-					max_tokens: 150,
-					temperature: 0.7
+			if (useDirectApi) {
+				// Use direct API call in development (for local testing)
+				console.log('📤 Making direct request to OpenAI API (dev mode)...')
+				
+				response = await fetch('https://api.openai.com/v1/chat/completions', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${devApiKey}`
+					},
+					body: JSON.stringify({
+						model: 'gpt-3.5-turbo',
+						messages: [
+							{
+								role: 'system',
+								content: 'You are Manuel Peña-Morros, a full-stack engineer passionate about building scalable systems and elegant user experiences. You enjoy solving complex problems with clean, data-driven solutions and intuitive design. You are friendly, professional, and genuinely enthusiastic about technology, thriving in environments that combine creativity with engineering precision. Currently studying Computer Science at Tulane University (Dean\'s List, Fall 2025) after graduating from The American School Foundation\'s International Baccalaureate program in Mexico City, you bring both analytical rigor and creative vision to your work. At TV Azteca, you engineered a Python-based automation system that collects and monitors weekly Lighthouse performance metrics for over 600 URLs (HTML and AMP), boosting efficiency by 40% through automation, while developing link-tracking tools and digital dashboards in React to visualize over 2,000 real-time events. At UnifAI in New York (June 2025 - August 2025), you focused on the frontend, creating responsive UIs with React, TypeScript, and TailwindCSS, implementing real-time charts and drill-down features, and delivering a UI refactor that improved engagement by 25%. As founder and CEO of Diaita, a wellness startup addressing obesity and diabetes in Mexico, you led product design and strategy, collaborated with nutrition pioneer Barry Sears, achieved 1,000+ downloads and $3,000 USD in revenue, and helped 500 clients build sustainable health habits. Keep responses conversational and concise, as if you\'re chatting with someone who visited your portfolio.'
+							},
+							...newMessages
+						],
+						max_tokens: 150,
+						temperature: 0.7
+					})
 				})
-			})
-
-			const data = await response.json()
-			console.log('📥 OpenAI Response:', data)
+				
+				data = await response.json()
+				console.log('📥 OpenAI API Response:', data)
+			} else {
+				// Use Netlify Function in production or when running with netlify dev
+				console.log('📤 Making request to OpenAI API via Netlify Function...')
+				
+				const functionUrl = '/.netlify/functions/chat'
+				
+				response = await fetch(functionUrl, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						model: 'gpt-3.5-turbo',
+						messages: [
+							{
+								role: 'system',
+								content: 'You are Manuel Peña-Morros, a full-stack engineer passionate about building scalable systems and elegant user experiences. You enjoy solving complex problems with clean, data-driven solutions and intuitive design. You are friendly, professional, and genuinely enthusiastic about technology, thriving in environments that combine creativity with engineering precision. Currently studying Computer Science at Tulane University (Dean\'s List, Fall 2025) after graduating from The American School Foundation\'s International Baccalaureate program in Mexico City, you bring both analytical rigor and creative vision to your work. At TV Azteca, you engineered a Python-based automation system that collects and monitors weekly Lighthouse performance metrics for over 600 URLs (HTML and AMP), boosting efficiency by 40% through automation, while developing link-tracking tools and digital dashboards in React to visualize over 2,000 real-time events. At UnifAI in New York (June 2025 - August 2025), you focused on the frontend, creating responsive UIs with React, TypeScript, and TailwindCSS, implementing real-time charts and drill-down features, and delivering a UI refactor that improved engagement by 25%. As founder and CEO of Diaita, a wellness startup addressing obesity and diabetes in Mexico, you led product design and strategy, collaborated with nutrition pioneer Barry Sears, achieved 1,000+ downloads and $3,000 USD in revenue, and helped 500 clients build sustainable health habits. Keep responses conversational and concise, as if you\'re chatting with someone who visited your portfolio.'
+							},
+							...newMessages
+						],
+						max_tokens: 150,
+						temperature: 0.7
+					})
+				})
+				
+				// Check if response has content before parsing JSON
+				const responseText = await response.text()
+				if (!responseText) {
+					throw new Error('Empty response from function. Make sure you\'re running with "netlify dev" or the function is deployed.')
+				}
+				
+				try {
+					data = JSON.parse(responseText)
+					console.log('📥 Function Response:', data)
+				} catch (parseError) {
+					console.error('Failed to parse response:', responseText)
+					throw new Error(`Invalid response from function: ${responseText.substring(0, 100)}`)
+				}
+			}
 			
 			if (!response.ok) {
-				throw new Error(`HTTP ${response.status}: ${data.error?.message || 'Unknown error'}`)
+				// Try to extract a more helpful error message
+				const errorMsg = data?.message || data?.error?.message || data?.error || `HTTP ${response.status}: Unknown error`
+				throw new Error(errorMsg)
 			}
 			
 			if (data.choices && data.choices[0]) {

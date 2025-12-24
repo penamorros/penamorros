@@ -30,9 +30,25 @@ After adding the environment variable, you need to trigger a new deployment:
 2. Click **Trigger deploy** → **Deploy site**
 3. Or push a new commit to trigger automatic deployment
 
-### 3. Local Development (Optional)
+### 3. Local Development
 
-For local development with Netlify Functions:
+You have two options for local development:
+
+#### Option A: Direct API (Easier for quick testing)
+
+1. Create a `.env` file in the project root:
+   ```
+   VITE_OPENAI_API_KEY=your-openai-api-key-here
+   ```
+
+2. Run the Vite dev server:
+   ```bash
+   npm run dev
+   ```
+
+   The app will automatically use direct API calls in development mode when `VITE_OPENAI_API_KEY` is set.
+
+#### Option B: Netlify Dev (Tests functions locally)
 
 1. Install Netlify CLI (if not already installed):
    ```bash
