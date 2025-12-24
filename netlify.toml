@@ -17,6 +17,13 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
 
 # Redirect rules
+# Don't redirect Netlify Functions
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Redirect all other routes to index.html for SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"

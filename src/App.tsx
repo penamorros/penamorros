@@ -640,20 +640,15 @@ export default function App() {
 		})
 
 		try {
-			const apiKey = (import.meta as any).env.VITE_OPENAI_API_KEY
-			console.log('🔑 API Key loaded:', apiKey ? 'Yes' : 'No')
+			console.log('📤 Making request to OpenAI API via Netlify Function...')
 			
-			if (!apiKey) {
-				throw new Error('OpenAI API key not found in environment variables')
-			}
-
-			console.log('📤 Making request to OpenAI API...')
+			// Use Netlify Function to proxy OpenAI API calls
+			const functionUrl = '/.netlify/functions/chat'
 			
-			const response = await fetch('https://api.openai.com/v1/chat/completions', {
+			const response = await fetch(functionUrl, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${apiKey}`
 				},
 				body: JSON.stringify({
 					model: 'gpt-3.5-turbo',
