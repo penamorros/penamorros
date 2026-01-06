@@ -215,6 +215,24 @@ export default function App() {
 	useEffect(() => {
 		// Hide intro after GIF completes - wait longer to ensure full animation plays
 		if (showIntro) {
+			// Preload critical images in the background while signature animation plays
+			const imagesToPreload = [
+				'/Diseno-sin-titulo-97.png',
+				'/logo_ph.png%20%282%29.gif',
+				'/image.png',
+				'/iniciativa-propone-enfoque-integral-educacion.png',
+				'/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png',
+				'/tulane.svg',
+				'/lg-logo.png',
+				'/Tulane-University-Logo.png',
+				'/pena-morros-main-min.png'
+			]
+			
+			imagesToPreload.forEach(src => {
+				const img = new Image()
+				img.src = src
+			})
+			
 			// Wait for GIF to load and complete (typically 3-5 seconds for signature animations)
 			// Add extra time to ensure signature is fully visible at the end
 			const timer = setTimeout(() => {
@@ -1587,6 +1605,17 @@ export default function App() {
 					background: transparent;
 					transform: none;
 					transform-origin: center center;
+					opacity: 0;
+					animation: fadeInImage 0.5s ease-in 0.1s forwards;
+				}
+				
+				@keyframes fadeInImage {
+					from {
+						opacity: 0;
+					}
+					to {
+						opacity: 1;
+					}
 				}
 
 				.message-icon-overlay {
@@ -6943,6 +6972,7 @@ export default function App() {
 											className="hero-photo"
 											decoding="async"
 											loading="eager"
+											fetchPriority="high"
 										/>
 									</div>
 									<div className="coin-back">
@@ -6953,6 +6983,8 @@ export default function App() {
 													src="/logo_ph.png%20%282%29.gif" 
 													alt="Manuel Peña Morros 3D Avatar" 
 													className="avatar-gif"
+													loading="eager"
+													decoding="async"
 												/>
 											</div>
 											
@@ -7115,6 +7147,8 @@ export default function App() {
 											src="/iniciativa-propone-enfoque-integral-educacion.png" 
 											alt="Manuel" 
 											className="flappy-bird-face"
+											loading="lazy"
+											decoding="async"
 										/>
 										<div className="flappy-wings">
 											<div className="wing wing-left"></div>
@@ -7471,7 +7505,7 @@ function ArticleCard({ article, index }: { article: any, index: number }) {
 				{/* Left Column - Image */}
 				<div className="newspaper-column newspaper-image-column">
 					<div className="newspaper-image-wrapper">
-						<img src={article.image} alt={article.title} className="newspaper-image" />
+						<img src={article.image} alt={article.title} className="newspaper-image" loading="lazy" decoding="async" />
 						<div className="newspaper-image-caption">{article.category}</div>
 			</div>
 			</div>
@@ -7538,6 +7572,8 @@ function BusinessCard() {
 								src="/iniciativa-propone-enfoque-integral-educacion.png" 
 								alt="Manuel Peña Morros" 
 								className="business-card-photo"
+								loading="eager"
+								decoding="async"
 							/>
 						</div>
 						<div className="business-card-info">
@@ -7586,7 +7622,7 @@ function BusinessCard() {
 					
 					{/* Signature */}
 					<div className="business-card-signature">
-						<img src="/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png" alt="Manuel Peña Morros signature" className="signature-img" />
+						<img src="/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png" alt="Manuel Peña Morros signature" className="signature-img" loading="eager" decoding="async" />
 					</div>
 				</div>
 			</div>
@@ -7596,7 +7632,7 @@ function BusinessCard() {
 
 function Signature() {
 	return (
-		<img src="/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png" alt="Manuel Peña-Morros signature" className="signature-img" />
+		<img src="/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png" alt="Manuel Peña-Morros signature" className="signature-img" loading="eager" decoding="async" />
 	)
 }
 
