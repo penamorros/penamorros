@@ -33,3 +33,6 @@ dist-ssr
 *.mp4
 *.gif
 *.zip
+
+# Local Netlify folder
+.netlify

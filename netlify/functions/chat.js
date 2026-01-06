@@ -25,8 +25,8 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Get API key from environment variable
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Get API key from environment variable and trim whitespace
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
     
     if (!apiKey) {
       // Never log the actual key or any sensitive info
@@ -38,7 +38,22 @@ exports.handler = async (event, context) => {
         },
         body: JSON.stringify({ 
           error: 'Service configuration error',
-          message: 'API service is not properly configured'
+          message: 'API service is not properly configured. Please set OPENAI_API_KEY in Netlify environment variables.'
+        }),
+      };
+    }
+
+    // Validate API key format (should start with sk-)
+    if (!apiKey.startsWith('sk-')) {
+      return {
+        statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          error: 'Invalid API key format',
+          message: 'API key format is incorrect. Please check your OPENAI_API_KEY in Netlify environment variables.'
         }),
       };
     }

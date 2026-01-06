@@ -3501,7 +3501,7 @@ export default function App() {
 				}
 
 				.business-card-quote {
-					font-size: 1.5rem;
+					font-size: 1.2rem;
 					font-weight: 300;
 					color: rgba(0, 0, 0, 0.6);
 					text-align: center;
@@ -3673,8 +3673,8 @@ export default function App() {
 					color: #666;
 				}
 
-				/* Responsive design */
-				@media (max-width: 768px) {
+				/* Responsive design - Desktop only (overridden by mobile/tablet styles above) */
+				@media (max-width: 768px) and (min-width: 1025px) {
 					.business-card {
 						width: 90%;
 						max-width: 500px;
@@ -5912,7 +5912,189 @@ export default function App() {
 					}
 				}
 				
-				@media (max-width: 768px) {
+				/* Desktop-only message - hidden by default */
+				.desktop-only-message {
+					display: none;
+				}
+				
+				/* Mobile and Tablet: Hide all sections except contact */
+				@media (max-width: 1024px) {
+					/* Hide intro overlay on mobile */
+					.intro-overlay {
+						display: none !important;
+					}
+					
+					/* Hide scroll progress on mobile */
+					.scroll-progress {
+						display: none !important;
+					}
+					
+					/* Hide chat interface on mobile */
+					.chat-bubble-container {
+						display: none !important;
+					}
+					
+					/* Hide navigation on mobile */
+					.left-nav {
+						display: none !important;
+					}
+					
+					.color-toggle {
+						display: none !important;
+					}
+					
+					/* Hide all sections except contact */
+					.section:not(#contact) {
+						display: none !important;
+					}
+					
+					/* Hide footer on mobile */
+					.site-footer {
+						display: none !important;
+					}
+					
+					/* Show desktop-only message */
+					.desktop-only-message {
+						display: block !important;
+						text-align: center;
+						padding: 3rem 2.5rem;
+						background: rgba(255, 255, 255, 0.05);
+						border: 1px solid rgba(255, 255, 255, 0.1);
+						border-radius: 12px;
+						margin: 2rem auto 3rem auto;
+						max-width: 90%;
+					}
+					
+					.desktop-only-message h3 {
+						font-size: clamp(1.5rem, 4vw, 2rem);
+						margin-bottom: 1.5rem;
+						color: #ffffff;
+						line-height: 1.3;
+					}
+					
+					.desktop-only-message p {
+						font-size: clamp(1rem, 2.5vw, 1.2rem);
+						color: rgba(255, 255, 255, 0.8);
+						line-height: 1.7;
+					}
+					
+					.app.color-mode .desktop-only-message {
+						background: rgba(0, 0, 0, 0.05);
+						border-color: rgba(0, 0, 0, 0.1);
+					}
+					
+					.app.color-mode .desktop-only-message h3 {
+						color: #000000;
+					}
+					
+					.app.color-mode .desktop-only-message p {
+						color: rgba(0, 0, 0, 0.8);
+					}
+					
+					/* Ensure contact section is visible and centered */
+					#contact {
+						display: flex !important;
+						align-items: center;
+						justify-content: center;
+						min-height: 100vh;
+						padding: 2rem 0;
+					}
+					
+					#contact .container {
+						width: 100%;
+						max-width: 100%;
+						padding: 0 1.5rem;
+					}
+					
+					#contact h2 {
+						text-align: center;
+						margin-bottom: 3rem;
+						font-size: clamp(2rem, 5vw, 2.5rem);
+						line-height: 1.2;
+					}
+					
+					.business-card-container {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						width: 100%;
+						padding: 1rem;
+					}
+					
+					.business-card {
+						width: 100%;
+						max-width: 300px;
+						height: auto;
+						min-height: 175px;
+					}
+					
+					.business-card-content {
+						padding: 1.25rem 1rem !important;
+						gap: 1rem;
+						display: flex;
+						flex-direction: column;
+						justify-content: space-between;
+					}
+					
+					.business-card-top {
+						gap: 1rem !important;
+						margin-bottom: 0.75rem;
+					}
+					
+					.business-card-profile {
+						width: 50px !important;
+						height: 50px !important;
+						flex-shrink: 0;
+					}
+					
+					.business-card-name {
+						font-size: 1.2rem !important;
+						margin-bottom: 0.4rem !important;
+						line-height: 1.2;
+					}
+					
+					.business-card-title {
+						font-size: 0.7rem !important;
+						margin-bottom: 0.25rem !important;
+						line-height: 1.3;
+					}
+					
+					.business-card-location {
+						font-size: 0.65rem !important;
+						line-height: 1.3;
+					}
+					
+					.business-card-contact {
+						gap: 0.6rem !important;
+						margin-top: 1rem !important;
+					}
+					
+					.contact-item {
+						gap: 0.5rem !important;
+						font-size: 0.65rem !important;
+						padding: 0.25rem 0;
+						cursor: pointer;
+						line-height: 1.4;
+					}
+					
+					.contact-icon {
+						width: 12px !important;
+						height: 12px !important;
+						flex-shrink: 0;
+					}
+					
+					.business-card-signature {
+						bottom: 1rem !important;
+						right: 1rem !important;
+						width: 100px !important;
+						height: 40px !important;
+					}
+					
+					.business-card-quote {
+						font-size: 0.9rem !important;
+					}
+					
+					/* Original mobile styles continue below */
 					.left-nav {
 						left: 0.5rem;
 						padding: 0.5rem 0.3rem;
@@ -7216,6 +7398,10 @@ export default function App() {
 
 				<section id="contact" className="section alt reveal tone-1 tone-sep">
 					<div className="container">
+						<div className="desktop-only-message">
+							<h3>Desktop View Required</h3>
+							<p>This website is optimized for desktop viewing. Please visit on a desktop or laptop computer for the full experience.</p>
+						</div>
 						<h2>Contact Card</h2>
 						<BusinessCard />
 					</div>
