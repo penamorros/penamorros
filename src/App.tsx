@@ -6091,7 +6091,14 @@ export default function App() {
 					}
 					
 					.business-card-quote {
-						font-size: 0.9rem !important;
+						font-size: 0.75rem !important;
+					}
+					
+					/* Mobile only - smaller quote text */
+					@media (max-width: 768px) {
+						.business-card-quote {
+							font-size: 0.7rem !important;
+						}
 					}
 					
 					/* Original mobile styles continue below */
@@ -7902,8 +7909,7 @@ function TimelineComponent() {
 			type: 'education',
 			logo: '/tulane.svg',
 			achievements: [
-				'Computer Science major',
-				'Dean\'s List Fall 2025'
+				'Computer Science major'
 			],
 			images: [
 				'/Tulane-University-Logo.png',
