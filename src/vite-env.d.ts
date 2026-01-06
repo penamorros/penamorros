@@ -4,7 +4,6 @@ interface ImportMetaEnv {
   readonly DEV: boolean
   readonly PROD: boolean
   readonly MODE: string
-  readonly VITE_OPENAI_API_KEY?: string
 }
 
 interface ImportMeta {

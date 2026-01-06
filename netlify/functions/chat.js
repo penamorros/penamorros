@@ -29,7 +29,7 @@ exports.handler = async (event, context) => {
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
-      console.error('OPENAI_API_KEY not found in environment variables');
+      // Never log the actual key or any sensitive info
       return {
         statusCode: 500,
         headers: {
@@ -37,8 +37,8 @@ exports.handler = async (event, context) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          error: 'OpenAI API key not configured',
-          message: 'Please set OPENAI_API_KEY in Netlify environment variables'
+          error: 'Service configuration error',
+          message: 'API service is not properly configured'
         }),
       };
     }
@@ -89,7 +89,11 @@ exports.handler = async (event, context) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('OpenAI API error:', data);
+      // Log error without exposing API key or sensitive data
+      const errorMessage = data?.error?.message || 'API request failed';
+      // Sanitize error message to remove any potential key exposure
+      const sanitizedError = errorMessage.replace(/sk-[a-zA-Z0-9]+/g, '[REDACTED]');
+      
       return {
         statusCode: response.status,
         headers: {
@@ -97,8 +101,8 @@ exports.handler = async (event, context) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          error: 'OpenAI API error',
-          message: data.error?.message || 'Unknown error from OpenAI'
+          error: 'API request failed',
+          message: sanitizedError
         }),
       };
     }
@@ -113,8 +117,10 @@ exports.handler = async (event, context) => {
       body: JSON.stringify(data),
     };
   } catch (error) {
-    console.error('Error in chat function:', error);
-    console.error('Error stack:', error.stack);
+    // Log error without exposing sensitive information
+    const errorMessage = error.message || 'Unknown error';
+    // Sanitize error message to remove any potential key exposure
+    const sanitizedError = errorMessage.replace(/sk-[a-zA-Z0-9]+/g, '[REDACTED]');
     
     return {
       statusCode: 500,
@@ -124,8 +130,7 @@ exports.handler = async (event, context) => {
       },
       body: JSON.stringify({ 
         error: 'Internal server error',
-        message: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        message: sanitizedError
       }),
     };
   }

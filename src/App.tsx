@@ -1,4 +1,4 @@
- import React, { useEffect, useState, useRef, useCallback } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { Sun, Moon, Briefcase, GraduationCap, Zap, MessageCircle, X, Send, Target, Code, Users, Award, Lightbulb, Rocket, Bot, ChevronLeft, ChevronRight, Home, Heart, FileText, Mail, FolderOpen, Database, Server, Palette, Terminal, Globe, Smartphone, Layers, Cpu, GitBranch, Cloud } from 'lucide-react'
 import { chatService } from './services/chatService'
 import { analytics } from './services/analytics'
@@ -180,7 +180,7 @@ const skills = [
 export default function App() {
 	const [menuOpen, setMenuOpen] = useState<boolean>(false)
 	const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-	const [colorMode, setColorMode] = useState<boolean>(false)
+	const [colorMode, setColorMode] = useState<boolean>(true)
 	const [active, setActive] = useState<string>('about')
 	const [wheelSpinning, setWheelSpinning] = useState<boolean>(false)
 	const [selectedValue, setSelectedValue] = useState<string | null>(null)
@@ -213,12 +213,14 @@ export default function App() {
 	const lastCountRef = useRef<number>(0)
 
 	useEffect(() => {
-		// Hide intro after 4 seconds and mark as shown
+		// Hide intro after GIF completes - wait longer to ensure full animation plays
 		if (showIntro) {
+			// Wait for GIF to load and complete (typically 3-5 seconds for signature animations)
+			// Add extra time to ensure signature is fully visible at the end
 			const timer = setTimeout(() => {
 				setShowIntro(false)
 				sessionStorage.setItem('hasShownIntro', 'true')
-			}, 4000)
+			}, 6000) // Increased to 6 seconds to ensure completion
 			
 			return () => clearTimeout(timer)
 		}
@@ -595,7 +597,13 @@ export default function App() {
 	// Keyboard controls
 	useEffect(() => {
 		const handleKeyPress = (e: KeyboardEvent) => {
-			if (e.code === 'Space' || e.key === ' ') {
+			// Don't prevent spacebar if user is typing in an input, textarea, or contenteditable element
+			const target = e.target as HTMLElement
+			const isTyping = target.tagName === 'INPUT' || 
+			                 target.tagName === 'TEXTAREA' || 
+			                 target.isContentEditable
+			
+			if ((e.code === 'Space' || e.key === ' ') && !isTyping) {
 				e.preventDefault()
 				jumpBird()
 			}
@@ -640,78 +648,39 @@ export default function App() {
 		})
 
 		try {
-			// Check if we're in development mode and have API key for local testing
-			const isDev = import.meta.env.DEV
-			const devApiKey = import.meta.env.VITE_OPENAI_API_KEY
-			const useDirectApi = isDev && devApiKey
+			// Always use Netlify Function - API key is NEVER exposed to client
+			const functionUrl = '/.netlify/functions/chat'
 			
-			let response: Response
+			const response = await fetch(functionUrl, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					model: 'gpt-3.5-turbo',
+					messages: [
+						{
+							role: 'system',
+							content: 'You are Manuel Peña-Morros, a full-stack engineer passionate about building scalable systems and elegant user experiences. You enjoy solving complex problems with clean, data-driven solutions and intuitive design. You are friendly, professional, and genuinely enthusiastic about technology, thriving in environments that combine creativity with engineering precision. Currently studying Computer Science at Tulane University (Dean\'s List, Fall 2025) after graduating from The American School Foundation\'s International Baccalaureate program in Mexico City, you bring both analytical rigor and creative vision to your work. At TV Azteca, you engineered a Python-based automation system that collects and monitors weekly Lighthouse performance metrics for over 600 URLs (HTML and AMP), boosting efficiency by 40% through automation, while developing link-tracking tools and digital dashboards in React to visualize over 2,000 real-time events. At UnifAI in New York (June 2025 - August 2025), you focused on the frontend, creating responsive UIs with React, TypeScript, and TailwindCSS, implementing real-time charts and drill-down features, and delivering a UI refactor that improved engagement by 25%. As founder and CEO of Diaita, a wellness startup addressing obesity and diabetes in Mexico, you led product design and strategy, collaborated with nutrition pioneer Barry Sears, achieved 1,000+ downloads and $3,000 USD in revenue, and helped 500 clients build sustainable health habits. Keep responses conversational and concise, as if you\'re chatting with someone who visited your portfolio.'
+						},
+						...newMessages
+					],
+					max_tokens: 150,
+					temperature: 0.7
+				})
+			})
+			
+			// Check if response has content before parsing JSON
+			const responseText = await response.text()
+			if (!responseText) {
+				throw new Error('Empty response from function. Make sure you\'re running with "netlify dev" or the function is deployed.')
+			}
+			
 			let data: any
-			
-			if (useDirectApi) {
-				// Use direct API call in development (for local testing)
-				console.log('📤 Making direct request to OpenAI API (dev mode)...')
-				
-				response = await fetch('https://api.openai.com/v1/chat/completions', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${devApiKey}`
-					},
-					body: JSON.stringify({
-						model: 'gpt-3.5-turbo',
-						messages: [
-							{
-								role: 'system',
-								content: 'You are Manuel Peña-Morros, a full-stack engineer passionate about building scalable systems and elegant user experiences. You enjoy solving complex problems with clean, data-driven solutions and intuitive design. You are friendly, professional, and genuinely enthusiastic about technology, thriving in environments that combine creativity with engineering precision. Currently studying Computer Science at Tulane University (Dean\'s List, Fall 2025) after graduating from The American School Foundation\'s International Baccalaureate program in Mexico City, you bring both analytical rigor and creative vision to your work. At TV Azteca, you engineered a Python-based automation system that collects and monitors weekly Lighthouse performance metrics for over 600 URLs (HTML and AMP), boosting efficiency by 40% through automation, while developing link-tracking tools and digital dashboards in React to visualize over 2,000 real-time events. At UnifAI in New York (June 2025 - August 2025), you focused on the frontend, creating responsive UIs with React, TypeScript, and TailwindCSS, implementing real-time charts and drill-down features, and delivering a UI refactor that improved engagement by 25%. As founder and CEO of Diaita, a wellness startup addressing obesity and diabetes in Mexico, you led product design and strategy, collaborated with nutrition pioneer Barry Sears, achieved 1,000+ downloads and $3,000 USD in revenue, and helped 500 clients build sustainable health habits. Keep responses conversational and concise, as if you\'re chatting with someone who visited your portfolio.'
-							},
-							...newMessages
-						],
-						max_tokens: 150,
-						temperature: 0.7
-					})
-				})
-				
-				data = await response.json()
-				console.log('📥 OpenAI API Response:', data)
-			} else {
-				// Use Netlify Function in production or when running with netlify dev
-				console.log('📤 Making request to OpenAI API via Netlify Function...')
-				
-				const functionUrl = '/.netlify/functions/chat'
-				
-				response = await fetch(functionUrl, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						model: 'gpt-3.5-turbo',
-						messages: [
-							{
-								role: 'system',
-								content: 'You are Manuel Peña-Morros, a full-stack engineer passionate about building scalable systems and elegant user experiences. You enjoy solving complex problems with clean, data-driven solutions and intuitive design. You are friendly, professional, and genuinely enthusiastic about technology, thriving in environments that combine creativity with engineering precision. Currently studying Computer Science at Tulane University (Dean\'s List, Fall 2025) after graduating from The American School Foundation\'s International Baccalaureate program in Mexico City, you bring both analytical rigor and creative vision to your work. At TV Azteca, you engineered a Python-based automation system that collects and monitors weekly Lighthouse performance metrics for over 600 URLs (HTML and AMP), boosting efficiency by 40% through automation, while developing link-tracking tools and digital dashboards in React to visualize over 2,000 real-time events. At UnifAI in New York (June 2025 - August 2025), you focused on the frontend, creating responsive UIs with React, TypeScript, and TailwindCSS, implementing real-time charts and drill-down features, and delivering a UI refactor that improved engagement by 25%. As founder and CEO of Diaita, a wellness startup addressing obesity and diabetes in Mexico, you led product design and strategy, collaborated with nutrition pioneer Barry Sears, achieved 1,000+ downloads and $3,000 USD in revenue, and helped 500 clients build sustainable health habits. Keep responses conversational and concise, as if you\'re chatting with someone who visited your portfolio.'
-							},
-							...newMessages
-						],
-						max_tokens: 150,
-						temperature: 0.7
-					})
-				})
-				
-				// Check if response has content before parsing JSON
-				const responseText = await response.text()
-				if (!responseText) {
-					throw new Error('Empty response from function. Make sure you\'re running with "netlify dev" or the function is deployed.')
-				}
-				
-				try {
-					data = JSON.parse(responseText)
-					console.log('📥 Function Response:', data)
-				} catch (parseError) {
-					console.error('Failed to parse response:', responseText)
-					throw new Error(`Invalid response from function: ${responseText.substring(0, 100)}`)
-				}
+			try {
+				data = JSON.parse(responseText)
+			} catch (parseError) {
+				throw new Error(`Invalid response from function`)
 			}
 			
 			if (!response.ok) {
@@ -789,10 +758,23 @@ export default function App() {
 		<div className={`app ${colorMode ? 'color-mode' : ''}`}>
 			{showIntro && (
 				<div className="intro-overlay">
-					<img src="/signature-intro.gif" alt="Signature animation" className="intro-signature" onError={(e) => {
-						console.error('Failed to load intro GIF');
-						setShowIntro(false);
-					}} />
+					<img 
+						src="/signature-intro.gif" 
+						alt="Signature animation" 
+						className="intro-signature" 
+						onLoad={() => {
+							// Ensure GIF is fully loaded before starting fade
+							console.log('Signature GIF loaded');
+						}}
+						onError={(e) => {
+							console.error('Failed to load intro GIF');
+							setShowIntro(false);
+						}}
+						style={{
+							opacity: 1,
+							animation: 'none' // Let CSS handle the fade
+						}}
+					/>
 				</div>
 			)}
 			
@@ -935,11 +917,15 @@ export default function App() {
 					display: flex;
 					align-items: center;
 					justify-content: center;
-					animation: fadeOut 0.5s ease-out 3.5s forwards;
+					opacity: 1;
+					animation: fadeOut 0.5s ease-out 5.5s forwards;
 				}
 				
 				@keyframes fadeOut {
-					to {
+					0% {
+						opacity: 1;
+					}
+					100% {
 						opacity: 0;
 						pointer-events: none;
 					}
@@ -951,6 +937,27 @@ export default function App() {
 					width: auto;
 					height: auto;
 					object-fit: contain;
+					opacity: 1;
+					animation: signatureShow 5.5s ease-in-out forwards;
+				}
+				
+				@keyframes signatureShow {
+					0% {
+						opacity: 0;
+						transform: scale(0.9);
+					}
+					5% {
+						opacity: 1;
+						transform: scale(1);
+					}
+					95% {
+						opacity: 1;
+						transform: scale(1);
+					}
+					100% {
+						opacity: 0;
+						transform: scale(0.95);
+					}
 				}
 				
 				@font-face {
@@ -5996,6 +6003,10 @@ export default function App() {
 						padding: 0 1rem;
 					}
 					
+					.hero-wrap > div:first-child {
+						margin-left: 0 !important;
+					}
+					
 					.hero-visual {
 						height: 400px;
 						padding: 1rem;
@@ -6456,13 +6467,250 @@ export default function App() {
 						right: -50px;
 					}
 				}
+				
+				/* Tablet Optimizations (iPad: 768px - 1024px) */
+				@media (min-width: 768px) and (max-width: 1024px) {
+					/* Improve touch targets - minimum 44x44px for iOS */
+					.button, .nav-link, .theme-toggle, .chat-send, .chat-toggle {
+						min-width: 44px;
+						min-height: 44px;
+						padding: 12px 16px;
+					}
+					
+					/* Better spacing for tablet */
+					.container {
+						width: min(90%, 900px);
+						padding: 0 2rem;
+					}
+					
+					.section {
+						padding: 4rem 0;
+					}
+					
+					.hero {
+						padding-top: 4rem;
+						padding-bottom: 4rem;
+					}
+					
+					/* Improved chat interface for tablet */
+					.chat-interface {
+						width: 75%;
+						margin-left: 3rem;
+						margin-top: 10rem;
+						padding: 1rem;
+						gap: 0.75rem;
+					}
+					
+					.chat-messages {
+						max-height: 12rem;
+						padding: 0.5rem;
+						gap: 0.5rem;
+					}
+					
+					.chat-message {
+						font-size: 1rem;
+						line-height: 1.5;
+						padding: 0.5rem 0;
+					}
+					
+					.chat-input-container {
+						gap: 0.5rem;
+						padding: 0.5rem 0;
+					}
+					
+					.chat-input {
+						font-size: 1rem;
+						padding: 0.75rem 1rem;
+						min-height: 44px;
+						border-radius: 12px;
+					}
+					
+					.chat-send {
+						min-width: 44px;
+						min-height: 44px;
+						padding: 0.75rem;
+						border-radius: 50%;
+					}
+					
+					.chat-welcome {
+						font-size: 1rem;
+						margin-bottom: 1rem;
+						padding: 0.5rem;
+					}
+					
+					.avatar-gif {
+						width: 600px;
+						height: 160px;
+					}
+					
+					/* Better text sizing */
+					.title {
+						font-size: clamp(32px, 5vw, 40px);
+						line-height: 1.2;
+					}
+					
+					.subtitle {
+						font-size: clamp(16px, 2.5vw, 20px);
+						line-height: 1.5;
+					}
+					
+					.section h2 {
+						font-size: clamp(28px, 4vw, 36px);
+						line-height: 1.3;
+					}
+					
+					/* Improved navigation */
+					.left-nav {
+						left: 1rem;
+						padding: 0.75rem 0.5rem;
+						gap: 0.5rem;
+					}
+					
+					.nav-item, .nav-theme-toggle, .nav-logo {
+						width: 48px;
+						height: 48px;
+						padding: 0.75rem;
+					}
+					
+					/* Better card spacing */
+					.cards {
+						grid-template-columns: repeat(2, minmax(0, 1fr));
+						gap: 1.5rem;
+					}
+					
+					.card {
+						padding: 1.5rem;
+					}
+					
+					/* Improved timeline */
+					.timeline-card {
+						padding: 2rem;
+						max-width: 700px;
+					}
+					
+					.timeline-content {
+						padding: 1.5rem 2rem;
+					}
+					
+					/* Better project carousel */
+					.projects-carousel {
+						max-width: 500px;
+						height: 500px;
+					}
+					
+					.project-item {
+						width: 320px;
+					}
+					
+					.project-card {
+						padding: 2rem;
+						height: 420px;
+					}
+					
+					/* Improved chat bubble positioning */
+					.chat-toggle {
+						top: 1.5rem;
+						right: 1.5rem;
+						width: 56px;
+						height: 56px;
+						padding: 1rem;
+					}
+					
+					.chat-bubble {
+						width: 500px;
+						height: 600px;
+						max-width: 90vw;
+						max-height: 85vh;
+					}
+					
+					/* Better touch scrolling */
+					.chat-messages,
+					.timeline-content,
+					.card {
+						-webkit-overflow-scrolling: touch;
+						overscroll-behavior: contain;
+					}
+					
+					/* Improved spacing for values section */
+					.values-container {
+						grid-template-columns: repeat(2, minmax(0, 1fr));
+						gap: 2rem;
+						padding: 0 2rem;
+					}
+					
+					.values-visual {
+						min-height: 450px;
+						margin: 3rem 0;
+					}
+					
+					/* Better button spacing */
+					.cta-row {
+						gap: 1rem;
+						flex-wrap: wrap;
+					}
+					
+					.button {
+						padding: 0.875rem 1.5rem;
+						font-size: 1rem;
+						min-height: 44px;
+					}
+					
+					/* Improved hero visual */
+					.hero-visual {
+						height: clamp(400px, 50vh, 500px);
+					}
+					
+					.orbit-a {
+						width: 320px;
+						height: 320px;
+					}
+					
+					.orbit-b {
+						width: 440px;
+						height: 440px;
+					}
+					
+					/* Better grid layouts */
+					.grid-2 {
+						grid-template-columns: 1fr;
+						gap: 3rem;
+					}
+					
+					.skills {
+						grid-template-columns: repeat(2, minmax(0, 1fr));
+						gap: 1rem;
+					}
+					
+					/* Improved footer */
+					.site-footer {
+						padding: 3rem 0;
+					}
+					
+					/* Better touch interactions */
+					* {
+						touch-action: manipulation;
+					}
+					
+					/* Prevent text selection on interactive elements */
+					.button, .nav-link, .chat-send, .chat-toggle {
+						-webkit-user-select: none;
+						user-select: none;
+						-webkit-tap-highlight-color: rgba(96, 165, 250, 0.2);
+					}
+					
+					/* Improved input focus states for tablet */
+					.chat-input:focus {
+						outline: 2px solid var(--brand);
+						outline-offset: 2px;
+					}
+				}
 			`}</style>
 
 
 			<main className="main">
 				<section id="about" className="section hero reveal tone-1">
 					<div className="container hero-wrap">
-						<div style={{ textAlign: 'left' }}>
+						<div style={{ textAlign: 'left', marginLeft: '2cm' }}>
 							<h1 className="title">Entrepreneur. Innovator. Visionary.</h1>
 							<p className="subtitle">
 								I build and scale businesses from concept to market — turning ideas into profitable ventures.
@@ -6513,7 +6761,7 @@ export default function App() {
 											{/* 3D Avatar - Fixed at top */}
 											<div className="chat-avatar">
 												<img 
-													src="/b5d45f39-8e44-4be3-a96d-f6d5a7d75eee.mp4 (1) (1).gif" 
+													src="/logo_ph.png%20%282%29.gif" 
 													alt="Manuel Peña Morros 3D Avatar" 
 													className="avatar-gif"
 												/>
@@ -6547,7 +6795,12 @@ export default function App() {
 														placeholder="Type a message..."
 														value={currentMessage}
 														onChange={(e) => setCurrentMessage(e.target.value)}
-														onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+														onKeyDown={(e) => {
+															if (e.key === 'Enter' && !e.shiftKey) {
+																e.preventDefault();
+																sendMessage();
+															}
+														}}
 														disabled={isLoading}
 													/>
 													<button 
