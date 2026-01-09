@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react'
+ import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { Sun, Moon, Briefcase, GraduationCap, Zap, MessageCircle, X, Send, Target, Code, Users, Award, Lightbulb, Rocket, Bot, ChevronLeft, ChevronRight, Home, Heart, FileText, Mail, FolderOpen, Database, Server, Palette, Terminal, Globe, Smartphone, Layers, Cpu, GitBranch, Cloud } from 'lucide-react'
 import { chatService } from './services/chatService'
 import { analytics } from './services/analytics'
@@ -344,6 +344,184 @@ export default function App() {
 		return () => window.removeEventListener('mousemove', handleMouseMove)
 	}, [])
 
+	// Elegant Minimalist Techy Cursor 2026
+	useEffect(() => {
+		const cursorContainer = document.createElement('div')
+		cursorContainer.id = 'techy-cursor-container'
+		cursorContainer.style.cssText = `
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+			z-index: 9999;
+		`
+		document.body.appendChild(cursorContainer)
+
+		// Minimal core dot - larger size
+		const cursorDot = document.createElement('div')
+		cursorDot.id = 'techy-cursor-dot'
+		cursorDot.style.cssText = `
+			position: fixed;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background: ${colorMode ? '#000000' : '#ffffff'};
+			transform: translate(-50%, -50%);
+			pointer-events: none;
+			z-index: 10000;
+			transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+		`
+		cursorContainer.appendChild(cursorDot)
+
+		// Elegant outer ring - larger and more visible
+		const cursorRing = document.createElement('div')
+		cursorRing.id = 'techy-cursor-ring'
+		cursorRing.style.cssText = `
+			position: fixed;
+			width: 48px;
+			height: 48px;
+			border-radius: 50%;
+			border: 1.5px solid ${colorMode ? 'rgba(0, 0, 0, 0.25)' : 'rgba(255, 255, 255, 0.4)'};
+			transform: translate(-50%, -50%);
+			pointer-events: none;
+			z-index: 9999;
+			transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+		`
+		cursorContainer.appendChild(cursorRing)
+
+		// Subtle scan line effect - larger
+		const scanLine = document.createElement('div')
+		scanLine.id = 'techy-scan-line'
+		scanLine.style.cssText = `
+			position: fixed;
+			width: 1.5px;
+			height: 32px;
+			background: linear-gradient(to bottom, 
+				${colorMode ? 'rgba(0, 0, 0, 0)' : 'rgba(255, 255, 255, 0)'}, 
+				${colorMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.5)'}, 
+				${colorMode ? 'rgba(0, 0, 0, 0)' : 'rgba(255, 255, 255, 0)'});
+			transform: translate(-50%, -50%);
+			pointer-events: none;
+			z-index: 9998;
+			opacity: 0.6;
+		`
+		cursorContainer.appendChild(scanLine)
+
+		// Minimal particle trail - only 3-5 particles
+		const particles: Array<{el: HTMLElement, x: number, y: number, life: number}> = []
+		const maxParticles = 4
+
+		let currentX = 0
+		let currentY = 0
+		let targetX = 0
+		let targetY = 0
+		let isHovering = false
+		let scanAngle = 0
+
+		const handleMouseMove = (e: MouseEvent) => {
+			targetX = e.clientX
+			targetY = e.clientY
+			
+			const target = e.target as HTMLElement
+			isHovering = target.tagName === 'A' || 
+						target.tagName === 'BUTTON' || 
+						target.closest('a, button, .button, .card, .nav-item, .project-link, .timeline-point') !== null
+		}
+
+		const animate = () => {
+			// Smooth easing
+			currentX += (targetX - currentX) * 0.18
+			currentY += (targetY - currentY) * 0.18
+
+			const ringSize = isHovering ? 72 : 48
+			const dotScale = isHovering ? 1.6 : 1
+			const ringOpacity = isHovering ? 0.6 : 0.4
+
+			// Update core dot
+			cursorDot.style.left = `${currentX}px`
+			cursorDot.style.top = `${currentY}px`
+			cursorDot.style.transform = `translate(-50%, -50%) scale(${dotScale})`
+
+			// Update ring
+			cursorRing.style.left = `${currentX}px`
+			cursorRing.style.top = `${currentY}px`
+			cursorRing.style.width = `${ringSize}px`
+			cursorRing.style.height = `${ringSize}px`
+			cursorRing.style.opacity = ringOpacity.toString()
+			cursorRing.style.borderColor = isHovering 
+				? (colorMode ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.5)')
+				: (colorMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.3)')
+
+			// Update scan line - subtle rotation
+			scanAngle += 2
+			scanLine.style.left = `${currentX}px`
+			scanLine.style.top = `${currentY}px`
+			scanLine.style.transform = `translate(-50%, -50%) rotate(${scanAngle}deg)`
+			scanLine.style.opacity = isHovering ? '0.7' : '0.5'
+
+			// Create minimal particles - only occasionally
+			if (particles.length < maxParticles && Math.random() > 0.85) {
+				const particle = document.createElement('div')
+				const size = 2.5 + Math.random() * 1.5
+				const color = colorMode ? '#000000' : '#ffffff'
+				particle.style.cssText = `
+					position: fixed;
+					width: ${size}px;
+					height: ${size}px;
+					background: ${color};
+					border-radius: 50%;
+					left: ${currentX}px;
+					top: ${currentY}px;
+					transform: translate(-50%, -50%);
+					pointer-events: none;
+					opacity: 0.7;
+					z-index: 9997;
+				`
+				cursorContainer.appendChild(particle)
+				particles.push({
+					el: particle,
+					x: currentX,
+					y: currentY,
+					life: 1
+				})
+			}
+
+			// Update particles - subtle fade
+			particles.forEach((p, i) => {
+				p.life -= 0.03
+				if (p.life <= 0) {
+					p.el.remove()
+					particles.splice(i, 1)
+				} else {
+					// Gentle drift
+					const offsetX = (currentX - p.x) * 0.15
+					const offsetY = (currentY - p.y) * 0.15
+					p.x += offsetX
+					p.y += offsetY
+					p.el.style.left = `${p.x}px`
+					p.el.style.top = `${p.y}px`
+					p.el.style.opacity = (p.life * 0.6).toString()
+					const scale = 0.4 + p.life * 0.6
+					p.el.style.transform = `translate(-50%, -50%) scale(${scale})`
+				}
+			})
+
+			requestAnimationFrame(animate)
+		}
+
+		window.addEventListener('mousemove', handleMouseMove)
+		animate()
+		document.body.style.cursor = 'none'
+
+		return () => {
+			window.removeEventListener('mousemove', handleMouseMove)
+			cursorContainer.remove()
+			document.body.style.cursor = ''
+		}
+	}, [colorMode])
+
 
 	const triggerParticleEffect = (x: number, y: number) => {
 		// Create subtle floating particles
@@ -687,7 +865,7 @@ export default function App() {
 					temperature: 0.7
 				})
 			})
-			
+
 			// Check if response has content before parsing JSON
 			const responseText = await response.text()
 			if (!responseText) {
@@ -785,8 +963,8 @@ export default function App() {
 							console.log('Signature GIF loaded');
 						}}
 						onError={(e) => {
-							console.error('Failed to load intro GIF');
-							setShowIntro(false);
+						console.error('Failed to load intro GIF');
+						setShowIntro(false);
 						}}
 						style={{
 							opacity: 1,
@@ -867,6 +1045,81 @@ export default function App() {
 					margin: 0;
 					padding: 0;
 					text-align: left;
+				}
+
+				/* Elegant Minimalist Techy Cursor 2026 */
+				#techy-cursor-container {
+					position: fixed;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					pointer-events: none;
+					z-index: 9999;
+				}
+
+				#techy-cursor-dot {
+					position: fixed;
+					width: 8px;
+					height: 8px;
+					border-radius: 50%;
+					background: #ffffff;
+					transform: translate(-50%, -50%);
+					pointer-events: none;
+					z-index: 10000;
+					transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+				}
+
+				.app.color-mode #techy-cursor-dot {
+					background: #000000;
+				}
+
+				#techy-cursor-ring {
+					position: fixed;
+					width: 48px;
+					height: 48px;
+					border-radius: 50%;
+					border: 1.5px solid rgba(255, 255, 255, 0.4);
+					transform: translate(-50%, -50%);
+					pointer-events: none;
+					z-index: 9999;
+					transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+				}
+
+				.app.color-mode #techy-cursor-ring {
+					border-color: rgba(0, 0, 0, 0.25);
+				}
+
+				#techy-scan-line {
+					position: fixed;
+					width: 1.5px;
+					height: 32px;
+					background: linear-gradient(to bottom, 
+						rgba(255, 255, 255, 0), 
+						rgba(255, 255, 255, 0.5), 
+						rgba(255, 255, 255, 0));
+					transform: translate(-50%, -50%);
+					pointer-events: none;
+					z-index: 9998;
+					opacity: 0.6;
+					transition: opacity 0.3s ease;
+				}
+
+				.app.color-mode #techy-scan-line {
+					background: linear-gradient(to bottom, 
+						rgba(0, 0, 0, 0), 
+						rgba(0, 0, 0, 0.5), 
+						rgba(0, 0, 0, 0));
+				}
+
+				/* Hide cursor on touch devices */
+				@media (hover: none) and (pointer: coarse) {
+					#techy-cursor-container {
+						display: none;
+					}
+					body {
+						cursor: auto !important;
+					}
 				}
 
 				.scroll-progress {
@@ -1482,6 +1735,58 @@ export default function App() {
 					margin: 0 auto;
 					transform: none;
 					transform-origin: center center;
+					transition: transform 0.3s ease;
+				}
+				
+				.photo-wrap:hover {
+					transform: scale(1.02);
+				}
+				
+				/* Minimal Tech Border - Single Rotating Line */
+				.photo-wrap::before {
+					content: '';
+					position: absolute;
+					inset: -3px;
+					border-radius: 50%;
+					padding: 3px;
+					background: linear-gradient(
+						0deg,
+						transparent 0%,
+						transparent 45%,
+						rgba(255, 255, 255, 0.8) 47.5%,
+						rgba(255, 255, 255, 1) 50%,
+						rgba(255, 255, 255, 0.8) 52.5%,
+						transparent 55%,
+						transparent 100%
+					);
+					-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+					-webkit-mask-composite: xor;
+					mask-composite: exclude;
+					animation: techLineRotate 4s linear infinite;
+					z-index: -1;
+					pointer-events: none;
+				}
+				
+				.app.color-mode .photo-wrap::before {
+					background: linear-gradient(
+						0deg,
+						transparent 0%,
+						transparent 45%,
+						rgba(0, 0, 0, 0.8) 47.5%,
+						rgba(0, 0, 0, 1) 50%,
+						rgba(0, 0, 0, 0.8) 52.5%,
+						transparent 55%,
+						transparent 100%
+					);
+				}
+				
+				@keyframes techLineRotate {
+					0% {
+						transform: rotate(0deg);
+					}
+					100% {
+						transform: rotate(360deg);
+					}
 				}
 				
 				@keyframes portraitGlowStatic {
@@ -1512,6 +1817,10 @@ export default function App() {
 					transform: rotateY(180deg);
 				}
 				
+				.photo-wrap:hover:not(.chat-open) .coin-inner {
+					transform: rotateY(180deg);
+				}
+				
 				.coin-front,
 				.coin-back {
 					position: absolute;
@@ -1519,10 +1828,16 @@ export default function App() {
 					height: 100%;
 					border-radius: 50%;
 					backface-visibility: hidden;
-					border: 1px solid #ffffff;
-					box-shadow: 0 20px 60px rgba(255, 255, 255, 0.1);
+					border: 2px solid rgba(255, 255, 255, 0.3);
+					box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 					overflow: hidden;
 					transform: rotateY(0deg);
+				}
+				
+				.app.color-mode .coin-front,
+				.app.color-mode .coin-back {
+					border: 2px solid rgba(0, 0, 0, 0.3);
+					box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 				}
 				
 				.coin-front {
@@ -6125,7 +6440,7 @@ export default function App() {
 					}
 					
 					/* Mobile only - smaller quote text */
-					@media (max-width: 768px) {
+				@media (max-width: 768px) {
 						.business-card-quote {
 							font-size: 0.7rem !important;
 						}
