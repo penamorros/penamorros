@@ -1,5 +1,5 @@
  import React, { useEffect, useState, useRef, useCallback } from 'react'
-import { Sun, Moon, Briefcase, GraduationCap, Zap, MessageCircle, X, Send, Target, Code, Users, Award, Lightbulb, Rocket, Bot, ChevronLeft, ChevronRight, Home, Heart, FileText, Mail, FolderOpen, Database, Server, Palette, Terminal, Globe, Smartphone, Layers, Cpu, GitBranch, Cloud } from 'lucide-react'
+import { Sun, Moon, Briefcase, GraduationCap, Zap, MessageCircle, X, Send, Target, Code, Users, Award, Lightbulb, Rocket, Bot, ChevronLeft, ChevronRight, Home, Heart, FileText, Mail, FolderOpen, Database, Server, Palette, Terminal, Globe, Smartphone, Layers, Cpu, GitBranch, Cloud, Sparkles, TrendingUp, Shield, Eye, Activity } from 'lucide-react'
 import { chatService } from './services/chatService'
 import { analytics } from './services/analytics'
 import AdminPage from './AdminPage'
@@ -7238,6 +7238,94 @@ export default function App() {
 						outline-offset: 2px;
 					}
 				}
+
+				/* ====== LUMINA LABS (inside projects) ====== */
+				.ll-sep { height: 1px; background: #ffffff; margin: 2rem 0; }
+				.app.color-mode .ll-sep { background: #000000; }
+
+				.ll-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.2rem; }
+				.ll-icon { width: 38px; height: 38px; border-radius: 9px; object-fit: cover; border: 2px solid #ffffff; }
+				.app.color-mode .ll-icon { border-color: #000000; }
+				.ll-head > div { display: flex; flex-direction: column; }
+				.ll-name { font-family: Arial,sans-serif; font-size: 1.1rem; font-weight: 700; color: #ffffff; }
+				.app.color-mode .ll-name { color: #000000; }
+				.ll-sub { font-size: 0.7rem; color: #ffffff; opacity: 0.5; }
+				.app.color-mode .ll-sub { color: #000000; }
+				.ll-tag {
+					font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+					padding: 4px 10px; border-radius: 6px; margin-left: auto; white-space: nowrap;
+					background: #000000; color: #ffffff; border: 1px solid #ffffff;
+				}
+				.app.color-mode .ll-tag { background: #ffffff; color: #000000; border-color: #000000; }
+
+				.ll-row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 1.2rem; margin-bottom: 1rem; align-items: start; }
+				.ll-video { width: 100%; border-radius: 12px; display: block; border: 1px solid #ffffff; }
+				.app.color-mode .ll-video { border-color: #000000; }
+
+				.ll-kpis { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.5rem; margin-bottom: 0.7rem; }
+				.ll-kpi {
+					text-align: center; padding: 0.6rem 0.3rem; border-radius: 12px;
+					background: #000000; border: 1px solid #ffffff; transition: all 0.3s;
+				}
+				.ll-kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,255,255,0.2); }
+				.app.color-mode .ll-kpi { background: #ffffff; border-color: #000000; }
+				.app.color-mode .ll-kpi:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+				.ll-kpi-n { display: block; font-size: 1.1rem; font-weight: 800; color: #ffffff; }
+				.app.color-mode .ll-kpi-n { color: #000000; }
+				.ll-kpi-l { font-size: 0.6rem; color: #ffffff; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+				.app.color-mode .ll-kpi-l { color: #000000; }
+
+				.ll-body { font-size: 0.8rem; line-height: 1.55; color: #ffffff; opacity: 0.7; margin-bottom: 0.6rem; }
+				.app.color-mode .ll-body { color: #000000; }
+
+				.ll-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+				.ll-chip {
+					font-size: 0.875rem; padding: 0.375rem 0.875rem; border-radius: 6px; font-weight: 500;
+					background: #000000; color: #ffffff; border: 1px solid #ffffff;
+				}
+				.app.color-mode .ll-chip { background: #ffffff; color: #000000; border-color: #000000; }
+
+				.ll-press {
+					display: flex; align-items: center; gap: 1rem;
+					margin: 1rem 0; padding: 0.5rem 0;
+					border-top: 1px solid #ffffff; border-bottom: 1px solid #ffffff;
+				}
+				.app.color-mode .ll-press { border-color: #000000; }
+				.ll-press-label {
+					font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
+					letter-spacing: 0.1em; color: #ffffff; opacity: 0.4;
+					white-space: nowrap; flex-shrink: 0;
+				}
+				.app.color-mode .ll-press-label { color: #000000; }
+				.ll-press-track { overflow: hidden; flex: 1; }
+				.ll-press-scroll {
+					display: flex; align-items: center; width: max-content;
+					will-change: transform; animation: llM 30s linear infinite;
+				}
+				.ll-press-scroll:hover { animation-play-state: paused; }
+				@keyframes llM { 0%{transform:translateX(0)} 100%{transform:translateX(calc(-100%/3))} }
+				.ll-pi {
+					flex: 0 0 auto; display: flex; align-items: center; padding: 0 1.4rem;
+					text-decoration: none; transition: opacity 0.3s;
+				}
+				.ll-pl { height: 18px; width: auto; object-fit: contain; display: block; filter: brightness(0) invert(1); }
+				.app.color-mode .ll-pl { filter: brightness(0); }
+
+				.ll-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.8rem; }
+				.ll-card {
+					border-radius: 12px; overflow: hidden; transition: all 0.3s;
+					background: #000000; border: 1px solid #ffffff;
+				}
+				.ll-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(255,255,255,0.2); }
+				.app.color-mode .ll-card { background: #ffffff; border-color: #000000; }
+				.app.color-mode .ll-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+				.ll-card-img { width: 100%; display: block; }
+				.ll-card h4 { font-family: Arial,sans-serif; font-size: 0.85rem; font-weight: 700; margin: 0.7rem 0.9rem 0.25rem; color: #ffffff; }
+				.app.color-mode .ll-card h4 { color: #000000; }
+				.ll-card p { font-size: 0.72rem; color: #ffffff; opacity: 0.6; line-height: 1.5; margin: 0 0.9rem 0.8rem; }
+				.app.color-mode .ll-card p { color: #000000; }
+
+				@media (max-width: 1280px) { .ll-row { grid-template-columns: 1fr; } }
 			`}</style>
 
 
@@ -7579,8 +7667,8 @@ export default function App() {
 				</section>
 
 				<section id="projects" className="section reveal tone-1 tone-sep">
-					<div className="container">
-						<h2>Projects</h2>
+				<div className="container">
+					<h2>Projects</h2>
 						<div className="projects-carousel-wrapper">
 							<div className="projects-carousel">
 								<div 
@@ -7715,6 +7803,47 @@ export default function App() {
 									/>
 								))}
 							</div>
+					</div>
+
+						<div className="ll-sep"></div>
+
+						<div className="ll-head">
+							<img src="/lumina-app-icon.png" alt="Lumina Labs" className="ll-icon" />
+							<div><span className="ll-name">Lumina Labs</span><span className="ll-sub">Available on the App Store</span></div>
+							<span className="ll-tag">Flagship Venture</span>
+						</div>
+
+						<div className="ll-row">
+							<video controls autoPlay muted playsInline preload="auto" className="ll-video"><source src="/lumina-demo.mp4" type="video/mp4" /></video>
+							<div>
+								<div className="ll-kpis">
+									<div className="ll-kpi"><span className="ll-kpi-n">$2.5M</span><span className="ll-kpi-l">Valuation</span></div>
+									<div className="ll-kpi"><span className="ll-kpi-n">$15K</span><span className="ll-kpi-l">MRR</span></div>
+									<div className="ll-kpi"><span className="ll-kpi-n">1,000+</span><span className="ll-kpi-l">Analyses</span></div>
+									<div className="ll-kpi"><span className="ll-kpi-n">5</span><span className="ll-kpi-l">Clinics</span></div>
+								</div>
+								<p className="ll-body">Personalized aesthetic recommendations through proprietary computer vision. White-labeled SaaS across five dermatology clinics in Mexico. Patent pending.</p>
+								<div className="ll-chips">{['Computer Vision','React Native','Python','TensorFlow','AWS','PostgreSQL'].map(t=>(<span key={t} className="ll-chip">{t}</span>))}</div>
+							</div>
+						</div>
+
+						<div className="ll-press">
+							<span className="ll-press-label">Featured In</span>
+							<div className="ll-press-track"><div className="ll-press-scroll">
+								{Array.from({length:3},(_,s)=>[
+									{i:'/press-el_universal_white.png',n:'El Universal',u:'https://www.eluniversal.com.mx/de-ultima/la-inteligencia-artificial-y-la-alta-tecnologia-tambien-cuidan-tu-cabello/'},
+									{i:'/press-skinsational_white.png',n:'Skinsational',u:'https://skinsational.com.mx/el-futuro-del-cuidado-capilar-ya-esta-aqui-la-era-de-tratar-el-pelo-como-piel/'},
+									{i:'/press-luxperience_white.png',n:'Luxperience',u:'https://luxperience.mx/2026/03/francisco-iglesias-haircare-ciencia-real-para-el-cuidado-capilar/'},
+									{i:'/press-the_editorial_mexico_white.png',n:'The Editorial',u:'https://theeditorialmexico.com/el-futuro-del-haircare-francisco-iglesias/'},
+									{i:'/press-quien_white.png',n:'Quién',u:''}
+								].map((p,j)=>{const k=s*5+j;return p.u?(<a key={k} href={p.u} target="_blank" rel="noopener noreferrer" className="ll-pi"><img src={p.i} alt={p.n} className="ll-pl"/></a>):(<span key={k} className="ll-pi"><img src={p.i} alt={p.n} className="ll-pl"/></span>)})).flat()}
+							</div></div>
+						</div>
+
+						<div className="ll-cards">
+							<div className="ll-card"><img src="/lumina-analysis.webp" alt="Facial analysis" className="ll-card-img"/><h4>Facial Analysis</h4><p>68+ landmarks in real time with clinical-grade reports.</p></div>
+							<div className="ll-card"><img src="/lumina-skin.webp" alt="Skin analysis" className="ll-card-img"/><h4>Skin Intelligence</h4><p>Texture and condition classification with validated accuracy.</p></div>
+							<div className="ll-card"><img src="/lumina-treatments.webp" alt="Protocols" className="ll-card-img"/><h4>Treatment Protocols</h4><p>Evidence-based plans matched to facial profiles.</p></div>
 						</div>
 					</div>
 				</section>
@@ -8305,6 +8434,26 @@ function TimelineComponent() {
 				'/lg-logo.png',
 				'/pena-morros-main-min.png',
 				'/Tulane-University-Logo.png'
+			]
+		},
+		{
+			id: 'luminalabs',
+			period: 'Jan 2025 – Present',
+			title: 'Founder & CEO',
+			subtitle: 'Lumina Labs | New Orleans, LA',
+			icon: Sparkles,
+			type: 'work',
+			logo: '/lumina-shape-sm.png',
+			achievements: [
+				'Founded AI-powered facial analysis platform serving 5 dermatology clinics in Mexico',
+				'Secured $2.5M valuation from CitiBank; initiated patent for core technology',
+				'Grew to $15,000 MRR via white-labeled SaaS deployment, 1,000+ analyses completed',
+				'Launched consumer application on the Apple App Store'
+			],
+			images: [
+				'/lumina-mockup-phones.png',
+				'/lumina-hero-composition.png',
+				'/lumina-labs-logo.png'
 			]
 		},
 		{
