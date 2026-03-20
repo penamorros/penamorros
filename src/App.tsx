@@ -7311,19 +7311,14 @@ export default function App() {
 				.ll-pl { height: 18px; width: auto; object-fit: contain; display: block; filter: brightness(0) invert(1); }
 				.app.color-mode .ll-pl { filter: brightness(0); }
 
-				.ll-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.8rem; }
-				.ll-card {
-					border-radius: 12px; overflow: hidden; transition: all 0.3s;
-					background: #000000; border: 1px solid #ffffff;
+				.ll-screens {
+					overflow-x: auto; overflow-y: hidden;
+					border-radius: 12px; border: 1px solid #ffffff;
+					scrollbar-width: none;
 				}
-				.ll-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(255,255,255,0.2); }
-				.app.color-mode .ll-card { background: #ffffff; border-color: #000000; }
-				.app.color-mode .ll-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-				.ll-card-img { width: 100%; display: block; }
-				.ll-card h4 { font-family: Arial,sans-serif; font-size: 0.85rem; font-weight: 700; margin: 0.7rem 0.9rem 0.25rem; color: #ffffff; }
-				.app.color-mode .ll-card h4 { color: #000000; }
-				.ll-card p { font-size: 0.72rem; color: #ffffff; opacity: 0.6; line-height: 1.5; margin: 0 0.9rem 0.8rem; }
-				.app.color-mode .ll-card p { color: #000000; }
+				.ll-screens::-webkit-scrollbar { display: none; }
+				.app.color-mode .ll-screens { border-color: #000000; }
+				.ll-screens-img { display: block; height: 220px; width: auto; max-width: none; }
 
 				@media (max-width: 1280px) { .ll-row { grid-template-columns: 1fr; } }
 			`}</style>
@@ -7840,10 +7835,8 @@ export default function App() {
 							</div></div>
 						</div>
 
-						<div className="ll-cards">
-							<div className="ll-card"><img src="/lumina-analysis.webp" alt="Facial analysis" className="ll-card-img"/><h4>Facial Analysis</h4><p>68+ landmarks in real time with clinical-grade reports.</p></div>
-							<div className="ll-card"><img src="/lumina-skin.webp" alt="Skin analysis" className="ll-card-img"/><h4>Skin Intelligence</h4><p>Texture and condition classification with validated accuracy.</p></div>
-							<div className="ll-card"><img src="/lumina-treatments.webp" alt="Protocols" className="ll-card-img"/><h4>Treatment Protocols</h4><p>Evidence-based plans matched to facial profiles.</p></div>
+						<div className="ll-screens">
+							<img src="/lumina-screens.png" alt="Lumina Labs app screenshots" className="ll-screens-img" loading="lazy" />
 						</div>
 					</div>
 				</section>
