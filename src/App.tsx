@@ -7312,13 +7312,18 @@ export default function App() {
 				.app.color-mode .ll-pl { filter: brightness(0); }
 
 				.ll-screens {
+					display: flex; gap: 0.5rem;
 					overflow-x: auto; overflow-y: hidden;
-					border-radius: 12px; border: 1px solid #ffffff;
+					padding-bottom: 0.3rem;
 					scrollbar-width: none;
 				}
 				.ll-screens::-webkit-scrollbar { display: none; }
-				.app.color-mode .ll-screens { border-color: #000000; }
-				.ll-screens-img { display: block; height: 220px; width: auto; max-width: none; }
+				.ll-sc {
+					flex: 0 0 auto; height: 200px; width: auto;
+					border-radius: 8px; border: 1px solid #ffffff;
+					display: block; object-fit: contain;
+				}
+				.app.color-mode .ll-sc { border-color: #000000; }
 
 				@media (max-width: 1280px) { .ll-row { grid-template-columns: 1fr; } }
 			`}</style>
@@ -7836,7 +7841,9 @@ export default function App() {
 						</div>
 
 						<div className="ll-screens">
-							<img src="/lumina-screens.png" alt="Lumina Labs app screenshots" className="ll-screens-img" loading="lazy" />
+							{[1,2,3,4,5,6,7,8].map(n=>(
+								<img key={n} src={`/ll-${n}.webp`} alt={`Lumina Labs screenshot ${n}`} className="ll-sc" loading="lazy" />
+							))}
 						</div>
 					</div>
 				</section>
