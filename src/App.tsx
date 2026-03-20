@@ -7240,63 +7240,61 @@ export default function App() {
 				}
 
 				/* ====== LUMINA LABS (inside projects) ====== */
-				.ll-sep { height: 1px; background: #ffffff; margin: 2rem 0; }
-				.app.color-mode .ll-sep { background: #000000; }
+				.ll-sep { height: 1px; background: #333; margin: 2rem 0; }
+				.app.color-mode .ll-sep { background: #e0e0e0; }
 
-				.ll-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.2rem; }
-				.ll-icon { width: 38px; height: 38px; border-radius: 9px; object-fit: cover; border: 2px solid #ffffff; }
-				.app.color-mode .ll-icon { border-color: #000000; }
+				.ll-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
+				.ll-icon { width: 38px; height: 38px; border-radius: 9px; object-fit: cover; }
 				.ll-head > div { display: flex; flex-direction: column; }
-				.ll-name { font-family: Arial,sans-serif; font-size: 1.1rem; font-weight: 700; color: #ffffff; }
-				.app.color-mode .ll-name { color: #000000; }
-				.ll-sub { font-size: 0.7rem; color: #ffffff; opacity: 0.5; }
-				.app.color-mode .ll-sub { color: #000000; }
+				.ll-name { font-family: Arial,sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; }
+				.app.color-mode .ll-name { color: #000; }
+				.ll-sub { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
+				.app.color-mode .ll-sub { color: rgba(0,0,0,0.5); }
 				.ll-tag {
 					font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
 					padding: 4px 10px; border-radius: 6px; margin-left: auto; white-space: nowrap;
-					background: #000000; color: #ffffff; border: 1px solid #ffffff;
+					background: #1a1a1a; color: #fff; border: 1px solid #333;
 				}
-				.app.color-mode .ll-tag { background: #ffffff; color: #000000; border-color: #000000; }
+				.app.color-mode .ll-tag { background: #f5f5f5; color: #000; border-color: #e0e0e0; }
 
-				.ll-row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 1.2rem; margin-bottom: 1rem; align-items: start; }
-				.ll-video { width: 100%; border-radius: 12px; display: block; border: 1px solid #ffffff; }
-				.app.color-mode .ll-video { border-color: #000000; }
+				.ll-row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 1rem; margin-bottom: 1rem; align-items: start; }
+				.ll-video { width: 100%; border-radius: 12px; display: block; background: #1a1a1a; }
 
-				.ll-kpis { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.5rem; margin-bottom: 0.7rem; }
+				.ll-kpis { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.5rem; margin-bottom: 0.6rem; }
 				.ll-kpi {
 					text-align: center; padding: 0.6rem 0.3rem; border-radius: 12px;
-					background: #000000; border: 1px solid #ffffff; transition: all 0.3s;
+					background: #1a1a1a; border: 1px solid #333; transition: all 0.3s;
 				}
-				.ll-kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,255,255,0.2); }
-				.app.color-mode .ll-kpi { background: #ffffff; border-color: #000000; }
-				.app.color-mode .ll-kpi:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-				.ll-kpi-n { display: block; font-size: 1.1rem; font-weight: 800; color: #ffffff; }
-				.app.color-mode .ll-kpi-n { color: #000000; }
-				.ll-kpi-l { font-size: 0.6rem; color: #ffffff; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
-				.app.color-mode .ll-kpi-l { color: #000000; }
+				.ll-kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+				.app.color-mode .ll-kpi { background: #f5f5f5; border-color: #e0e0e0; }
+				.app.color-mode .ll-kpi:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+				.ll-kpi-n { display: block; font-size: 1.1rem; font-weight: 800; color: #fff; }
+				.app.color-mode .ll-kpi-n { color: #000; }
+				.ll-kpi-l { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+				.app.color-mode .ll-kpi-l { color: rgba(0,0,0,0.5); }
 
-				.ll-body { font-size: 0.8rem; line-height: 1.55; color: #ffffff; opacity: 0.7; margin-bottom: 0.6rem; }
-				.app.color-mode .ll-body { color: #000000; }
+				.ll-body { font-size: 0.8rem; line-height: 1.55; color: rgba(255,255,255,0.8); margin-bottom: 0.6rem; }
+				.app.color-mode .ll-body { color: rgba(0,0,0,0.8); }
 
 				.ll-chips { display: flex; flex-wrap: wrap; gap: 5px; }
 				.ll-chip {
 					font-size: 0.875rem; padding: 0.375rem 0.875rem; border-radius: 6px; font-weight: 500;
-					background: #000000; color: #ffffff; border: 1px solid #ffffff;
+					background: #1a1a1a; color: #fff; border: 1px solid #333;
 				}
-				.app.color-mode .ll-chip { background: #ffffff; color: #000000; border-color: #000000; }
+				.app.color-mode .ll-chip { background: #f5f5f5; color: #000; border-color: #e0e0e0; }
 
 				.ll-press {
 					display: flex; align-items: center; gap: 1rem;
-					margin: 1rem 0; padding: 0.5rem 0;
-					border-top: 1px solid #ffffff; border-bottom: 1px solid #ffffff;
+					margin: 1rem 0; padding: 0.6rem 1rem;
+					background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
 				}
-				.app.color-mode .ll-press { border-color: #000000; }
+				.app.color-mode .ll-press { background: #f5f5f5; border-color: #e0e0e0; }
 				.ll-press-label {
 					font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
-					letter-spacing: 0.1em; color: #ffffff; opacity: 0.4;
+					letter-spacing: 0.1em; color: rgba(255,255,255,0.4);
 					white-space: nowrap; flex-shrink: 0;
 				}
-				.app.color-mode .ll-press-label { color: #000000; }
+				.app.color-mode .ll-press-label { color: rgba(0,0,0,0.4); }
 				.ll-press-track { overflow: hidden; flex: 1; }
 				.ll-press-scroll {
 					display: flex; align-items: center; width: max-content;
@@ -7314,16 +7312,16 @@ export default function App() {
 				.ll-screens {
 					display: flex; gap: 0.5rem;
 					overflow-x: auto; overflow-y: hidden;
-					padding-bottom: 0.3rem;
 					scrollbar-width: none;
 				}
 				.ll-screens::-webkit-scrollbar { display: none; }
 				.ll-sc {
 					flex: 0 0 auto; height: 200px; width: auto;
-					border-radius: 8px; border: 1px solid #ffffff;
+					border-radius: 10px;
 					display: block; object-fit: contain;
+					background: #1a1a1a; border: 1px solid #333;
 				}
-				.app.color-mode .ll-sc { border-color: #000000; }
+				.app.color-mode .ll-sc { background: #f5f5f5; border-color: #e0e0e0; }
 
 				@media (max-width: 1280px) { .ll-row { grid-template-columns: 1fr; } }
 			`}</style>
