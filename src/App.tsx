@@ -7243,12 +7243,12 @@ export default function App() {
 				.ll-sep { height: 1px; background: #333; margin: 2rem 0; }
 				.app.color-mode .ll-sep { background: #e0e0e0; }
 
-				.ll-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
-				.ll-icon { width: 38px; height: 38px; border-radius: 9px; object-fit: cover; }
+				.ll-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; }
+				.ll-icon { width: 56px; height: 56px; border-radius: 13px; object-fit: cover; }
 				.ll-head > div { display: flex; flex-direction: column; }
-				.ll-name { font-family: Arial,sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; }
+				.ll-name { font-family: Arial,sans-serif; font-size: 1.6rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
 				.app.color-mode .ll-name { color: #000; }
-				.ll-sub { font-size: 0.7rem; color: rgba(255,255,255,0.5); }
+				.ll-sub { font-size: 0.85rem; color: rgba(255,255,255,0.5); }
 				.app.color-mode .ll-sub { color: rgba(0,0,0,0.5); }
 				.ll-tag {
 					font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
@@ -7806,7 +7806,6 @@ export default function App() {
 						<div className="ll-head">
 							<img src="/lumina-app-icon.png" alt="Lumina Labs" className="ll-icon" />
 							<div><span className="ll-name">Lumina Labs</span><span className="ll-sub">Available on the App Store</span></div>
-							<span className="ll-tag">Flagship Venture</span>
 						</div>
 
 						<div className="ll-row">
