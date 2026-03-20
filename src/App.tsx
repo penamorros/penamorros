@@ -7841,8 +7841,8 @@ export default function App() {
 						</div>
 
 						<div className="ll-screens">
-							{[1,2,3,4,5,6,7,8].map(n=>(
-								<img key={n} src={`/ll-${n}.webp`} alt={`Lumina Labs screenshot ${n}`} className="ll-sc" loading="lazy" />
+							{[1,2,3,4,5,6,7,8,9,10].map(n=>(
+								<img key={n} src={`/ll-${n}.jpg`} alt={`Lumina Labs screenshot ${n}`} className="ll-sc" loading="lazy" />
 							))}
 						</div>
 					</div>
