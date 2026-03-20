@@ -7310,15 +7310,13 @@ export default function App() {
 				.app.color-mode .ll-pl { filter: brightness(0); }
 
 				.ll-screens {
-					display: flex; gap: 0.5rem;
-					overflow-x: auto; overflow-y: hidden;
-					scrollbar-width: none;
+					display: grid; grid-template-columns: repeat(10, 1fr); gap: 0.6rem;
+					overflow: hidden;
 				}
-				.ll-screens::-webkit-scrollbar { display: none; }
 				.ll-sc {
-					flex: 0 0 auto; height: 200px; width: auto;
+					width: 100%; height: auto; aspect-ratio: 9/19.5;
 					border-radius: 10px;
-					display: block; object-fit: contain;
+					display: block; object-fit: cover;
 					background: #1a1a1a; border: 1px solid #333;
 				}
 				.app.color-mode .ll-sc { background: #f5f5f5; border-color: #e0e0e0; }
