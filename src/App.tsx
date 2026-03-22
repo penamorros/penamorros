@@ -4188,7 +4188,7 @@ export default function App() {
 					position: relative;
 					border: 2px solid rgba(255, 255, 255, 0.3);
 					padding: 0.5rem;
-					background: rgba(0, 0, 0, 0.3);
+					background: transparent;
 				}
 
 				.newspaper-image {
