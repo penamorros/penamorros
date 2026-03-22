@@ -344,6 +344,20 @@ export default function App() {
 		return () => window.removeEventListener('mousemove', handleMouseMove)
 	}, [])
 
+	useEffect(() => {
+		const videos = document.querySelectorAll('video[data-autoplay-on-visible]')
+		if (!videos.length) return
+		const obs = new IntersectionObserver((entries) => {
+			entries.forEach(e => {
+				const v = e.target as HTMLVideoElement
+				if (e.isIntersecting) { v.play().catch(() => {}) }
+				else { v.pause() }
+			})
+		}, { threshold: 0.3 })
+		videos.forEach(v => obs.observe(v))
+		return () => obs.disconnect()
+	}, [])
+
 	// Elegant Minimalist Techy Cursor 2026
 	useEffect(() => {
 		const cursorContainer = document.createElement('div')
@@ -7691,12 +7705,12 @@ export default function App() {
 												></iframe>
 											) : (
 												<video 
-													autoPlay
 													muted
 													loop
 													playsInline
 													width="100%" 
 													height="120"
+													data-autoplay-on-visible
 													className="project-video"
 													onClick={() => {
 														// Open video in fullscreen/modal
@@ -7810,7 +7824,7 @@ export default function App() {
 						</div>
 
 						<div className="ll-row">
-							<video controls autoPlay muted playsInline preload="auto" className="ll-video"><source src="/lumina-demo.mp4" type="video/mp4" /></video>
+							<video controls muted playsInline preload="auto" className="ll-video" data-autoplay-on-visible><source src="/lumina-demo.mp4" type="video/mp4" /></video>
 							<div>
 								<div className="ll-kpis">
 									<div className="ll-kpi"><span className="ll-kpi-n">$2.5M</span><span className="ll-kpi-l">Valuation</span></div>
