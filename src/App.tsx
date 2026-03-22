@@ -16,6 +16,15 @@ const sections = [
 
 const projects = [
 	{
+		id: 'project3',
+		title: 'Health Education Platform',
+		description: 'Comprehensive health app with nutrition tracking, exercise monitoring, and educational resources for underserved communities.',
+		technologies: ['React', 'Django', 'PostgreSQL', 'Chart.js', 'Python', 'TypeScript'],
+		image: '/project3.jpg',
+		link: 'https://chart-app-demo.netlify.app/',
+		github: 'https://github.com/penamorros/chart-app-front'
+	},
+	{
 		id: 'project1',
 		title: 'Unif-AI Business Platform',
 		description: 'AI-powered business transformation platform with document analysis and smart insights for companies of all sizes.',
@@ -32,15 +41,6 @@ const projects = [
 		image: '/project2.jpg',
 		link: 'https://aztecadigitalmetrics.netlify.app/',
 		github: 'https://github.com/penamorros/dashtva'
-	},
-	{
-		id: 'project3',
-		title: 'Health Education Platform',
-		description: 'Comprehensive health app with nutrition tracking, exercise monitoring, and educational resources for underserved communities.',
-		technologies: ['React', 'Django', 'PostgreSQL', 'Chart.js', 'Python', 'TypeScript'],
-		image: '/project3.jpg',
-		link: 'https://chart-app-demo.netlify.app/',
-		github: 'https://github.com/penamorros/chart-app-front'
 	}
 ]
 
@@ -7673,7 +7673,7 @@ export default function App() {
 								>
 									{projects.map((project, index) => (
 										<div key={project.id} className="project-item">
-											{index === 2 ? (
+											{index === 0 ? (
 												<iframe
 													width="100%"
 													height="120"
@@ -7700,7 +7700,7 @@ export default function App() {
 													onClick={() => {
 														// Open video in fullscreen/modal
 														const video = document.createElement('video');
-														video.src = index === 0 ? '/bb.mp4' : index === 1 ? '/1.mov' : '/1.mov';
+														video.src = index === 1 ? '/bb.mp4' : '/1.mov';
 														video.controls = true;
 														video.style.width = '80vw';
 														video.style.height = 'auto';
@@ -7729,7 +7729,7 @@ export default function App() {
 														video.play();
 													}}
 												>
-													<source src={index === 0 ? '/bb.mp4' : index === 1 ? '/1.mov' : '/1.mov'} type="video/mp4" />
+													<source src={index === 1 ? '/bb.mp4' : '/1.mov'} type="video/mp4" />
 													Your browser does not support the video tag.
 												</video>
 											)}
