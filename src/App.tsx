@@ -966,21 +966,10 @@ export default function App() {
 			{showIntro && (
 				<div className="intro-overlay">
 					<img 
-						src="/signature-intro.gif" 
+						src={`/signature-intro.gif?t=${Date.now()}`}
 						alt="Signature animation" 
 						className="intro-signature" 
-						onLoad={() => {
-							// Ensure GIF is fully loaded before starting fade
-							console.log('Signature GIF loaded');
-						}}
-						onError={(e) => {
-						console.error('Failed to load intro GIF');
-						setShowIntro(false);
-						}}
-						style={{
-							opacity: 1,
-							animation: 'none' // Let CSS handle the fade
-						}}
+						onError={() => setShowIntro(false)}
 					/>
 				</div>
 			)}
