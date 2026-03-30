@@ -1251,6 +1251,7 @@ export default function App() {
 					src: url('/ORGANICAL PERSONAL USE.ttf') format('truetype');
 					font-weight: normal;
 					font-style: normal;
+					font-display: swap;
 				}
 
 				@font-face {
@@ -1258,6 +1259,7 @@ export default function App() {
 					src: url('/OrangeAvenueDEMO-Regular.otf') format('opentype');
 					font-weight: normal;
 					font-style: normal;
+					font-display: swap;
 				}
 
 				@font-face {
@@ -1265,6 +1267,7 @@ export default function App() {
 					src: url('/Dumbledor-Regular.ttf') format('truetype');
 					font-weight: normal;
 					font-style: normal;
+					font-display: swap;
 				}
 				
 				.app {
