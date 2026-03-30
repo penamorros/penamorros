@@ -342,8 +342,13 @@ export default function App() {
 		const obs = new IntersectionObserver((entries) => {
 			entries.forEach(e => {
 				const v = e.target as HTMLVideoElement
-				if (e.isIntersecting) { v.play().catch(() => {}) }
-				else { v.pause() }
+				if (e.isIntersecting) {
+					v.muted = true
+					const p = v.play()
+					if (p !== undefined) p.catch(() => {})
+				} else {
+					v.pause()
+				}
 			})
 		}, { threshold: 0.3 })
 		videos.forEach(v => obs.observe(v))
@@ -8271,9 +8276,12 @@ function AnimatedGif({ selectedValue }: { selectedValue: string | null }) {
 				entries.forEach((entry) => {
 					if (entry.isIntersecting) {
 						setIsVisible(true)
-						// Start playing when video becomes visible
 						if (!hasPlayed) {
-							video.play()
+							const p = video.play()
+							if (p !== undefined) p.catch(() => {
+								video.muted = true
+								video.play().catch(() => {})
+							})
 							setHasPlayed(true)
 						}
 					}
@@ -8335,6 +8343,7 @@ function AnimatedGif({ selectedValue }: { selectedValue: string | null }) {
 			ref={videoRef}
 			src="/Illus.mp4"
 			className="values-animation"
+			autoPlay
 			muted
 			playsInline
 			preload="auto"
