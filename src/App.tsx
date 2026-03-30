@@ -217,15 +217,7 @@ export default function App() {
 		if (showIntro) {
 			// Preload critical images in the background while signature animation plays
 			const imagesToPreload = [
-				'/Diseno-sin-titulo-97.png',
-				'/logo_ph.png%20%282%29.gif',
-				'/image.png',
-				'/iniciativa-propone-enfoque-integral-educacion.png',
-				'/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png',
-				'/tulane.svg',
-				'/lg-logo.png',
-				'/Tulane-University-Logo.png',
-				'/pena-morros-main-min.png'
+				'/Diseno-sin-titulo-97.png'
 			]
 			
 			imagesToPreload.forEach(src => {
