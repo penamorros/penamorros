@@ -1830,9 +1830,9 @@ export default function App() {
 					width: 100%;
 					height: 100%;
 					border-radius: 50%;
+					-webkit-backface-visibility: hidden;
 					backface-visibility: hidden;
 					border: 2px solid rgba(255, 255, 255, 0.3);
-					box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 					overflow: hidden;
 					transform: rotateY(0deg);
 				}
@@ -1840,15 +1840,12 @@ export default function App() {
 				.app.color-mode .coin-front,
 				.app.color-mode .coin-back {
 					border: 2px solid rgba(0, 0, 0, 0.3);
-					box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 				}
 				
 				.coin-front {
-					background: #000000;
-					animation: portraitGlow 4s ease-in-out infinite alternate;
-				}
-				.app.color-mode .coin-front {
-					background: #ffffff;
+					background: transparent;
+					-webkit-backface-visibility: hidden;
+					backface-visibility: hidden;
 				}
 				
 				@keyframes portraitGlow {
