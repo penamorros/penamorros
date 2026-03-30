@@ -1844,8 +1844,11 @@ export default function App() {
 				}
 				
 				.coin-front {
-					background: transparent;
+					background: #000000;
 					animation: portraitGlow 4s ease-in-out infinite alternate;
+				}
+				.app.color-mode .coin-front {
+					background: #ffffff;
 				}
 				
 				@keyframes portraitGlow {
