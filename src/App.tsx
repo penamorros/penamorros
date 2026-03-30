@@ -7387,7 +7387,7 @@ export default function App() {
 													src="/logo_ph.png%20%282%29.gif" 
 													alt="Manuel Peña Morros 3D Avatar" 
 													className="avatar-gif"
-													loading="eager"
+													loading="lazy"
 													decoding="async"
 												/>
 											</div>
@@ -8016,7 +8016,7 @@ function BusinessCard() {
 								src="/iniciativa-propone-enfoque-integral-educacion.png" 
 								alt="Manuel Peña Morros" 
 								className="business-card-photo"
-								loading="eager"
+								loading="lazy"
 								decoding="async"
 							/>
 						</div>
@@ -8066,7 +8066,7 @@ function BusinessCard() {
 					
 					{/* Signature */}
 					<div className="business-card-signature">
-						<img src="/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png" alt="Manuel Peña Morros signature" className="signature-img" loading="eager" decoding="async" />
+						<img src="/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png" alt="Manuel Peña Morros signature" className="signature-img" loading="lazy" decoding="async" />
 					</div>
 				</div>
 			</div>
@@ -8076,7 +8076,7 @@ function BusinessCard() {
 
 function Signature() {
 	return (
-		<img src="/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png" alt="Manuel Peña-Morros signature" className="signature-img" loading="eager" decoding="async" />
+		<img src="/Gradient-Icon-Map-Navigation-App-Logo-500-x-150-px.png" alt="Manuel Peña-Morros signature" className="signature-img" loading="lazy" decoding="async" />
 	)
 }
 
