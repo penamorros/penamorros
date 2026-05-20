@@ -7682,30 +7682,15 @@ export default function App() {
 				<section id="resume" className="section reveal tone-2 tone-sep">
 					<div className="container">
 						<h2>Resume</h2>
-						<TimelineComponent />
 						<div className="resume-pdf-row">
-							<div className="resume-pdf-card" onClick={() => {
-								const modal = document.createElement('div')
-								modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;cursor:pointer;'
-								const iframe = document.createElement('iframe')
-								iframe.src = '/resume.pdf'
-								iframe.style.cssText = 'width:80vw;height:85vh;max-width:700px;border:none;border-radius:12px;'
-								const dl = document.createElement('a')
-								dl.href = '/resume.pdf'
-								dl.download = 'Manuel_Pena_Morros_Resume.pdf'
-								dl.textContent = '⬇ Download'
-								dl.style.cssText = 'color:#fff;font-size:0.9rem;font-weight:600;text-decoration:none;padding:0.5rem 1.2rem;border:1px solid #fff;border-radius:8px;'
-								modal.appendChild(iframe)
-								modal.appendChild(dl)
-								document.body.appendChild(modal)
-								modal.addEventListener('click', (e) => { if(e.target === modal) document.body.removeChild(modal) })
-							}}>
+							<a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="resume-pdf-card">
 								<img src="/resume-thumb.png" alt="Resume preview" className="resume-pdf-thumb" />
 								<div className="resume-pdf-overlay">
-									<span>View Resume</span>
+									<span>View PDF</span>
 								</div>
-							</div>
+							</a>
 						</div>
+						<TimelineComponent />
 								</div>
 				</section>
 
