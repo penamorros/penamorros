@@ -180,7 +180,7 @@ const skills = [
 export default function App() {
 	const [menuOpen, setMenuOpen] = useState<boolean>(false)
 	const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-	const [colorMode, setColorMode] = useState<boolean>(true)
+	const [colorMode, setColorMode] = useState<boolean>(false)
 	const [active, setActive] = useState<string>('about')
 	const [wheelSpinning, setWheelSpinning] = useState<boolean>(false)
 	const [selectedValue, setSelectedValue] = useState<string | null>(null)
