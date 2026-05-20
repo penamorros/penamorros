@@ -7244,6 +7244,26 @@ export default function App() {
 				}
 
 				/* ====== LUMINA LABS (inside projects) ====== */
+				/* Resume PDF preview */
+				.resume-pdf-row { display: flex; justify-content: center; margin-top: 2rem; }
+				.resume-pdf-card {
+					position: relative; cursor: pointer; border-radius: 8px; overflow: hidden;
+					box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: transform 0.3s, box-shadow 0.3s;
+					width: 120px;
+				}
+				.resume-pdf-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+				.resume-pdf-thumb { width: 100%; display: block; border-radius: 8px; }
+				.resume-pdf-overlay {
+					position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+					display: flex; align-items: center; justify-content: center;
+					opacity: 0; transition: opacity 0.3s; border-radius: 8px;
+				}
+				.resume-pdf-card:hover .resume-pdf-overlay { opacity: 1; }
+				.resume-pdf-overlay span {
+					color: #fff; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em;
+					padding: 0.3rem 0.7rem; border: 1px solid #fff; border-radius: 5px;
+				}
+
 				.ll-sep { height: 1px; background: #333; margin: 2rem 0; }
 				.app.color-mode .ll-sep { background: #e0e0e0; }
 
@@ -7663,6 +7683,29 @@ export default function App() {
 					<div className="container">
 						<h2>Resume</h2>
 						<TimelineComponent />
+						<div className="resume-pdf-row">
+							<div className="resume-pdf-card" onClick={() => {
+								const modal = document.createElement('div')
+								modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;cursor:pointer;'
+								const iframe = document.createElement('iframe')
+								iframe.src = '/resume.pdf'
+								iframe.style.cssText = 'width:80vw;height:85vh;max-width:700px;border:none;border-radius:12px;'
+								const dl = document.createElement('a')
+								dl.href = '/resume.pdf'
+								dl.download = 'Manuel_Pena_Morros_Resume.pdf'
+								dl.textContent = '⬇ Download'
+								dl.style.cssText = 'color:#fff;font-size:0.9rem;font-weight:600;text-decoration:none;padding:0.5rem 1.2rem;border:1px solid #fff;border-radius:8px;'
+								modal.appendChild(iframe)
+								modal.appendChild(dl)
+								document.body.appendChild(modal)
+								modal.addEventListener('click', (e) => { if(e.target === modal) document.body.removeChild(modal) })
+							}}>
+								<img src="/resume-thumb.png" alt="Resume preview" className="resume-pdf-thumb" />
+								<div className="resume-pdf-overlay">
+									<span>View Resume</span>
+								</div>
+							</div>
+						</div>
 								</div>
 				</section>
 
