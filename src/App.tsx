@@ -7246,7 +7246,7 @@ export default function App() {
 				/* ====== LUMINA LABS (inside projects) ====== */
 				/* Resume download icon */
 				.resume-dl {
-					position: absolute; bottom: -2px; right: 0;
+					display: inline-block; margin-left: 0.4rem; vertical-align: middle;
 					color: rgba(255,255,255,0.4); text-decoration: none;
 					transition: color 0.3s, transform 0.3s;
 				}
@@ -7671,7 +7671,7 @@ export default function App() {
 
 				<section id="resume" className="section reveal tone-2 tone-sep">
 					<div className="container">
-						<h2 style={{position:'relative',display:'inline-block',width:'100%'}}>Resume<a href="/resume.pdf" download="Manuel_Pena_Morros_Resume.pdf" className="resume-dl" aria-label="Download Resume"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></h2>
+						<h2>Resume<a href="/resume.pdf" download="Manuel_Pena_Morros_Resume.pdf" className="resume-dl" aria-label="Download Resume"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></h2>
 						<TimelineComponent />
 								</div>
 				</section>
