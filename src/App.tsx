@@ -1183,7 +1183,7 @@ export default function App() {
 					left: 0;
 					width: 100%;
 					height: 100%;
-					background-color: #ffffff;
+					background-color: #000000;
 					z-index: 10000;
 					display: flex;
 					align-items: center;
@@ -1210,7 +1210,6 @@ export default function App() {
 					object-fit: contain;
 					opacity: 1;
 					animation: signatureShow 5.5s ease-in-out forwards;
-					filter: invert(1);
 				}
 				
 				@keyframes signatureShow {
