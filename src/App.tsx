@@ -7244,25 +7244,15 @@ export default function App() {
 				}
 
 				/* ====== LUMINA LABS (inside projects) ====== */
-				/* Resume PDF preview */
-				.resume-pdf-row { display: flex; justify-content: center; margin-top: 2rem; }
-				.resume-pdf-card {
-					position: relative; cursor: pointer; border-radius: 8px; overflow: hidden;
-					box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: transform 0.3s, box-shadow 0.3s;
-					width: 120px;
+				/* Resume download icon */
+				.resume-dl {
+					position: absolute; bottom: -2px; right: 0;
+					color: rgba(255,255,255,0.4); text-decoration: none;
+					transition: color 0.3s, transform 0.3s;
 				}
-				.resume-pdf-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
-				.resume-pdf-thumb { width: 100%; display: block; border-radius: 8px; }
-				.resume-pdf-overlay {
-					position: absolute; inset: 0; background: rgba(0,0,0,0.5);
-					display: flex; align-items: center; justify-content: center;
-					opacity: 0; transition: opacity 0.3s; border-radius: 8px;
-				}
-				.resume-pdf-card:hover .resume-pdf-overlay { opacity: 1; }
-				.resume-pdf-overlay span {
-					color: #fff; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em;
-					padding: 0.3rem 0.7rem; border: 1px solid #fff; border-radius: 5px;
-				}
+				.resume-dl:hover { color: #fff; transform: translateY(-1px); }
+				.app.color-mode .resume-dl { color: rgba(0,0,0,0.3); }
+				.app.color-mode .resume-dl:hover { color: #000; }
 
 				.ll-sep { height: 1px; background: #333; margin: 2rem 0; }
 				.app.color-mode .ll-sep { background: #e0e0e0; }
@@ -7681,15 +7671,7 @@ export default function App() {
 
 				<section id="resume" className="section reveal tone-2 tone-sep">
 					<div className="container">
-						<h2>Resume</h2>
-						<div className="resume-pdf-row">
-							<a href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="resume-pdf-card">
-								<img src="/resume-thumb.png" alt="Resume preview" className="resume-pdf-thumb" />
-								<div className="resume-pdf-overlay">
-									<span>View PDF</span>
-								</div>
-							</a>
-						</div>
+						<h2 style={{position:'relative',display:'inline-block',width:'100%'}}>Resume<a href="/resume.pdf" download="Manuel_Pena_Morros_Resume.pdf" className="resume-dl" aria-label="Download Resume"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></h2>
 						<TimelineComponent />
 								</div>
 				</section>
