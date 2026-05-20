@@ -16,13 +16,13 @@ const sections = [
 
 const projects = [
 	{
-		id: 'project3',
-		title: 'Health Education Platform',
-		description: 'Comprehensive health app with nutrition tracking, exercise monitoring, and educational resources for underserved communities.',
-		technologies: ['React', 'Django', 'PostgreSQL', 'Chart.js', 'Python', 'TypeScript'],
-		image: '/project3.jpg',
-		link: 'https://chart-app-demo.netlify.app/',
-		github: 'https://github.com/penamorros/chart-app-front'
+		id: 'project2',
+		title: 'TV Azteca Digital Metrics',
+		description: 'Digital analytics dashboard with real-time metrics, performance tracking, and data visualization for media analytics. • Login: User / Test',
+		technologies: ['React', 'Firebase', 'Chart.js', 'Google Sheets API', 'Real-time Analytics'],
+		image: '/project2.jpg',
+		link: 'https://aztecadigitalmetrics.netlify.app/',
+		github: 'https://github.com/penamorros/dashtva'
 	},
 	{
 		id: 'project1',
@@ -34,13 +34,13 @@ const projects = [
 		github: 'https://github.com/penamorros/unif-ai'
 	},
 	{
-		id: 'project2',
-		title: 'TV Azteca Digital Metrics',
-		description: 'Digital analytics dashboard with real-time metrics, performance tracking, and data visualization for media analytics. • Login: User / Test',
-		technologies: ['React', 'Firebase', 'Chart.js', 'Google Sheets API', 'Real-time Analytics'],
-		image: '/project2.jpg',
-		link: 'https://aztecadigitalmetrics.netlify.app/',
-		github: 'https://github.com/penamorros/dashtva'
+		id: 'project3',
+		title: 'Health Education Platform',
+		description: 'Comprehensive health app with nutrition tracking, exercise monitoring, and educational resources for underserved communities.',
+		technologies: ['React', 'Django', 'PostgreSQL', 'Chart.js', 'Python', 'TypeScript'],
+		image: '/project3.jpg',
+		link: 'https://chart-app-demo.netlify.app/',
+		github: 'https://github.com/penamorros/chart-app-front'
 	}
 ]
 
@@ -7677,21 +7677,16 @@ export default function App() {
 								>
 									{projects.map((project, index) => (
 										<div key={project.id} className="project-item">
-											{index === 0 ? (
-												<iframe
+											{index === 2 ? (
+												<img
+													src="/diaita-preview.png"
+													alt="Health Education Platform"
 													width="100%"
 													height="120"
 													className="project-video"
-													src="https://www.youtube.com/embed/fSpEoc4jweE?autoplay=1&loop=1&playlist=fSpEoc4jweE&mute=1"
-													title="YouTube video player"
-													frameBorder="0"
-													allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-													allowFullScreen
-													style={{
-														borderRadius: '15px',
-														border: 'none'
-													}}
-												></iframe>
+													style={{ borderRadius: '15px', objectFit: 'cover' }}
+													loading="lazy"
+												/>
 											) : (
 												<video 
 													muted
@@ -7702,9 +7697,8 @@ export default function App() {
 													data-autoplay-on-visible
 													className="project-video"
 													onClick={() => {
-														// Open video in fullscreen/modal
 														const video = document.createElement('video');
-														video.src = index === 1 ? '/bb.mp4' : '/1.mov';
+														video.src = index === 0 ? '/1.mov' : '/bb.mp4';
 														video.controls = true;
 														video.style.width = '80vw';
 														video.style.height = 'auto';
@@ -7733,8 +7727,7 @@ export default function App() {
 														video.play();
 													}}
 												>
-													<source src={index === 1 ? '/bb.mp4' : '/1.mov'} type="video/mp4" />
-													Your browser does not support the video tag.
+													<source src={index === 0 ? '/1.mov' : '/bb.mp4'} type="video/mp4" />
 												</video>
 											)}
 											<div className="project-card">
