@@ -341,6 +341,24 @@ export default function App() {
 		}
 	}, [isAthleticsPage])
 
+	// Prefetch athletics assets in the background so /athletics opens without pop-in
+	useEffect(() => {
+		if (isAthleticsPage) return
+		const assets = [
+			'/trophy.webp',
+			'/medal-1.webp', '/medal-2.webp', '/medal-3.webp', '/medal-4.webp',
+			'/athlete-1.webp', '/athlete-2.webp', '/athlete-3.webp',
+		]
+		const timer = window.setTimeout(() => {
+			assets.forEach((src) => {
+				const img = new Image()
+				img.decoding = 'async'
+				img.src = src
+			})
+		}, 3000)
+		return () => window.clearTimeout(timer)
+	}, [isAthleticsPage])
+
 	// Initialize chat session ID when chat is first opened
 	useEffect(() => {
 		if (chatOpen && !chatSessionId) {
@@ -9098,7 +9116,7 @@ function AthleticsMedal({
 	return (
 		<div className={`athletics-medal athletics-medal--${position}`}>
 			<div className="athletics-medal-inner" style={{ animationDelay: `${delay}s` }}>
-				<img src={src} alt={label} className="athletics-medal-img" loading="eager" decoding="async" />
+				<img src={src} alt={label} className="athletics-medal-img" loading="eager" decoding="async" fetchPriority="high" />
 			</div>
 			<div className="athletics-medal-tooltip">{label}</div>
 		</div>
@@ -9108,11 +9126,11 @@ function AthleticsMedal({
 function AthleticsShowcase() {
 	return (
 		<div className="athletics-showcase">
-			<AthleticsMedal src="/medal-1.png" position="far-left" delay={0} label="My gold — Campeón, Fitnessmania INBA México" />
-			<AthleticsMedal src="/medal-2.png" position="mid-left" delay={0.3} label="My silver — Subcampeón, INBA México Selectivo" />
+			<AthleticsMedal src="/medal-1.webp" position="far-left" delay={0} label="My gold — Campeón, Fitnessmania INBA México" />
+			<AthleticsMedal src="/medal-2.webp" position="mid-left" delay={0.3} label="My silver — Subcampeón, INBA México Selectivo" />
 			<AthleticsTrophy />
-			<AthleticsMedal src="/medal-3.png" position="mid-right" delay={0.45} label="My bronze — Tercer Lugar, INBA México Selectivo" />
-			<AthleticsMedal src="/medal-4.png" position="far-right" delay={0.15} label="My Pro INBA Elite medal — Natural Bodybuilding" />
+			<AthleticsMedal src="/medal-3.webp" position="mid-right" delay={0.45} label="My bronze — Tercer Lugar, INBA México Selectivo" />
+			<AthleticsMedal src="/medal-4.webp" position="far-right" delay={0.15} label="My Pro INBA Elite medal — Natural Bodybuilding" />
 		</div>
 	)
 }
@@ -9122,11 +9140,12 @@ function AthleticsTrophy() {
 		<div className="athletics-trophy-stage">
 			<div className="athletics-trophy-wrap">
 				<img
-					src="/trophy.png"
+					src="/trophy.webp"
 					alt="My trophy — 2° Lugar, Mr. México Amateur"
 					className="athletics-trophy-img"
 					loading="eager"
 					decoding="async"
+					fetchPriority="high"
 				/>
 			</div>
 			<div className="athletics-medal-tooltip">My trophy — 2° Lugar, Mr. México Amateur (WABBA)</div>
@@ -9135,9 +9154,9 @@ function AthleticsTrophy() {
 }
 
 const athleticsStagePhotos = [
-	{ src: '/athlete-1.png', caption: 'INBA México Selectivo', size: 'small', slider: true },
-	{ src: '/athlete-2.png', caption: 'Mr. México Amateur — 2° Lugar', size: 'tall', slider: false },
-	{ src: '/athlete-3.png', caption: 'Miss & Mister Natural México', size: 'tall', slider: false },
+	{ src: '/athlete-1.webp', caption: 'INBA México Selectivo', size: 'small', slider: true },
+	{ src: '/athlete-2.webp', caption: 'Mr. México Amateur — 2° Lugar', size: 'tall', slider: false },
+	{ src: '/athlete-3.webp', caption: 'Miss & Mister Natural México', size: 'tall', slider: false },
 ] as const
 
 function AthleticsStageGallery() {
