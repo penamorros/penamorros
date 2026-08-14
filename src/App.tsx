@@ -4309,8 +4309,8 @@ export default function App() {
 
 				/* Newspaper Card Styles - Dark Mode (Default) */
 				.newspaper-card {
-					background: rgba(20, 20, 25, 0.95);
-					border: 3px solid rgba(255, 255, 255, 0.2);
+					background: rgba(255, 255, 255, 0.05);
+					border: 1px solid rgba(255, 255, 255, 0.12);
 					box-shadow: 
 						0 10px 30px rgba(0, 0, 0, 0.5),
 						inset 0 0 0 1px rgba(255, 255, 255, 0.05);
@@ -4699,8 +4699,10 @@ export default function App() {
 					justify-content: flex-start;
 					align-items: center;
 					text-align: center;
-					background: #1a1a1a;
-					border: 1px solid #333333;
+					background: rgba(18, 18, 20, 0.85);
+					backdrop-filter: blur(15px);
+					-webkit-backdrop-filter: blur(15px);
+					border: 1px solid rgba(255, 255, 255, 0.1);
 					border-radius: 20px;
 					box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 					gap: 1.5rem;
@@ -4727,8 +4729,8 @@ export default function App() {
 				}
 
 				.project-card:hover {
-					background: #2a2a2a;
-					border-color: #444444;
+					background: rgba(30, 30, 34, 0.88);
+					border-color: rgba(255, 255, 255, 0.2);
 					transform: 
 						translateY(-25px) 
 						translateZ(30px) 
@@ -4928,8 +4930,8 @@ export default function App() {
 				}
 
 				.app.color-mode .project-card {
-					background: #f5f5f5;
-					border: 1px solid #e0e0e0;
+					background: rgba(245, 245, 245, 0.88);
+					border: 1px solid rgba(0, 0, 0, 0.1);
 				}
 
 				.app.color-mode .project-card::before {
@@ -8006,10 +8008,11 @@ export default function App() {
 				.ll-kpi {
 					display: flex; flex-direction: column; align-items: center; justify-content: center;
 					text-align: center; padding: 0.6rem 0.3rem; border-radius: 12px;
-					background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.18); transition: all 0.3s;
+					background: rgba(255,255,255,0.05); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+					border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s;
 				}
 				.ll-kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-				.app.color-mode .ll-kpi { background: rgba(255,255,255,0.45); border-color: rgba(0,0,0,0.15); }
+				.app.color-mode .ll-kpi { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
 				.app.color-mode .ll-kpi:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
 				.ll-kpi-n { display: block; font-size: 1.7rem; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
 				.app.color-mode .ll-kpi-n { color: #000; }
@@ -8023,9 +8026,10 @@ export default function App() {
 				.ll-press {
 					display: flex; align-items: center; gap: 1rem;
 					margin: 1rem 0; padding: 0.6rem 1rem;
-					background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.18); border-radius: 12px;
+					background: rgba(255,255,255,0.05); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+					border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
 				}
-				.app.color-mode .ll-press { background: rgba(255,255,255,0.45); border-color: rgba(0,0,0,0.15); }
+				.app.color-mode .ll-press { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
 				.ll-press-label {
 					font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
 					letter-spacing: 0.1em; color: rgba(255,255,255,0.4);
