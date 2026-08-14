@@ -7988,12 +7988,10 @@ export default function App() {
 				.app.color-mode .ll-sep { background: #e0e0e0; }
 
 				.ll-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; }
-				.ll-icon { width: 56px; height: 56px; border-radius: 13px; object-fit: cover; }
+				.ll-icon { width: 76px; height: 76px; border-radius: 17px; object-fit: cover; }
 				.ll-head > div { display: flex; flex-direction: column; }
 				.ll-name { font-family: Arial,sans-serif; font-size: 1.6rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
 				.app.color-mode .ll-name { color: #000; }
-				.ll-sub { font-size: 0.85rem; color: rgba(255,255,255,0.5); }
-				.app.color-mode .ll-sub { color: rgba(0,0,0,0.5); }
 				.ll-tag {
 					font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
 					padding: 4px 10px; border-radius: 6px; margin-left: auto; white-space: nowrap;
@@ -8008,26 +8006,26 @@ export default function App() {
 				.ll-kpi {
 					display: flex; flex-direction: column; align-items: center; justify-content: center;
 					text-align: center; padding: 0.6rem 0.3rem; border-radius: 12px;
-					background: #1a1a1a; border: 1px solid #333; transition: all 0.3s;
+					background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.18); transition: all 0.3s;
 				}
 				.ll-kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
-				.app.color-mode .ll-kpi { background: #f5f5f5; border-color: #e0e0e0; }
+				.app.color-mode .ll-kpi { background: rgba(255,255,255,0.45); border-color: rgba(0,0,0,0.15); }
 				.app.color-mode .ll-kpi:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
 				.ll-kpi-n { display: block; font-size: 1.7rem; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
 				.app.color-mode .ll-kpi-n { color: #000; }
 				.ll-kpi-l { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; margin-top: 0.25rem; }
 				.app.color-mode .ll-kpi-l { color: rgba(0,0,0,0.5); }
 
-				.ll-store-badge { margin-left: 1rem; display: inline-flex; align-items: center; transition: transform 0.25s ease, opacity 0.25s ease; }
-				.ll-store-badge img { height: 40px; display: block; }
+				.ll-store-badge { margin-top: 0.4rem; display: inline-flex; align-items: center; align-self: flex-start; transition: transform 0.25s ease, opacity 0.25s ease; }
+				.ll-store-badge img { height: 38px; display: block; }
 				.ll-store-badge:hover { transform: scale(1.05); opacity: 0.9; }
 
 				.ll-press {
 					display: flex; align-items: center; gap: 1rem;
 					margin: 1rem 0; padding: 0.6rem 1rem;
-					background: #1a1a1a; border: 1px solid #333; border-radius: 12px;
+					background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.18); border-radius: 12px;
 				}
-				.app.color-mode .ll-press { background: #f5f5f5; border-color: #e0e0e0; }
+				.app.color-mode .ll-press { background: rgba(255,255,255,0.45); border-color: rgba(0,0,0,0.15); }
 				.ll-press-label {
 					font-size: 0.65rem; font-weight: 600; text-transform: uppercase;
 					letter-spacing: 0.1em; color: rgba(255,255,255,0.4);
@@ -8562,16 +8560,18 @@ export default function App() {
 
 						<div className="ll-head">
 							<img src="/lumina-app-icon.png" alt="Lumina Labs" className="ll-icon" />
-							<div><span className="ll-name">Lumina Labs</span><span className="ll-sub">Available on the App Store</span></div>
-							<a
-								href="https://apps.apple.com/us/app/lumina-labs/id6758263196"
-								target="_blank"
-								rel="noopener noreferrer"
-								className="ll-store-badge"
-								aria-label="Download Lumina Labs on the App Store"
-							>
-								<img src="/app-store-badge.png" alt="Download on the App Store" />
-							</a>
+							<div>
+								<span className="ll-name">Lumina Labs</span>
+								<a
+									href="https://apps.apple.com/us/app/lumina-labs/id6758263196"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="ll-store-badge"
+									aria-label="Download Lumina Labs on the App Store"
+								>
+									<img src="/app-store-badge.png" alt="Download on the App Store" />
+								</a>
+							</div>
 						</div>
 
 						<div className="ll-row">
