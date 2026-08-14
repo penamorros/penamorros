@@ -8760,7 +8760,7 @@ function BusinessCard() {
 				{/* Background with quote */}
 				<div className="business-card-background">
 					<div className="business-card-quote">
-						"Innovation doesn't wait. Neither do I."
+						"My biggest goal isn't just to be happy — it's to make others happy along the way."
 					</div>
 				</div>
 				
@@ -8796,17 +8796,6 @@ function BusinessCard() {
 						>
 							<Mail className="contact-icon" />
 							<span>penamorrosm@gmail.com</span>
-						</div>
-						<div 
-							className="contact-item"
-							onClick={() => {
-								analytics.trackContactAttempt('linkedin')
-								window.open('https://linkedin.com/in/manuelpenamorros', '_blank')
-							}}
-							style={{ cursor: 'pointer' }}
-						>
-							<MessageCircle className="contact-icon" />
-							<span>linkedin.com/in/manuelpenamorros</span>
 						</div>
 						<div 
 							className="contact-item"
