@@ -9135,7 +9135,7 @@ function LuminaKpis() {
 					obs.disconnect()
 				}
 			},
-			{ threshold: 0.4 }
+			{ threshold: 0.6 }
 		)
 		obs.observe(el)
 		return () => obs.disconnect()
@@ -9145,10 +9145,11 @@ function LuminaKpis() {
 		if (!started) return
 		let raf = 0
 		const t0 = performance.now()
-		const duration = 1400
+		const duration = 2800
 		const tick = (t: number) => {
 			const p = Math.min(1, (t - t0) / duration)
-			setProgress(1 - Math.pow(1 - p, 3))
+			// Ease-out so the ticking visibly slows as it approaches the final value
+			setProgress(1 - Math.pow(1 - p, 2.2))
 			if (p < 1) raf = requestAnimationFrame(tick)
 		}
 		raf = requestAnimationFrame(tick)
