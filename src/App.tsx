@@ -467,6 +467,7 @@ export default function App() {
 				const v = e.target as HTMLVideoElement
 				if (e.isIntersecting) {
 					v.muted = true
+					v.playbackRate = parseFloat(v.dataset.playbackRate || '1')
 					const p = v.play()
 					if (p !== undefined) p.catch(() => {})
 				} else {
@@ -8458,6 +8459,7 @@ export default function App() {
 													width="100%" 
 													height="120"
 													data-autoplay-on-visible
+													data-playback-rate="2.5"
 													className="project-video"
 													onClick={() => {
 														const video = document.createElement('video');
