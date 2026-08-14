@@ -75,7 +75,7 @@ PROJECTS:
 
 SKILLS: React, TypeScript, JavaScript, Python, Node.js, PostgreSQL, AWS, TensorFlow, React Native, Figma, and more.
 
-CONTACT: New Orleans, LA · github.com/penamorros · penamorros.com
+CONTACT: Austin, TX · github.com/penamorros · penamorros.com
 
 Keep responses conversational, as if chatting with someone who visited the portfolio.`
 
@@ -8780,7 +8780,7 @@ function BusinessCard() {
 						<div className="business-card-info">
 							<h3 className="business-card-name">Manuel Peña Morros</h3>
 							<p className="business-card-title">Entrepreneur & Developer</p>
-							<p className="business-card-location">New Orleans, LA</p>
+							<p className="business-card-location">Austin, TX</p>
 						</div>
 					</div>
 					
