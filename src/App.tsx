@@ -1,4 +1,5 @@
  import React, { useEffect, useState, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { Sun, Moon, Briefcase, GraduationCap, Zap, MessageCircle, X, Send, Target, Code, Users, Award, Lightbulb, Rocket, Bot, ChevronLeft, ChevronRight, Home, Heart, FileText, Mail, FolderOpen, Database, Server, Palette, Terminal, Globe, Smartphone, Layers, Cpu, GitBranch, Cloud, Sparkles, TrendingUp, Shield, Eye, Activity } from 'lucide-react'
 import { chatService } from './services/chatService'
 import { analytics } from './services/analytics'
@@ -43,6 +44,35 @@ const projects = [
 		github: 'https://github.com/penamorros/chart-app-front'
 	}
 ]
+
+const CHAT_SYSTEM_PROMPT = `You are Manuel Peña-Morros's AI avatar on his portfolio website. Speak in first person as Manuel. Be friendly, professional, and concise (2–4 sentences unless more detail is requested).
+
+CRITICAL RULES:
+- ONLY use facts from this profile. NEVER invent employers, dates, awards, GPAs, or achievements.
+- If unsure, say you don't have that detail and suggest checking the resume or contacting Manuel directly.
+- Do NOT mention Columbia University or New York as future plans unless the user specifically asks about Columbia, New York, transferring, or where you want to go next. If asked, say you transferred from Tulane to UT Austin for Data Science, and your dream is to transfer to Columbia University School of General Studies (GS) in Fall 2027 to be in New York.
+
+EDUCATION:
+- The American School Foundation A.C., Mexico City — Class of 2024, International Baccalaureate (DP)
+- The University of Texas at Austin — Class of 2029, Data Science major. Transferred from Tulane University (previously Computer Science at Tulane).
+
+EXPERIENCE:
+- Founder & CEO, Lumina Labs (New Orleans, LA) — Jan 2025–Present: AI-powered facial analysis platform; $2.5M valuation (CitiBank); $15K MRR; 1,000+ analyses; white-labeled SaaS across 5 dermatology clinics in Mexico; Apple App Store app; patent pending.
+- IT Intern, TV Azteca (Mexico City) — July 2024–July 2025: Python Lighthouse automation for 600+ URLs (40% efficiency gain); React dashboards for 2,000+ real-time events; AWS deployment.
+- Frontend Intern, UnifAI (New York City) — June 2025–August 2025: React, TypeScript, TailwindCSS; real-time charts; UI refactor improved engagement 25%.
+- CEO, Diaita (Mexico City) — May 2022–May 2024: Health/wellness app; 1,000+ downloads; $3,000 USD revenue; 500+ clients; collaborated with nutrition pioneer Barry Sears.
+
+PROJECTS:
+- TV Azteca Digital Metrics — React/Firebase analytics dashboard (aztecadigitalmetrics.netlify.app)
+- Unif-AI Business Platform — AI business transformation platform (unif-ai.netlify.app)
+- Health Education Platform (Diaita) — nutrition, exercise, and education app
+- Lumina Labs — flagship AI venture (see above)
+
+SKILLS: React, TypeScript, JavaScript, Python, Node.js, PostgreSQL, AWS, TensorFlow, React Native, Figma, and more.
+
+CONTACT: New Orleans, LA · github.com/penamorros · penamorros.com
+
+Keep responses conversational, as if chatting with someone who visited the portfolio.`
 
 const articles = [
 	{
@@ -178,6 +208,8 @@ const skills = [
 ]
 
 export default function App() {
+	const isAthleticsPage = window.location.pathname.replace(/\/$/, '') === '/athletics'
+
 	const [menuOpen, setMenuOpen] = useState<boolean>(false)
 	const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
 	const [colorMode, setColorMode] = useState<boolean>(false)
@@ -185,9 +217,14 @@ export default function App() {
 	const [wheelSpinning, setWheelSpinning] = useState<boolean>(false)
 	const [selectedValue, setSelectedValue] = useState<string | null>(null)
 	const [showIntro, setShowIntro] = useState<boolean>(() => {
-		// Only show intro if it hasn't been shown in this session
-		const hasShownIntro = sessionStorage.getItem('hasShownIntro')
-		return !hasShownIntro
+		if (window.location.pathname.replace(/\/$/, '') === '/athletics') return false
+		return !sessionStorage.getItem('hasShownIntro')
+	})
+	const introGifSrc = useRef(`/signature-intro.gif?t=${Date.now()}`)
+	const [photoHovered, setPhotoHovered] = useState<boolean>(false)
+	const [heroInteractReady, setHeroInteractReady] = useState<boolean>(() => {
+		if (window.location.pathname.replace(/\/$/, '') === '/athletics') return true
+		return !!sessionStorage.getItem('hasShownIntro')
 	})
 	const [chatOpen, setChatOpen] = useState<boolean>(false)
 	const [chatMessages, setChatMessages] = useState<Array<{role: string, content: string}>>([])
@@ -197,10 +234,10 @@ export default function App() {
 	const [hoveredValue, setHoveredValue] = useState<string | null>(null)
 	const [scrollProgress, setScrollProgress] = useState<number>(0)
 	const [headerPosition, setHeaderPosition] = useState<number>(2)
-	const [currentProjectIndex, setCurrentProjectIndex] = useState<number>(0)
+	const [currentProjectIndex, setCurrentProjectIndex] = useState<number>(1)
 	const [currentArticleIndex, setCurrentArticleIndex] = useState<number>(0)
 	const [currentSkillIndex, setCurrentSkillIndex] = useState<number>(0)
-	const [rotationAngle, setRotationAngle] = useState<number>(0)
+	const [rotationAngle, setRotationAngle] = useState<number>(-120)
 	const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
 	const [birdPosition, setBirdPosition] = useState<number>(40) // Vertical position percentage
 	const [birdVelocity, setBirdVelocity] = useState<number>(0) // Vertical velocity
@@ -235,6 +272,69 @@ export default function App() {
 			return () => clearTimeout(timer)
 		}
 	}, [showIntro])
+
+	useEffect(() => {
+		if (!showIntro) {
+			setPhotoHovered(false)
+			setHeroInteractReady(true)
+		}
+	}, [showIntro])
+
+	useEffect(() => {
+		if (!showIntro || isAthleticsPage) return
+
+		window.scrollTo(0, 0)
+		const preventScroll = (e: Event) => e.preventDefault()
+		const previousOverflow = document.body.style.overflow
+		document.body.style.overflow = 'hidden'
+		document.documentElement.style.overflow = 'hidden'
+		window.addEventListener('wheel', preventScroll, { passive: false })
+		window.addEventListener('touchmove', preventScroll, { passive: false })
+
+		return () => {
+			document.body.style.overflow = previousOverflow
+			document.documentElement.style.overflow = ''
+			window.removeEventListener('wheel', preventScroll)
+			window.removeEventListener('touchmove', preventScroll)
+		}
+	}, [showIntro, isAthleticsPage])
+
+	// Block zooming (pinch, ctrl/cmd+wheel, keyboard shortcuts) on the athletics page
+	useEffect(() => {
+		if (!isAthleticsPage) return
+
+		const viewport = document.querySelector('meta[name="viewport"]')
+		const previousViewport = viewport?.getAttribute('content') ?? null
+		viewport?.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no')
+
+		const preventWheelZoom = (e: WheelEvent) => {
+			if (e.ctrlKey || e.metaKey) e.preventDefault()
+		}
+		const preventKeyZoom = (e: KeyboardEvent) => {
+			if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '=' || e.key === '0')) {
+				e.preventDefault()
+			}
+		}
+		const preventGesture = (e: Event) => e.preventDefault()
+		const preventPinch = (e: TouchEvent) => {
+			if (e.touches.length > 1) e.preventDefault()
+		}
+
+		window.addEventListener('wheel', preventWheelZoom, { passive: false })
+		window.addEventListener('keydown', preventKeyZoom)
+		document.addEventListener('gesturestart', preventGesture)
+		document.addEventListener('gesturechange', preventGesture)
+		document.addEventListener('touchmove', preventPinch, { passive: false })
+
+		return () => {
+			if (previousViewport) viewport?.setAttribute('content', previousViewport)
+			window.removeEventListener('wheel', preventWheelZoom)
+			window.removeEventListener('keydown', preventKeyZoom)
+			document.removeEventListener('gesturestart', preventGesture)
+			document.removeEventListener('gesturechange', preventGesture)
+			document.removeEventListener('touchmove', preventPinch)
+		}
+	}, [isAthleticsPage])
 
 	// Initialize chat session ID when chat is first opened
 	useEffect(() => {
@@ -616,6 +716,18 @@ export default function App() {
 		}
 	}
 
+	const navigateToSection = (id: string) => {
+		scrollTo(id)
+	}
+
+	const navigateHome = () => {
+		if (isAthleticsPage) {
+			window.location.href = '/'
+		} else {
+			scrollTo('about')
+		}
+	}
+
 	const nextProject = () => {
 		setCurrentProjectIndex((prev) => {
 			const next = prev + 1
@@ -868,12 +980,12 @@ export default function App() {
 					messages: [
 						{
 							role: 'system',
-							content: 'You are Manuel Peña-Morros, a full-stack engineer passionate about building scalable systems and elegant user experiences. You enjoy solving complex problems with clean, data-driven solutions and intuitive design. You are friendly, professional, and genuinely enthusiastic about technology, thriving in environments that combine creativity with engineering precision. Currently studying Computer Science at Tulane University (Dean\'s List, Fall 2025) after graduating from The American School Foundation\'s International Baccalaureate program in Mexico City, you bring both analytical rigor and creative vision to your work. At TV Azteca, you engineered a Python-based automation system that collects and monitors weekly Lighthouse performance metrics for over 600 URLs (HTML and AMP), boosting efficiency by 40% through automation, while developing link-tracking tools and digital dashboards in React to visualize over 2,000 real-time events. At UnifAI in New York (June 2025 - August 2025), you focused on the frontend, creating responsive UIs with React, TypeScript, and TailwindCSS, implementing real-time charts and drill-down features, and delivering a UI refactor that improved engagement by 25%. As founder and CEO of Diaita, a wellness startup addressing obesity and diabetes in Mexico, you led product design and strategy, collaborated with nutrition pioneer Barry Sears, achieved 1,000+ downloads and $3,000 USD in revenue, and helped 500 clients build sustainable health habits. Keep responses conversational and concise, as if you\'re chatting with someone who visited your portfolio.'
+							content: CHAT_SYSTEM_PROMPT
 						},
 						...newMessages
 					],
-					max_tokens: 150,
-					temperature: 0.7
+					max_tokens: 200,
+					temperature: 0.4
 				})
 			})
 
@@ -962,11 +1074,23 @@ export default function App() {
 	}
 
 	return (
-		<div className={`app ${colorMode ? 'color-mode' : ''}`}>
-			{showIntro && (
+		<div className={`app ${colorMode ? 'color-mode' : ''}${isAthleticsPage ? ' athletics-page' : ''}`}>
+			{!isAthleticsPage && !showIntro && createPortal(
+				<>
+					<div className="page-edge-line-wrap top" aria-hidden="true">
+						<div className="page-edge-line" />
+					</div>
+					<div className="page-edge-line-wrap bottom" aria-hidden="true">
+						<div className="page-edge-line" />
+					</div>
+				</>,
+				document.body
+			)}
+
+			{showIntro && !isAthleticsPage && (
 				<div className="intro-overlay">
 					<img 
-						src={`/signature-intro.gif?t=${Date.now()}`}
+						src={introGifSrc.current}
 						alt="Signature animation" 
 						className="intro-signature" 
 						onError={() => setShowIntro(false)}
@@ -974,12 +1098,14 @@ export default function App() {
 				</div>
 			)}
 			
-			{/* Left Side Navigation */}
+			{isAthleticsPage ? (
+				<AthleticsHomeButton />
+			) : (
 			<nav className="left-nav">
 				{/* Logo */}
 				<button 
 					className="nav-logo" 
-					onClick={() => scrollTo('about')}
+					onClick={navigateHome}
 					aria-label="Home"
 				>
 					m
@@ -995,7 +1121,7 @@ export default function App() {
 						<button
 							key={section.id}
 							className={`nav-item ${active === section.id ? 'active' : ''}`}
-							onClick={() => scrollTo(section.id)}
+							onClick={() => navigateToSection(section.id)}
 							aria-label={section.label}
 						>
 							<IconComponent size={20} />
@@ -1021,6 +1147,7 @@ export default function App() {
 					{colorMode ? <Sun size={20} /> : <Moon size={20} />}
 				</button>
 			</nav>
+			)}
 
 			
 			<style>{`
@@ -1189,6 +1316,7 @@ export default function App() {
 					align-items: center;
 					justify-content: center;
 					opacity: 1;
+					pointer-events: none;
 					animation: fadeOut 0.5s ease-out 5.5s forwards;
 				}
 				
@@ -1394,6 +1522,60 @@ export default function App() {
 				}
 				
 				
+				/* Ice-light-blue animated top page line */
+				@keyframes ice-line-flow {
+					0%, 100% {
+						background-position: 0% 50%;
+						opacity: 0.82;
+					}
+					50% {
+						background-position: 100% 50%;
+						opacity: 1;
+					}
+				}
+
+				.page-edge-line-wrap {
+					position: fixed;
+					left: 0;
+					right: 0;
+					height: 3px;
+					overflow: hidden;
+					z-index: 9998;
+					pointer-events: none;
+				}
+
+				.page-edge-line-wrap.top {
+					top: 0;
+				}
+
+				.page-edge-line-wrap.bottom {
+					bottom: 0;
+				}
+
+				.page-edge-line {
+					width: 100%;
+					height: 3px;
+					background: linear-gradient(
+						90deg,
+						rgba(14, 165, 233, 0.35) 0%,
+						rgba(56, 189, 248, 0.55) 18%,
+						rgba(125, 211, 252, 0.72) 36%,
+						rgba(56, 189, 248, 0.85) 50%,
+						rgba(125, 211, 252, 0.72) 64%,
+						rgba(56, 189, 248, 0.55) 82%,
+						rgba(14, 165, 233, 0.35) 100%
+					);
+					background-size: 200% 100%;
+					animation: ice-line-flow 16s ease-in-out infinite;
+					box-shadow:
+						inset 0 -1px 0 rgba(14, 165, 233, 0.5),
+						inset 0 1px 0 rgba(125, 211, 252, 0.35);
+				}
+
+				.title {
+					animation: fadeInUp 0.8s ease-out;
+				}
+
 				/* Left Side Navigation */
 				.left-nav {
 					position: fixed;
@@ -1430,6 +1612,9 @@ export default function App() {
 					font-size: 1.5rem;
 					font-weight: bold;
 					margin-bottom: 0.5rem;
+					-webkit-text-stroke: 0.3px rgba(186, 230, 253, 0.25);
+					paint-order: stroke fill;
+					text-shadow: 0 0 6px rgba(125, 211, 252, 0.12);
 				}
 				
 				.nav-logo:hover {
@@ -1636,10 +1821,8 @@ export default function App() {
 					line-height: 1.1;
 					margin-bottom: 1.5rem;
 					color: #ffffff;
-					animation: fadeInUp 0.8s ease-out;
 					letter-spacing: 0.02em;
 					min-height: 1.2em;
-					text-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
 				}
 				
 				
@@ -1744,7 +1927,7 @@ export default function App() {
 					transform: scale(1.02);
 				}
 				
-				/* Minimal Tech Border - Single Rotating Line */
+				/* Minimal tech ring on hero circle */
 				.photo-wrap::before {
 					content: '';
 					position: absolute;
@@ -1768,7 +1951,7 @@ export default function App() {
 					z-index: -1;
 					pointer-events: none;
 				}
-				
+
 				.app.color-mode .photo-wrap::before {
 					background: linear-gradient(
 						0deg,
@@ -1781,14 +1964,10 @@ export default function App() {
 						transparent 100%
 					);
 				}
-				
+
 				@keyframes techLineRotate {
-					0% {
-						transform: rotate(0deg);
-					}
-					100% {
-						transform: rotate(360deg);
-					}
+					0% { transform: rotate(0deg); }
+					100% { transform: rotate(360deg); }
 				}
 				
 				@keyframes portraitGlowStatic {
@@ -1819,7 +1998,7 @@ export default function App() {
 					transform: rotateY(180deg);
 				}
 				
-				.photo-wrap:hover:not(.chat-open) .coin-inner {
+				.photo-wrap.photo-hovered:not(.chat-open) .coin-inner {
 					transform: rotateY(180deg);
 				}
 				
@@ -2396,6 +2575,20 @@ export default function App() {
 					font-size: 0.9rem;
 					color: rgba(255, 255, 255, 0.8);
 					margin-bottom: 1rem;
+					line-height: 1.5;
+				}
+
+				.chat-welcome-cta {
+					display: block;
+					margin-top: 0.35rem;
+					font-weight: 800;
+					font-size: 0.95rem;
+					color: #ffffff;
+					letter-spacing: 0.01em;
+				}
+
+				.app.color-mode .chat-welcome-cta {
+					color: #000000;
 				}
 				
 				.app.color-mode .chat-bubble {
@@ -2589,7 +2782,6 @@ export default function App() {
 					margin-bottom: 3rem;
 					text-align: center;
 					color: #ffffff;
-					text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 				}
 				
 				.alt {
@@ -3107,7 +3299,7 @@ export default function App() {
 				.timeline-point.active {
 					transform: translate(-50%, -50%) scale(1.2);
 				}
-				
+
 				.timeline-point-inner {
 					width: 60px;
 					height: 60px;
@@ -7244,14 +7436,529 @@ export default function App() {
 
 				/* ====== LUMINA LABS (inside projects) ====== */
 				/* Resume download icon */
-				.resume-dl {
-					display: inline-block; margin-left: 0.4rem; vertical-align: middle;
-					color: rgba(255,255,255,0.4); text-decoration: none;
-					transition: color 0.3s, transform 0.3s;
+				.resume-dl-wrap {
+					position: relative;
+					display: inline-block;
+					margin-left: 0.4rem;
+					vertical-align: middle;
 				}
-				.resume-dl:hover { color: #fff; transform: translateY(-1px); }
-				.app.color-mode .resume-dl { color: rgba(0,0,0,0.3); }
+				.resume-dl {
+					display: inline-flex;
+					align-items: center;
+					justify-content: center;
+					color: rgba(255,255,255,0.7);
+					text-decoration: none;
+					transition: color 0.2s;
+				}
+				.resume-dl:hover { color: #fff; }
+				.resume-dl svg {
+					filter: drop-shadow(0 0 0.5px currentColor);
+				}
+				.app.color-mode .resume-dl { color: rgba(0,0,0,0.65); }
 				.app.color-mode .resume-dl:hover { color: #000; }
+				.resume-dl-tip-cursor {
+					position: fixed;
+					z-index: 10001;
+					pointer-events: none;
+					font-family: Arial, sans-serif;
+					font-size: 0.72rem;
+					font-weight: 800;
+					letter-spacing: 0.05em;
+					text-transform: uppercase;
+					white-space: nowrap;
+					padding: 5px 10px;
+					border-radius: 5px;
+					background: rgba(20, 20, 20, 0.92);
+					border: 1px solid rgba(255,255,255,0.2);
+					color: #fff;
+					box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+				}
+				.app.color-mode .resume-dl-tip-cursor {
+					background: rgba(255,255,255,0.96);
+					border-color: rgba(0,0,0,0.15);
+					color: #000;
+					box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+				}
+
+				.athletics-main { min-height: 100vh; }
+				.athletics-section { min-height: 100vh; padding: 0; background: transparent; overflow: visible; }
+				.athletics-content {
+					min-height: 100vh;
+					width: 100%;
+					background: transparent;
+					position: relative;
+					overflow: visible;
+				}
+
+				.athletics-section {
+					opacity: 1;
+					transform: none;
+				}
+
+				.athletics-showcase {
+					position: absolute;
+					inset: 0;
+					overflow: hidden;
+					pointer-events: none;
+					z-index: 2;
+				}
+
+				.athletics-medal {
+					position: absolute;
+					top: -6vh;
+					height: 67vh;
+					transform: translateX(-50%);
+					overflow: visible;
+					pointer-events: auto;
+				}
+
+				.athletics-medal:hover .athletics-medal-img {
+					transform: scale(1.035);
+				}
+
+				.athletics-medal-tooltip {
+					position: absolute;
+					top: calc(100% + 1rem);
+					left: 50%;
+					transform: translateX(-50%) translateY(6px);
+					white-space: nowrap;
+					padding: 0.55rem 1.1rem;
+					background: rgba(8, 8, 8, 0.92);
+					border: 1px solid rgba(125, 211, 252, 0.35);
+					border-radius: 999px;
+					font-size: 0.82rem;
+					letter-spacing: 0.04em;
+					color: rgba(255, 255, 255, 0.9);
+					opacity: 0;
+					transition: opacity 0.3s ease, transform 0.3s ease;
+					pointer-events: none;
+					z-index: 10;
+				}
+
+				.athletics-medal:hover .athletics-medal-tooltip {
+					opacity: 1;
+					transform: translateX(-50%) translateY(0);
+				}
+
+				.athletics-medal--far-left { left: 17%; }
+				.athletics-medal--mid-left { left: 32%; }
+				.athletics-medal--mid-right { left: 68%; }
+				.athletics-medal--far-right { left: 83%; }
+
+				.athletics-medal--mid-left,
+				.athletics-medal--mid-right {
+					top: -20vh;
+				}
+
+				.athletics-medal-inner {
+					height: 100%;
+					transform-origin: top center;
+					opacity: 0;
+					animation: medal-grow-from-top 2.6s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+				}
+
+				@keyframes medal-grow-from-top {
+					0% {
+						opacity: 0;
+						clip-path: inset(0 0 100% 0);
+					}
+					100% {
+						opacity: 1;
+						clip-path: inset(0 0 0 0);
+					}
+				}
+
+				.athletics-medal-img {
+					height: 100%;
+					width: auto;
+					display: block;
+					transition: transform 0.4s ease;
+					transform-origin: bottom center;
+				}
+
+				.athletics-trophy-stage {
+					position: absolute;
+					left: 50%;
+					bottom: 8vh;
+					transform: translateX(-50%);
+					overflow: visible;
+					pointer-events: auto;
+				}
+
+				.athletics-trophy-stage:hover .athletics-trophy-img {
+					transform: scale(1.03);
+				}
+
+				.athletics-trophy-stage:hover .athletics-medal-tooltip {
+					opacity: 1;
+					transform: translateX(-50%) translateY(0);
+				}
+
+				.athletics-trophy-wrap {
+					position: relative;
+					width: min(46vw, 520px);
+					height: min(46vw, 520px);
+				}
+
+				.athletics-trophy-img {
+					width: 100%;
+					height: 100%;
+					object-fit: contain;
+					display: block;
+					transition: transform 0.4s ease;
+					transform-origin: bottom center;
+				}
+
+				/* ---- Athletics: below-the-fold sections ---- */
+				.athletics-label {
+					font-size: 0.8rem;
+					font-weight: 700;
+					letter-spacing: 0.45em;
+					text-transform: uppercase;
+					text-align: center;
+					color: rgba(255, 255, 255, 0.45);
+					margin: 0 0 clamp(1.5rem, 3.5vh, 3rem);
+				}
+
+				.athletics-stage-section {
+					position: relative;
+					padding: clamp(2.5rem, 6vh, 4.5rem) clamp(2rem, 5vw, 5rem);
+					background: transparent;
+				}
+
+				.athletics-stage-gallery {
+					display: flex;
+					align-items: flex-end;
+					justify-content: center;
+					gap: clamp(2.5rem, 6vw, 7rem);
+				}
+
+				.athletics-stage-item {
+					position: relative;
+					margin: 0;
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					gap: 1rem;
+					opacity: 0;
+					transform: translateX(-32px);
+					transition: opacity 1.6s ease-out, transform 1.6s ease-out;
+				}
+
+				.athletics-stage-item--slider {
+					transform: translateX(72vw);
+					opacity: 1;
+					transition: transform 3.2s cubic-bezier(0.3, 0.6, 0.15, 1);
+					z-index: 2;
+				}
+
+				.athletics-stage-gallery.in .athletics-stage-item {
+					opacity: 1;
+					transform: translateX(0);
+				}
+
+				.athletics-stage-item:hover .athletics-medal-tooltip {
+					opacity: 1;
+					transform: translateX(-50%) translateY(0);
+				}
+
+				.athletics-stage-item .athletics-medal-tooltip {
+					top: auto;
+					bottom: -0.6rem;
+				}
+
+				/* ---- Athletics: federations marquee ---- */
+				.athletics-federations {
+					position: relative;
+					padding: clamp(1.5rem, 4vh, 3rem) 0;
+					background: transparent;
+				}
+
+				.athletics-fed-track {
+					overflow: hidden;
+					width: 100%;
+				}
+
+				.athletics-fed-scroll {
+					display: flex;
+					align-items: center;
+					width: max-content;
+					will-change: transform;
+					animation: athletics-fed-marquee 32s linear infinite;
+				}
+
+				.athletics-fed-scroll:hover {
+					animation-play-state: paused;
+				}
+
+				@keyframes athletics-fed-marquee {
+					0% { transform: translateX(0); }
+					100% { transform: translateX(calc(-100% / 3)); }
+				}
+
+				.athletics-fed-item {
+					flex: 0 0 auto;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					padding: 0 clamp(2.5rem, 5vw, 5rem);
+					opacity: 0.7;
+					transition: opacity 0.3s ease;
+				}
+
+				.athletics-fed-item:hover {
+					opacity: 1;
+				}
+
+				.athletics-fed-item img {
+					height: clamp(40px, 5vw, 60px);
+					width: auto;
+					object-fit: contain;
+					display: block;
+				}
+
+				.athletics-stage-spotlight {
+					position: absolute;
+					left: 50%;
+					bottom: 1.6rem;
+					width: 130%;
+					height: 34%;
+					transform: translateX(-50%);
+					background: radial-gradient(ellipse at center bottom, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.04) 40%, transparent 70%);
+					pointer-events: none;
+				}
+
+				.athletics-stage-photo {
+					width: auto;
+					object-fit: contain;
+					display: block;
+					filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.65));
+					transition: transform 0.5s ease;
+				}
+
+				.athletics-stage-photo--tall {
+					height: clamp(300px, 56vh, 560px);
+				}
+
+				.athletics-stage-photo--small {
+					height: clamp(220px, 40vh, 400px);
+				}
+
+				.athletics-stage-item:hover .athletics-stage-photo {
+					transform: scale(1.03);
+				}
+
+				.athletics-recognitions {
+					position: relative;
+					padding: clamp(2.5rem, 6vh, 4.5rem) clamp(2rem, 5vw, 5rem) clamp(4rem, 9vh, 7rem);
+					background: transparent;
+				}
+
+				.athletics-docs-grid {
+					display: grid;
+					grid-template-columns: repeat(5, minmax(0, 1fr));
+					gap: clamp(1rem, 2vw, 2rem);
+					max-width: 1400px;
+					margin: 0 auto;
+					align-items: start;
+				}
+
+				.athletics-doc-card {
+					display: flex;
+					flex-direction: column;
+					gap: 0.75rem;
+					text-decoration: none;
+					transition: transform 0.35s ease;
+				}
+
+				.athletics-doc-card:hover {
+					transform: translateY(-6px);
+				}
+
+				.athletics-doc-card img {
+					width: 100%;
+					height: auto;
+					display: block;
+					border-radius: 8px;
+					box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+					border: 1px solid rgba(255, 255, 255, 0.12);
+					background: #ffffff;
+				}
+
+				.athletics-doc-card span {
+					font-size: 0.72rem;
+					letter-spacing: 0.12em;
+					text-transform: uppercase;
+					color: rgba(255, 255, 255, 0.55);
+					text-align: center;
+					line-height: 1.5;
+				}
+
+				.athletics-mobile-gate {
+					display: none;
+				}
+
+				@media (max-width: 1024px) {
+					.athletics-mobile-gate {
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						min-height: 100vh;
+						padding: 2rem;
+					}
+					.athletics-mobile-gate .desktop-only-message {
+						display: block !important;
+						text-align: center;
+						padding: 3rem 2.5rem;
+						background: rgba(255, 255, 255, 0.05);
+						border: 1px solid rgba(255, 255, 255, 0.1);
+						border-radius: 12px;
+						max-width: 90%;
+					}
+					.athletics-mobile-gate .desktop-only-message h3 {
+						font-size: clamp(1.5rem, 4vw, 2rem);
+						margin-bottom: 1.5rem;
+						color: #ffffff;
+						line-height: 1.3;
+					}
+					.athletics-mobile-gate .desktop-only-message p {
+						font-size: clamp(1rem, 2.5vw, 1.2rem);
+						color: rgba(255, 255, 255, 0.8);
+						line-height: 1.7;
+					}
+					.athletics-section,
+					.athletics-stage-section,
+					.athletics-recognitions,
+					.athletics-federations,
+					.athletics-home-nav {
+						display: none !important;
+					}
+				}
+
+				.athletics-home-nav {
+					position: fixed;
+					left: 2rem;
+					top: 2rem;
+					z-index: 1000;
+				}
+
+				@property --fire-angle {
+					syntax: '<angle>';
+					initial-value: 0deg;
+					inherits: false;
+				}
+
+				@keyframes fire-border-spin {
+					to { --fire-angle: 360deg; }
+				}
+
+				.athletics-home-badge {
+					position: relative;
+					isolation: isolate;
+					background: rgba(255, 255, 255, 0.05);
+					backdrop-filter: blur(20px);
+					-webkit-backdrop-filter: blur(20px);
+					border: none;
+					border-radius: 999px;
+					box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+					color: rgba(255, 255, 255, 0.9);
+					padding: 0.35rem 1.05rem 0.35rem 0.35rem;
+					cursor: pointer;
+					transition: all 0.3s ease;
+					height: 50px;
+					display: inline-flex;
+					align-items: center;
+					gap: 0.55rem;
+				}
+				.athletics-home-badge::after {
+					content: '';
+					position: absolute;
+					inset: -1px;
+					border-radius: inherit;
+					padding: 2px;
+					background: conic-gradient(
+						from var(--fire-angle),
+						#ff1a00 0deg,
+						#ff5500 45deg,
+						#ffaa00 90deg,
+						#ff0055 135deg,
+						#c026d3 180deg,
+						#6366f1 225deg,
+						#0ea5e9 270deg,
+						#ff1a00 360deg
+					);
+					-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+					-webkit-mask-composite: xor;
+					mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+					mask-composite: exclude;
+					animation: fire-border-spin 8s linear infinite;
+					pointer-events: none;
+					opacity: 0.85;
+					z-index: 0;
+					filter: saturate(1.35) brightness(1.05);
+				}
+				.athletics-home-m {
+					width: 38px;
+					height: 38px;
+					border-radius: 50%;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					font-family: 'Organical', sans-serif;
+					font-size: 1.35rem;
+					font-weight: bold;
+					flex-shrink: 0;
+					position: relative;
+					z-index: 1;
+					background: rgba(255, 255, 255, 0.06);
+				}
+				.athletics-home-title {
+					font-family: 'Pacifico', cursive;
+					font-size: 1.05rem;
+					font-weight: normal;
+					color: rgba(255, 255, 255, 0.95);
+					letter-spacing: 0.1em;
+					line-height: 1;
+					position: relative;
+					z-index: 1;
+					padding-right: 0.1rem;
+				}
+				.athletics-home-badge:hover {
+					background: rgba(255, 255, 255, 0.1);
+					transform: scale(1.04);
+				}
+				.app.color-mode .athletics-home-badge {
+					background: rgba(0, 0, 0, 0.05);
+					color: rgba(0, 0, 0, 0.9);
+				}
+				.app.color-mode .athletics-home-title {
+					color: rgba(0, 0, 0, 0.9);
+				}
+				.app.color-mode .athletics-home-badge:hover {
+					background: rgba(0, 0, 0, 0.08);
+				}
+				.athletics-home-tip {
+					position: fixed;
+					z-index: 10001;
+					pointer-events: none;
+					font-family: Arial, sans-serif;
+					font-size: 0.72rem;
+					font-weight: 800;
+					letter-spacing: 0.04em;
+					text-transform: uppercase;
+					white-space: nowrap;
+					padding: 5px 10px;
+					border-radius: 5px;
+					background: rgba(20, 20, 20, 0.92);
+					border: 1px solid rgba(255,255,255,0.2);
+					color: #fff;
+					box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+				}
+				.app.color-mode .athletics-home-tip {
+					background: rgba(255,255,255,0.96);
+					border-color: rgba(0,0,0,0.15);
+					color: #000;
+				}
 
 				.ll-sep { height: 1px; background: #333; margin: 2rem 0; }
 				.app.color-mode .ll-sep { background: #e0e0e0; }
@@ -7339,6 +8046,25 @@ export default function App() {
 
 
 			<main className="main">
+				{isAthleticsPage ? (
+					<>
+					<div className="athletics-mobile-gate">
+						<div className="desktop-only-message">
+							<h3>Desktop View Required</h3>
+							<p>This website is optimized for desktop viewing. Please visit on a desktop or laptop computer for the full experience.</p>
+						</div>
+					</div>
+					<section className="section athletics-section">
+						<div className="athletics-content" aria-label="Athletics">
+							<AthleticsShowcase />
+						</div>
+					</section>
+					<AthleticsFederations />
+					<AthleticsStageGallery />
+					<AthleticsRecognitions />
+					</>
+				) : (
+				<>
 				<section id="about" className="section hero reveal tone-1">
 					<div className="container hero-wrap">
 						<div style={{ textAlign: 'left', marginLeft: '2cm' }}>
@@ -7376,7 +8102,11 @@ export default function App() {
 						<div className="hero-visual">
 							<div className="orbit orbit-a" aria-hidden></div>
 							<div className="orbit orbit-b" aria-hidden></div>
-							<div className={`photo-wrap ${chatOpen ? 'chat-open' : ''}`}>
+							<div
+								className={`photo-wrap ${chatOpen ? 'chat-open' : ''}${photoHovered && heroInteractReady ? ' photo-hovered' : ''}`}
+								onMouseEnter={() => heroInteractReady && setPhotoHovered(true)}
+								onMouseLeave={() => setPhotoHovered(false)}
+							>
 								<div className="coin-inner">
 									<div className="coin-front">
 										<img
@@ -7405,7 +8135,8 @@ export default function App() {
 											<div className="chat-interface">
 												{chatMessages.length === 0 && (
 													<div className="chat-welcome">
-														Hello! I'm Manuel's AI avatar. I can tell you about my professional background, projects, and experience. What would you like to know? 🤖
+														Hello! I'm Manuel's AI avatar. I know my resume, projects, and experience inside out.
+														<span className="chat-welcome-cta">Ask me anything.</span>
 													</div>
 												)}
 												
@@ -7670,7 +8401,7 @@ export default function App() {
 
 				<section id="resume" className="section reveal tone-2 tone-sep">
 					<div className="container">
-						<h2>Resume<a href="/resume.pdf" download="Manuel_Pena_Morros_Resume.pdf" className="resume-dl" aria-label="Download Resume"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a></h2>
+						<h2>Resume<ResumeDownloadLink /></h2>
 						<TimelineComponent />
 								</div>
 				</section>
@@ -7893,13 +8624,17 @@ export default function App() {
 						<BusinessCard />
 					</div>
 				</section>
+				</>
+				)}
 			</main>
 
+			{!isAthleticsPage && (
 			<footer className="site-footer">
 				<div className="container">
 					<p className="muted">© {new Date().getFullYear()} Manuel Peña Morros. All rights reserved.</p>
 				</div>
 			</footer>
+			)}
 		</div>
 	)
 }
@@ -8344,6 +9079,230 @@ function AnimatedGif({ selectedValue }: { selectedValue: string | null }) {
 }
 
 // Logo component for SVG logos with dark/light mode support
+function AthleticsMedal({
+	src,
+	position,
+	delay,
+	label,
+}: {
+	src: string
+	position: 'far-left' | 'mid-left' | 'mid-right' | 'far-right'
+	delay: number
+	label: string
+}) {
+	return (
+		<div className={`athletics-medal athletics-medal--${position}`}>
+			<div className="athletics-medal-inner" style={{ animationDelay: `${delay}s` }}>
+				<img src={src} alt={label} className="athletics-medal-img" loading="eager" decoding="async" />
+			</div>
+			<div className="athletics-medal-tooltip">{label}</div>
+		</div>
+	)
+}
+
+function AthleticsShowcase() {
+	return (
+		<div className="athletics-showcase">
+			<AthleticsMedal src="/medal-1.png" position="far-left" delay={0} label="My gold — Campeón, Fitnessmania INBA México" />
+			<AthleticsMedal src="/medal-2.png" position="mid-left" delay={0.3} label="My silver — Subcampeón, INBA México Selectivo" />
+			<AthleticsTrophy />
+			<AthleticsMedal src="/medal-3.png" position="mid-right" delay={0.45} label="My bronze — Tercer Lugar, INBA México Selectivo" />
+			<AthleticsMedal src="/medal-4.png" position="far-right" delay={0.15} label="My Pro INBA Elite medal — Natural Bodybuilding" />
+		</div>
+	)
+}
+
+function AthleticsTrophy() {
+	return (
+		<div className="athletics-trophy-stage">
+			<div className="athletics-trophy-wrap">
+				<img
+					src="/trophy.png"
+					alt="My trophy — 2° Lugar, Mr. México Amateur"
+					className="athletics-trophy-img"
+					loading="eager"
+					decoding="async"
+				/>
+			</div>
+			<div className="athletics-medal-tooltip">My trophy — 2° Lugar, Mr. México Amateur (WABBA)</div>
+		</div>
+	)
+}
+
+const athleticsStagePhotos = [
+	{ src: '/athlete-1.png', caption: 'INBA México Selectivo', size: 'small', slider: true },
+	{ src: '/athlete-2.png', caption: 'Mr. México Amateur — 2° Lugar', size: 'tall', slider: false },
+	{ src: '/athlete-3.png', caption: 'Miss & Mister Natural México', size: 'tall', slider: false },
+] as const
+
+function AthleticsStageGallery() {
+	const galleryRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		const el = galleryRef.current
+		if (!el) return
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('in')
+						observer.unobserve(entry.target)
+					}
+				}
+			},
+			{ threshold: 0.3 }
+		)
+		observer.observe(el)
+		return () => observer.disconnect()
+	}, [])
+
+	let fadeIndex = 0
+	return (
+		<section className="athletics-stage-section" aria-label="Competition photos">
+			<p className="athletics-label">On Stage</p>
+			<div ref={galleryRef} className="athletics-stage-gallery">
+				{athleticsStagePhotos.map((photo) => {
+					const delay = photo.slider ? 0 : 2.4 + fadeIndex++ * 0.5
+					return (
+						<figure
+							key={photo.src}
+							className={`athletics-stage-item ${photo.slider ? 'athletics-stage-item--slider' : ''}`}
+							style={{ transitionDelay: `${delay}s` }}
+						>
+							<div className="athletics-stage-spotlight" aria-hidden="true" />
+							<img
+								src={photo.src}
+								alt={photo.caption}
+								className={`athletics-stage-photo athletics-stage-photo--${photo.size}`}
+								loading="lazy"
+								decoding="async"
+							/>
+							<div className="athletics-medal-tooltip">{photo.caption}</div>
+						</figure>
+					)
+				})}
+			</div>
+		</section>
+	)
+}
+
+const athleticsFederations = [
+	{ src: '/fed-inba-global.png', name: 'INBA Global' },
+	{ src: '/fed-wabba.png', name: 'WABBA International' },
+	{ src: '/fed-fitnessmania.png', name: 'Fitnessmania' },
+	{ src: '/fed-nabba.png', name: 'NABBA' },
+]
+
+function AthleticsFederations() {
+	return (
+		<section className="athletics-federations" aria-label="Federations">
+			<div className="athletics-fed-track">
+				<div className="athletics-fed-scroll">
+					{Array.from({ length: 3 }, (_, s) =>
+						athleticsFederations.map((f, j) => (
+							<span key={`${s}-${j}`} className="athletics-fed-item">
+								<img src={f.src} alt={f.name} loading="lazy" decoding="async" />
+							</span>
+						))
+					).flat()}
+				</div>
+			</div>
+		</section>
+	)
+}
+
+const athleticsDocs = [
+	{ href: '/diploma-1.png', preview: '/diploma-1.png', label: 'Reconocimiento 2022' },
+	{ href: '/diploma-2.png', preview: '/diploma-2.png', label: 'Premio Juvenil 2023' },
+	{ href: '/diploma-3.png', preview: '/diploma-3.png', label: 'Reconocimiento 2023' },
+	{ href: '/inba-fitnessmania.pdf', preview: '/pdf-preview-inba.png', label: 'INBA — Fitnessmania' },
+	{ href: '/zone-labs-certification.pdf', preview: '/pdf-preview-zonelabs.png', label: 'Dr. Sears Zone Labs' },
+]
+
+function AthleticsRecognitions() {
+	return (
+		<section className="athletics-recognitions" aria-label="Recognitions and certifications">
+			<p className="athletics-label">Recognitions</p>
+			<div className="athletics-docs-grid">
+				{athleticsDocs.map((d) => (
+					<a key={d.href} href={d.href} target="_blank" rel="noopener noreferrer" className="athletics-doc-card">
+						<img src={d.preview} alt={d.label} loading="lazy" decoding="async" />
+						<span>{d.label}</span>
+					</a>
+				))}
+			</div>
+		</section>
+	)
+}
+
+function AthleticsHomeButton() {
+	const [hovering, setHovering] = useState(false)
+	const [pos, setPos] = useState({ x: 0, y: 0 })
+
+	return (
+		<>
+			<nav className="athletics-home-nav">
+				<button
+					className="athletics-home-badge"
+					onClick={() => { window.location.href = '/' }}
+					onMouseEnter={() => setHovering(true)}
+					onMouseLeave={() => setHovering(false)}
+					onMouseMove={(e) => setPos({ x: e.clientX, y: e.clientY })}
+					aria-label="Return to main page"
+				>
+					<span className="athletics-home-m">m</span>
+					<span className="athletics-home-title">Athletics</span>
+				</button>
+			</nav>
+			{hovering && (
+				<span
+					className="athletics-home-tip"
+					style={{ left: pos.x + 18, top: pos.y - 14 }}
+				>
+					Return to main page
+				</span>
+			)}
+		</>
+	)
+}
+
+function ResumeDownloadLink() {
+	const [hovering, setHovering] = useState(false)
+	const [pos, setPos] = useState({ x: 0, y: 0 })
+
+	return (
+		<>
+			<span
+				className="resume-dl-wrap"
+				onMouseEnter={() => setHovering(true)}
+				onMouseLeave={() => setHovering(false)}
+				onMouseMove={(e) => setPos({ x: e.clientX, y: e.clientY })}
+			>
+				<a
+					href="/resume.pdf"
+					download="Manuel_Pena_Morros_Resume.pdf"
+					className="resume-dl"
+					aria-label="Download Resume"
+				>
+					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+						<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+						<polyline points="7 10 12 15 17 10" />
+						<line x1="12" y1="15" x2="12" y2="3" />
+					</svg>
+				</a>
+			</span>
+			{hovering && (
+				<span
+					className="resume-dl-tip-cursor"
+					style={{ left: pos.x + 18, top: pos.y - 14 }}
+				>
+					Download
+				</span>
+			)}
+		</>
+	)
+}
+
 function Logo({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
 	return (
 		<div className={`logo-container ${className}`}>
@@ -8357,7 +9316,7 @@ function Logo({ src, alt, className = "" }: { src: string; alt: string; classNam
 }
 
 function TimelineComponent() {
-	const [activeIndex, setActiveIndex] = useState(0)
+	const [activeIndex, setActiveIndex] = useState(1)
 	const [isVisible, setIsVisible] = useState(false)
 	const [isScrolling, setIsScrolling] = useState(false)
 	const [canScroll, setCanScroll] = useState(true)
@@ -8382,23 +9341,23 @@ function TimelineComponent() {
 			],
 			images: [
 				'/lg-logo.png',
-				'/Tulane-University-Logo.png',
+				'/ut-austin-logo.png',
 				'/pena-morros-main-min.png'
 			]
 		},
 		{
 			id: 'education2',
 			period: 'Class of 2029',
-			title: 'Tulane University',
-			subtitle: 'New Orleans',
+			title: 'The University of Texas at Austin',
+			subtitle: 'Austin, TX',
 			icon: GraduationCap,
 			type: 'education',
-			logo: '/tulane.svg',
+			logo: '/ut-austin-logo.png',
 			achievements: [
-				'Computer Science major'
+				'Data Science major'
 			],
 			images: [
-				'/Tulane-University-Logo.png',
+				'/ut-austin-logo.png',
 				'/lg-logo.png',
 				'/pena-morros-main-min.png'
 			]
@@ -8419,7 +9378,7 @@ function TimelineComponent() {
 			images: [
 				'/pena-morros-main-min.png',
 				'/lg-logo.png',
-				'/Tulane-University-Logo.png'
+				'/ut-austin-logo.png'
 			]
 		},
 		{
@@ -8438,7 +9397,7 @@ function TimelineComponent() {
 			images: [
 				'/lg-logo.png',
 				'/pena-morros-main-min.png',
-				'/Tulane-University-Logo.png'
+				'/ut-austin-logo.png'
 			]
 		},
 		{
@@ -8475,7 +9434,7 @@ function TimelineComponent() {
 				'Generated $3,000 USD revenue serving 500+ clients'
 			],
 			images: [
-				'/Tulane-University-Logo.png',
+				'/ut-austin-logo.png',
 				'/lg-logo.png',
 				'/pena-morros-main-min.png'
 			]
