@@ -8001,31 +8001,26 @@ export default function App() {
 				}
 				.app.color-mode .ll-tag { background: #f5f5f5; color: #000; border-color: #e0e0e0; }
 
-				.ll-row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 1rem; margin-bottom: 1rem; align-items: start; }
-				.ll-video { width: 100%; border-radius: 12px; display: block; background: #1a1a1a; }
+				.ll-row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 1rem; margin-bottom: 1rem; align-items: stretch; }
+				.ll-video { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block; background: #1a1a1a; }
 
-				.ll-kpis { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.5rem; margin-bottom: 0.6rem; }
+				.ll-kpis { display: grid; grid-template-columns: repeat(2,1fr); grid-template-rows: 1fr 1fr; gap: 0.75rem; height: 100%; }
 				.ll-kpi {
+					display: flex; flex-direction: column; align-items: center; justify-content: center;
 					text-align: center; padding: 0.6rem 0.3rem; border-radius: 12px;
 					background: #1a1a1a; border: 1px solid #333; transition: all 0.3s;
 				}
 				.ll-kpi:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
 				.app.color-mode .ll-kpi { background: #f5f5f5; border-color: #e0e0e0; }
 				.app.color-mode .ll-kpi:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
-				.ll-kpi-n { display: block; font-size: 1.1rem; font-weight: 800; color: #fff; }
+				.ll-kpi-n { display: block; font-size: 1.7rem; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
 				.app.color-mode .ll-kpi-n { color: #000; }
-				.ll-kpi-l { font-size: 0.6rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+				.ll-kpi-l { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; margin-top: 0.25rem; }
 				.app.color-mode .ll-kpi-l { color: rgba(0,0,0,0.5); }
 
-				.ll-body { font-size: 0.8rem; line-height: 1.55; color: rgba(255,255,255,0.8); margin-bottom: 0.6rem; }
-				.app.color-mode .ll-body { color: rgba(0,0,0,0.8); }
-
-				.ll-chips { display: flex; flex-wrap: wrap; gap: 5px; }
-				.ll-chip {
-					font-size: 0.875rem; padding: 0.375rem 0.875rem; border-radius: 6px; font-weight: 500;
-					background: #1a1a1a; color: #fff; border: 1px solid #333;
-				}
-				.app.color-mode .ll-chip { background: #f5f5f5; color: #000; border-color: #e0e0e0; }
+				.ll-store-badge { margin-left: 1rem; display: inline-flex; align-items: center; transition: transform 0.25s ease, opacity 0.25s ease; }
+				.ll-store-badge img { height: 40px; display: block; }
+				.ll-store-badge:hover { transform: scale(1.05); opacity: 0.9; }
 
 				.ll-press {
 					display: flex; align-items: center; gap: 1rem;
@@ -8568,20 +8563,20 @@ export default function App() {
 						<div className="ll-head">
 							<img src="/lumina-app-icon.png" alt="Lumina Labs" className="ll-icon" />
 							<div><span className="ll-name">Lumina Labs</span><span className="ll-sub">Available on the App Store</span></div>
+							<a
+								href="https://apps.apple.com/us/app/lumina-labs/id6758263196"
+								target="_blank"
+								rel="noopener noreferrer"
+								className="ll-store-badge"
+								aria-label="Download Lumina Labs on the App Store"
+							>
+								<img src="/app-store-badge.png" alt="Download on the App Store" />
+							</a>
 						</div>
 
 						<div className="ll-row">
 							<video controls muted playsInline preload="auto" className="ll-video" data-autoplay-on-visible><source src="/lumina-demo.mp4" type="video/mp4" /></video>
-							<div>
-								<div className="ll-kpis">
-									<div className="ll-kpi"><span className="ll-kpi-n">$2.5M</span><span className="ll-kpi-l">Valuation</span></div>
-									<div className="ll-kpi"><span className="ll-kpi-n">$15K</span><span className="ll-kpi-l">MRR</span></div>
-									<div className="ll-kpi"><span className="ll-kpi-n">1,000+</span><span className="ll-kpi-l">Analyses</span></div>
-									<div className="ll-kpi"><span className="ll-kpi-n">5</span><span className="ll-kpi-l">Clinics</span></div>
-								</div>
-								<p className="ll-body">Personalized aesthetic recommendations through proprietary computer vision. White-labeled SaaS across five dermatology clinics in Mexico. Patent pending.</p>
-								<div className="ll-chips">{['Computer Vision','React Native','Python','TensorFlow','AWS','PostgreSQL'].map(t=>(<span key={t} className="ll-chip">{t}</span>))}</div>
-							</div>
+							<LuminaKpis />
 						</div>
 
 						<div className="ll-press">
@@ -9121,6 +9116,51 @@ function AthleticsMedal({
 				<img src={src} alt={label} className="athletics-medal-img" loading="eager" decoding="async" fetchPriority="high" />
 			</div>
 			<div className="athletics-medal-tooltip">{label}</div>
+		</div>
+	)
+}
+
+function LuminaKpis() {
+	const ref = useRef<HTMLDivElement>(null)
+	const [started, setStarted] = useState(false)
+	const [progress, setProgress] = useState(0)
+
+	useEffect(() => {
+		const el = ref.current
+		if (!el) return
+		const obs = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					setStarted(true)
+					obs.disconnect()
+				}
+			},
+			{ threshold: 0.4 }
+		)
+		obs.observe(el)
+		return () => obs.disconnect()
+	}, [])
+
+	useEffect(() => {
+		if (!started) return
+		let raf = 0
+		const t0 = performance.now()
+		const duration = 1400
+		const tick = (t: number) => {
+			const p = Math.min(1, (t - t0) / duration)
+			setProgress(1 - Math.pow(1 - p, 3))
+			if (p < 1) raf = requestAnimationFrame(tick)
+		}
+		raf = requestAnimationFrame(tick)
+		return () => cancelAnimationFrame(raf)
+	}, [started])
+
+	return (
+		<div ref={ref} className="ll-kpis">
+			<div className="ll-kpi"><span className="ll-kpi-n">${(2.5 * progress).toFixed(1)}M</span><span className="ll-kpi-l">Valuation</span></div>
+			<div className="ll-kpi"><span className="ll-kpi-n">${Math.round(15 * progress)}K</span><span className="ll-kpi-l">MRR</span></div>
+			<div className="ll-kpi"><span className="ll-kpi-n">{Math.round(1000 * progress).toLocaleString('en-US')}+</span><span className="ll-kpi-l">Analyses</span></div>
+			<div className="ll-kpi"><span className="ll-kpi-n">{Math.round(5 * progress)}</span><span className="ll-kpi-l">Clinics</span></div>
 		</div>
 	)
 }
