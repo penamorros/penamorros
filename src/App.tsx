@@ -9162,10 +9162,10 @@ function LuminaKpis() {
 function AthleticsShowcase() {
 	return (
 		<div className="athletics-showcase">
-			<AthleticsMedal src="/medal-1.webp" position="far-left" delay={0} label="Gold — Campeón, Fitnessmania INBA México" />
-			<AthleticsMedal src="/medal-2.webp" position="mid-left" delay={0.3} label="Silver — Subcampeón, INBA México Selectivo" />
+			<AthleticsMedal src="/medal-1.webp" position="far-left" delay={0} label="Gold — Champion, Fitnessmania INBA México" />
+			<AthleticsMedal src="/medal-2.webp" position="mid-left" delay={0.3} label="Silver — Runner-Up, INBA México National Qualifier" />
 			<AthleticsTrophy />
-			<AthleticsMedal src="/medal-3.webp" position="mid-right" delay={0.45} label="Bronze — Tercer Lugar, INBA México Selectivo" />
+			<AthleticsMedal src="/medal-3.webp" position="mid-right" delay={0.45} label="Bronze — Third Place, INBA México National Qualifier" />
 			<AthleticsMedal src="/medal-4.webp" position="far-right" delay={0.15} label="Pro INBA Elite Medal — Natural Bodybuilding" />
 		</div>
 	)
@@ -9177,21 +9177,21 @@ function AthleticsTrophy() {
 			<div className="athletics-trophy-wrap">
 				<img
 					src="/trophy.webp"
-					alt="Trophy — 2° Lugar, Mr. México Amateur"
+					alt="Trophy — 2nd Place, Mr. México Amateur"
 					className="athletics-trophy-img"
 					loading="eager"
 					decoding="async"
 					fetchPriority="high"
 				/>
 			</div>
-			<div className="athletics-medal-tooltip">Trophy — 2° Lugar, Mr. México Amateur (WABBA)</div>
+			<div className="athletics-medal-tooltip">Trophy — 2nd Place, Mr. México Amateur (WABBA)</div>
 		</div>
 	)
 }
 
 const athleticsStagePhotos = [
-	{ src: '/athlete-1.webp', caption: 'INBA México Selectivo', size: 'small', slider: true },
-	{ src: '/athlete-2.webp', caption: 'Mr. México Amateur — 2° Lugar', size: 'tall', slider: false },
+	{ src: '/athlete-1.webp', caption: 'INBA México National Qualifier', size: 'small', slider: true },
+	{ src: '/athlete-2.webp', caption: 'Mr. México Amateur — 2nd Place', size: 'tall', slider: false },
 	{ src: '/athlete-3.webp', caption: 'Miss & Mister Natural México', size: 'tall', slider: false },
 ] as const
 
@@ -9272,9 +9272,9 @@ function AthleticsFederations() {
 }
 
 const athleticsDocs = [
-	{ href: '/diploma-1.png', preview: '/diploma-1.png', label: 'Reconocimiento 2022' },
-	{ href: '/diploma-2.png', preview: '/diploma-2.png', label: 'Premio Juvenil 2023' },
-	{ href: '/diploma-3.png', preview: '/diploma-3.png', label: 'Reconocimiento 2023' },
+	{ href: '/diploma-1.png', preview: '/diploma-1.png', label: 'Recognition 2022' },
+	{ href: '/diploma-2.png', preview: '/diploma-2.png', label: 'Youth Award 2023' },
+	{ href: '/diploma-3.png', preview: '/diploma-3.png', label: 'Recognition 2023' },
 	{ href: '/inba-fitnessmania.pdf', preview: '/pdf-preview-inba.png', label: 'INBA — Fitnessmania' },
 	{ href: '/zone-labs-certification.pdf', preview: '/pdf-preview-zonelabs.png', label: 'Dr. Sears Zone Labs' },
 ]
