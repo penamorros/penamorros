@@ -7988,9 +7988,9 @@ export default function App() {
 				.app.color-mode .ll-sep { background: #e0e0e0; }
 
 				.ll-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; }
-				.ll-icon { width: 76px; height: 76px; border-radius: 17px; object-fit: cover; }
+				.ll-icon { width: 70px; height: 70px; border-radius: 16px; object-fit: cover; }
 				.ll-head > div { display: flex; flex-direction: column; }
-				.ll-name { font-family: Arial,sans-serif; font-size: 1.6rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+				.ll-name { font-family: Arial,sans-serif; font-size: 1.6rem; line-height: 1.1; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
 				.app.color-mode .ll-name { color: #000; }
 				.ll-tag {
 					font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
@@ -8016,7 +8016,7 @@ export default function App() {
 				.ll-kpi-l { font-size: 0.7rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; margin-top: 0.25rem; }
 				.app.color-mode .ll-kpi-l { color: rgba(0,0,0,0.5); }
 
-				.ll-store-badge { margin-top: 0.4rem; display: inline-flex; align-items: center; align-self: flex-start; transition: transform 0.25s ease, opacity 0.25s ease; }
+				.ll-store-badge { margin-top: 0.2rem; display: inline-flex; align-items: center; align-self: flex-start; transition: transform 0.25s ease, opacity 0.25s ease; }
 				.ll-store-badge img { height: 38px; display: block; }
 				.ll-store-badge:hover { transform: scale(1.05); opacity: 0.9; }
 
