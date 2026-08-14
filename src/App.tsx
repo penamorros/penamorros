@@ -9162,11 +9162,11 @@ function LuminaKpis() {
 function AthleticsShowcase() {
 	return (
 		<div className="athletics-showcase">
-			<AthleticsMedal src="/medal-1.webp" position="far-left" delay={0} label="My gold — Campeón, Fitnessmania INBA México" />
-			<AthleticsMedal src="/medal-2.webp" position="mid-left" delay={0.3} label="My silver — Subcampeón, INBA México Selectivo" />
+			<AthleticsMedal src="/medal-1.webp" position="far-left" delay={0} label="Gold — Campeón, Fitnessmania INBA México" />
+			<AthleticsMedal src="/medal-2.webp" position="mid-left" delay={0.3} label="Silver — Subcampeón, INBA México Selectivo" />
 			<AthleticsTrophy />
-			<AthleticsMedal src="/medal-3.webp" position="mid-right" delay={0.45} label="My bronze — Tercer Lugar, INBA México Selectivo" />
-			<AthleticsMedal src="/medal-4.webp" position="far-right" delay={0.15} label="My Pro INBA Elite medal — Natural Bodybuilding" />
+			<AthleticsMedal src="/medal-3.webp" position="mid-right" delay={0.45} label="Bronze — Tercer Lugar, INBA México Selectivo" />
+			<AthleticsMedal src="/medal-4.webp" position="far-right" delay={0.15} label="Pro INBA Elite Medal — Natural Bodybuilding" />
 		</div>
 	)
 }
@@ -9177,14 +9177,14 @@ function AthleticsTrophy() {
 			<div className="athletics-trophy-wrap">
 				<img
 					src="/trophy.webp"
-					alt="My trophy — 2° Lugar, Mr. México Amateur"
+					alt="Trophy — 2° Lugar, Mr. México Amateur"
 					className="athletics-trophy-img"
 					loading="eager"
 					decoding="async"
 					fetchPriority="high"
 				/>
 			</div>
-			<div className="athletics-medal-tooltip">My trophy — 2° Lugar, Mr. México Amateur (WABBA)</div>
+			<div className="athletics-medal-tooltip">Trophy — 2° Lugar, Mr. México Amateur (WABBA)</div>
 		</div>
 	)
 }
