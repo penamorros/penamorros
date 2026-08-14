@@ -462,6 +462,27 @@ export default function App() {
 	useEffect(() => {
 		const videos = document.querySelectorAll('video[data-autoplay-on-visible]')
 		if (!videos.length) return
+
+		// Videos with data-start-time/data-end-time loop only that segment
+		const segmentCleanups: Array<() => void> = []
+		videos.forEach(el => {
+			const v = el as HTMLVideoElement
+			const start = parseFloat(v.dataset.startTime || '')
+			const end = parseFloat(v.dataset.endTime || '')
+			if (isNaN(start) || isNaN(end)) return
+			const keepInSegment = () => {
+				if (v.currentTime >= end || v.currentTime < start) {
+					v.currentTime = start
+				}
+			}
+			v.addEventListener('timeupdate', keepInSegment)
+			v.addEventListener('loadedmetadata', keepInSegment)
+			segmentCleanups.push(() => {
+				v.removeEventListener('timeupdate', keepInSegment)
+				v.removeEventListener('loadedmetadata', keepInSegment)
+			})
+		})
+
 		const obs = new IntersectionObserver((entries) => {
 			entries.forEach(e => {
 				const v = e.target as HTMLVideoElement
@@ -476,7 +497,10 @@ export default function App() {
 			})
 		}, { threshold: 0.3 })
 		videos.forEach(v => obs.observe(v))
-		return () => obs.disconnect()
+		return () => {
+			obs.disconnect()
+			segmentCleanups.forEach(fn => fn())
+		}
 	}, [])
 
 	// Elegant Minimalist Techy Cursor 2026
@@ -8460,6 +8484,8 @@ export default function App() {
 													height="120"
 													data-autoplay-on-visible
 													data-playback-rate="2.5"
+													data-start-time={index === 0 ? '20' : undefined}
+													data-end-time={index === 0 ? '35' : undefined}
 													className="project-video"
 													onClick={() => {
 														const video = document.createElement('video');
