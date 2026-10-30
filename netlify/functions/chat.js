@@ -73,7 +73,7 @@ export const handler = async (event, context) => {
       };
     }
 
-    const { messages, model = 'gpt-3.5-turbo', max_tokens = 150, temperature = 0.7 } = requestBody;
+    const { messages, model = 'gpt-5.6-terra', max_tokens = 150, temperature = 0.7 } = requestBody;
 
     if (!messages || !Array.isArray(messages)) {
       return {
@@ -96,8 +96,8 @@ export const handler = async (event, context) => {
       body: JSON.stringify({
         model: model,
         messages: messages,
-        max_tokens: max_tokens,
-        temperature: temperature
+        max_completion_tokens: max_tokens
+        // temperature is intentionally not forwarded: gpt-5.x models only accept the default value
       })
     });
 
