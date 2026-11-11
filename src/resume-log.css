@@ -1,0 +1,197 @@
+/*
+ * The Resume's Journey Log (src/sections/JourneyLog.tsx). Same heading, timeline, card and dots; the card's inside organised. Every entry has the same anatomy:
+ *   who (logo tile · title · organisation · 01 / 06) → what (numbered points, his figures in bright mono; a single point is set large as the
+ *   entry's headline) → the facts (period · type · location, along the bottom) | the globe with the leg it just drew, on the right.
+ * Surfaces follow src/premium.css (hairlines, glass, corner dots).
+ */
+
+.timeline-card.is-log {
+	--log-line: rgba(200, 216, 255, .1);
+	--log-mute: rgba(214, 224, 245, .5);
+	grid-template-columns: minmax(0, 1fr) clamp(250px, 25vw, 340px);
+	align-items: center;
+	padding: 1.5rem 2.1rem 1.3rem;
+	overflow: hidden;
+}
+.timeline-card.is-log > .timeline-card-stack { grid-column: 1; grid-row: 1; align-self: stretch; }
+.timeline-card.is-log > .tl-map { grid-column: 2; grid-row: 1; align-self: center; }
+
+/* a light passes over the card when it changes entry (pin 3's spotlight, moving) */
+.tl-sweep {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	overflow: hidden;
+	pointer-events: none;
+	z-index: -1;
+}
+.tl-sweep::before {
+	content: '';
+	position: absolute;
+	top: -20%;
+	bottom: -20%;
+	left: -45%;
+	width: 38%;
+	background: linear-gradient(100deg, transparent, rgba(200, 216, 255, .05) 40%, rgba(236, 242, 255, .11) 50%, rgba(200, 216, 255, .05) 60%, transparent);
+	transform: skewX(-14deg);
+	animation: tlSweep 1.15s cubic-bezier(.3, .6, .2, 1) both;
+}
+@keyframes tlSweep { to { left: 125%; } }
+
+/* ---------- who */
+.is-log .timeline-card-entry { display: flex; flex-direction: column; }
+.is-log .timeline-card-header,
+.resume-entry-card .timeline-card-header { display: flex; align-items: center; gap: .9rem; margin: 0 0 .8rem; }
+.is-log .timeline-card-icon {
+	width: 46px;
+	height: 46px;
+	border-radius: 13px;
+	background: linear-gradient(180deg, rgba(200, 216, 255, .09), rgba(200, 216, 255, .02));
+	border: 1px solid var(--log-line);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 10px 24px -12px rgba(0, 0, 0, .9);
+}
+.is-log .timeline-card-logo { width: 28px; height: 28px; }
+.is-log .timeline-card-info { min-width: 0; }
+.is-log .timeline-card-info h3 { font-size: clamp(1.2rem, 1.6vw, 1.45rem); line-height: 1.12; margin: 0 0 .22rem; }
+.is-log .timeline-card-subtitle { font-size: .95rem; margin: 0; color: var(--log-mute); }
+.tl-index {
+	margin-left: auto;
+	align-self: flex-start;
+	display: flex;
+	align-items: baseline;
+	gap: .35rem;
+	font: 600 1.55rem/1 var(--font-mono);
+	letter-spacing: -.02em;
+	background: linear-gradient(180deg, #fff 30%, #b9cbee 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+.tl-index i { font: 500 .62rem/1 var(--font-mono); letter-spacing: .08em; font-style: normal; -webkit-text-fill-color: var(--log-mute); }
+
+/* ---------- what: numbered points, his figures picked out */
+.tl-points { list-style: none; margin: 0; padding: 0; }
+/* site.css draws an arrow before every .timeline-content li; these points are numbered instead */
+.tl-points li::before { content: none !important; display: none !important; }
+.tl-points li {
+	display: grid;
+	grid-template-columns: 2.1rem minmax(0, 1fr);
+	align-items: baseline;
+	padding: .45rem 0;
+	border-bottom: 1px solid rgba(200, 216, 255, .055);
+}
+.tl-points li:last-child { border-bottom: 0; }
+.is-log .timeline-card-entry .tl-points { border-top: 1px solid var(--log-line); margin-bottom: .9rem; }
+.tl-n { font: 500 .66rem/1 var(--font-mono); letter-spacing: .06em; color: var(--log-mute); }
+.tl-t { font: 400 .93rem/1.5 var(--font-sans); color: rgba(232, 238, 250, .86); }
+.tl-fig {
+	font: 600 .93em/1 var(--font-mono);
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -.01em;
+	color: #fff;
+	text-shadow: 0 0 14px rgba(170, 200, 255, .45);
+}
+/* one point (the two schools): it is the entry's headline, set large and centred in the card's middle */
+.is-log .tl-points.is-one { margin: auto 0; border-top: 0; }
+.tl-points.is-one li { display: block; padding: 0; border: 0; }
+.tl-points.is-one .tl-n { display: none; }
+.is-log .tl-points.is-one .tl-t {
+	display: block;
+	max-width: 22ch;
+	font: 700 clamp(1.45rem, 2.1vw, 2rem)/1.15 var(--font-display, var(--font-sans));
+	letter-spacing: -.02em;
+	background: linear-gradient(180deg, #ffffff 35%, #c3d4f2 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+/* ---------- the facts, along the bottom */
+.tl-facts {
+	display: grid;
+	grid-template-columns: minmax(0, 1.25fr) minmax(0, .8fr) minmax(0, 1.3fr);
+	gap: 1.5rem;
+	margin: 0;
+	padding: .65rem 0;
+	border-top: 1px solid var(--log-line);
+}
+.is-log .timeline-card-entry .tl-facts { order: 3; margin-top: auto; padding-bottom: 0; }
+.is-log .timeline-card-entry:has(.tl-points.is-one) .tl-facts { margin-top: 0; }
+.tl-facts > div { min-width: 0; }
+.tl-facts dt { margin: 0 0 .32rem; font: 500 .56rem/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--log-mute); }
+.tl-facts dd { margin: 0; font: 500 .9rem/1.3 var(--font-sans); color: #eef2fb; }
+.tl-facts dd small { display: block; margin-top: .2rem; font: 400 .6rem/1.2 var(--font-mono); letter-spacing: .04em; color: var(--log-mute); }
+
+/* ---------- the globe and the leg it just drew */
+.tl-map { min-width: 0; }
+.tl-map > .journey-globe { width: 94%; margin: 0 auto; }
+.tl-map > .journey-globe .journey-map {
+	-webkit-mask-image: radial-gradient(ellipse 70% 70% at 54% 50%, #000 66%, transparent 100%);
+	mask-image: radial-gradient(ellipse 70% 70% at 54% 50%, #000 66%, transparent 100%);
+}
+.tl-leg {
+	display: flex;
+	justify-content: center;
+	align-items: baseline;
+	gap: .6rem;
+	margin: .3rem 0 0;
+	font: 500 .6rem/1 var(--font-mono);
+	letter-spacing: .12em;
+}
+.tl-leg b { font-weight: 600; color: #eef2fb; }
+.tl-leg span { color: var(--log-mute); letter-spacing: .06em; }
+
+/* ---------- the timeline's nodes say whose logo they are */
+.tl-node-name {
+	position: absolute;
+	left: 50%;
+	top: calc(100% + 9px);
+	transform: translateX(-50%);
+	font: 500 .56rem/1 var(--font-mono);
+	letter-spacing: .12em;
+	text-transform: uppercase;
+	white-space: nowrap;
+	color: rgba(214, 224, 245, .42);
+	pointer-events: none;
+	transition: color .4s ease;
+}
+.timeline-point.active .tl-node-name,
+.timeline-point:hover .tl-node-name { color: #fff; }
+
+/* ---------- short desktop windows: the same, a little tighter */
+@media (min-width: 1025px) and (max-height: 820px) {
+	.timeline-card.is-log { padding-top: 1.3rem; padding-bottom: 1.1rem; }
+	.is-log .timeline-card-header { margin-bottom: .7rem; }
+	.tl-points li { padding: .36rem 0; }
+	.tl-t { font-size: .9rem; line-height: 1.42; }
+	.tl-map > .journey-globe { width: 84%; }
+}
+
+/* ---------- phones and tablets: each entry in the list gets the same parts */
+@media (max-width: 1024px) {
+	.resume-entry-card { --log-line: rgba(200, 216, 255, .1); --log-mute: rgba(214, 224, 245, .55); }
+	.resume-entry-card .tl-facts { grid-template-columns: 1fr 1fr; gap: .8rem 1rem; margin: .85rem 0 .4rem; padding-bottom: .65rem; border-bottom: 1px solid var(--log-line); }
+	.resume-entry-card .tl-facts > div:last-child { grid-column: 1 / -1; }
+	.resume-entry-card .tl-t { font-size: .92rem; }
+}
+
+/* ---------- light theme. site.css paints every border and text black (.app.color-mode *): the log keeps its hairlines and muted labels */
+.app.color-mode .timeline-card.is-log,
+.app.color-mode .resume-entry-card { --log-line: rgba(20, 34, 70, .1); --log-mute: rgba(20, 34, 70, .5); }
+.app.color-mode :is(.tl-facts, .tl-points, .tl-points li, .is-log .timeline-card-icon) { border-color: var(--log-line); }
+.app.color-mode :is(.tl-facts dt, .tl-facts dd small, .tl-n, .tl-leg span, .is-log .timeline-card-subtitle, .resume-entry-card .timeline-card-subtitle) { color: rgba(20, 34, 70, .5); }
+.app.color-mode .is-log .timeline-card-icon { background: linear-gradient(180deg, #fff, #f1f4fa); box-shadow: inset 0 1px 0 #fff, 0 8px 18px -12px rgba(20, 34, 70, .4); }
+.app.color-mode .tl-index { background-image: linear-gradient(180deg, #0b1220 30%, #3c5381 100%); }
+.app.color-mode .tl-facts dd { color: #0b1220; }
+.app.color-mode .tl-t { color: rgba(11, 18, 32, .84); }
+.app.color-mode .tl-fig { color: #05070c; text-shadow: none; }
+.app.color-mode .is-log .tl-points.is-one .tl-t { background-image: linear-gradient(180deg, #05070c 35%, #3c5381 100%); }
+.app.color-mode .tl-leg b { color: #0b1220; }
+.app.color-mode .tl-sweep::before { background: linear-gradient(100deg, transparent, rgba(20, 34, 70, .03) 40%, rgba(20, 34, 70, .06) 50%, rgba(20, 34, 70, .03) 60%, transparent); }
+.app.color-mode .tl-node-name { color: rgba(20, 34, 70, .45); }
+.app.color-mode .timeline-point.active .tl-node-name,
+.app.color-mode .timeline-point:hover .tl-node-name { color: #0b1220; }
+
+@media (prefers-reduced-motion: reduce) {
+	.tl-sweep::before { animation: none; display: none; }
+}

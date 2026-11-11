@@ -3,22 +3,137 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+		<meta name="theme-color" content="#05070c" />
 		<title>Manuel Peña-Morros</title>
+		<meta name="description" content="Manuel Peña-Morros. Entrepreneur, innovator, visionary. I build and scale businesses from concept to market." />
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&family=Newsreader:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@96,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 		<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
 		<link rel="icon" href="/favicon-16.png" type="image/png" sizes="16x16" />
 		<link rel="apple-touch-icon" href="/favicon-32.png" />
 		<link rel="shortcut icon" href="/favicon-32.png" />
-		
+
 		<!-- Preload only first-screen assets -->
-		<link rel="preload" href="/ORGANICAL PERSONAL USE.ttf" as="font" type="font/ttf" crossorigin />
-		<link rel="preload" href="/signature-intro.gif" as="image" fetchpriority="high" />
-		<link rel="preload" href="/Diseno-sin-titulo-97.png" as="image" fetchpriority="high" />
+		<link rel="preload" href="/portrait.webp" as="image" fetchpriority="high" />
+		<link rel="preload" href="/signature-map.webp" as="image" fetchpriority="high" />
+
+		<style>
+			html, body { background: #05070c; margin: 0; }
+			html.boot-lock, html.boot-lock body { overflow: hidden; }
+
+			/* The signature intro (round 3, the client's choice): his signature writes itself, then its ink breaks into
+			   particles that fly into the hero's circle and become his photo (src/motion/intro.ts). Same size as the
+			   original GIF's signature. */
+			#boot {
+				position: fixed;
+				inset: 0;
+				background-color: #05070c;
+				z-index: 10000;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				pointer-events: none;
+				transition: background-color .8s linear, opacity .5s ease-out;
+			}
+			#bootSig {
+				display: block;
+				width: min(64.4vw, 1239px, 149vh);
+				height: auto;
+				aspect-ratio: 885 / 292;
+				transition: opacity .3s linear;
+			}
+			#boot.lift { background-color: rgba(5, 7, 12, 0); }
+			#boot.lift #bootSig { opacity: 0; }
+			#boot.out { opacity: 0; }
+		</style>
 	</head>
 	<body>
+		<div id="boot" aria-hidden="true"><canvas id="bootSig" width="885" height="292"></canvas></div>
 		<div id="root"></div>
+		<script>
+			// Plays on every fresh load and refresh, on every screen size, with the page's scroll locked behind it.
+			// The particle handover into the hero lives in src/motion/intro.ts.
+			// Coming back from /athletics goes straight to the page. (window.__skipBoot is for the test scripts in tools/.)
+			(function () {
+				var boot = document.getElementById('boot')
+				var path = location.pathname.replace(/\/$/, '')
+				var nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || {}
+				var fromInside = false
+				try { fromInside = !!document.referrer && new URL(document.referrer).origin === location.origin } catch (e) {}
+				if (window.__skipBoot || path === '/athletics' || /[?&]admin=true/.test(location.search) || (fromInside && nav.type !== 'reload')) { boot.parentNode.removeChild(boot); return }
+
+				window.__bootActive = true
+				var root = document.documentElement
+				root.classList.add('boot-lock')
+				if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+				window.scrollTo(0, 0)
+
+				var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+				var left = false
+
+				// o.lift: the particle intro has taken over; the cover only turns clear so the flying ink shows over the page.
+				function leave(o) {
+					if (left) return
+					left = true
+					clearTimeout(limit)
+					root.classList.remove('boot-lock')
+					window.__bootExited = true
+					dispatchEvent(new Event('boot:exit'))
+					boot.classList.add(o && o.lift ? 'lift' : 'out')
+					setTimeout(function () { boot.parentNode && boot.parentNode.removeChild(boot) }, o && o.lift ? 900 : 550)
+				}
+				window.__bootLeave = leave
+				// Never held longer than this, whatever fails.
+				var limit = setTimeout(leave, 9000)
+
+				// The signature writes itself from /signature-map.webp: red says when a pixel is drawn, green how much ink it has.
+				var WRITE = reduced ? 0 : 2600
+				var canvas = document.getElementById('bootSig')
+				var ctx = canvas.getContext('2d', { willReadFrequently: true })
+				var img = new Image()
+				img.onerror = function () { leave() }
+				img.onload = function () {
+					if (left || !ctx) return
+					var w = img.naturalWidth, h = img.naturalHeight
+					canvas.width = w; canvas.height = h
+					ctx.drawImage(img, 0, 0)
+					var map = ctx.getImageData(0, 0, w, h).data
+					ctx.clearRect(0, 0, w, h)
+					var out = ctx.createImageData(w, h), px = out.data, groups = []
+					for (var g = 0; g < 256; g++) groups.push([])
+					for (var i = 0; i < map.length; i += 4) {
+						if (map[i + 1] < 4) continue
+						groups[map[i]].push(i)
+						px[i] = 255; px[i + 1] = 255; px[i + 2] = 255
+					}
+					var drawn = 0, t0 = performance.now(), done = false
+					function tick() {
+						if (done || left) return
+						var p = WRITE ? Math.min(1, (performance.now() - t0) / WRITE) : 1
+						// a hand's pace: a touch slower at the first and last strokes
+						var e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2
+						e = 0.35 * e + 0.65 * p
+						var upto = Math.min(255, Math.floor(e * 256))
+						for (var k = drawn; k <= upto; k++) { var list = groups[k]; for (var j = 0; j < list.length; j++) px[list[j] + 3] = map[list[j] + 1] }
+						if (upto >= drawn) { drawn = upto + 1; ctx.putImageData(out, 0, 0) }
+						if (p >= 1) { done = true; signed(); return }
+						requestAnimationFrame(tick)
+					}
+					requestAnimationFrame(tick)
+					// a paused tab must not leave the cover up
+					var keep = setInterval(function () { if (done || left) clearInterval(keep); else tick() }, 150)
+				}
+				img.src = '/signature-map.webp'
+
+				function signed() {
+					window.__bootSigned = true
+					dispatchEvent(new Event('boot:signed'))
+					// The particles take it from here. Without them (reduced motion, no WebGL, an error) the signature just fades.
+					setTimeout(function () { if (!window.__introTook) leave() }, reduced ? 900 : 1500)
+				}
+			})()
+		</script>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>
 </html>

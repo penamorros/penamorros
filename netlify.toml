@@ -11,7 +11,9 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
+    # SAMEORIGIN, not DENY (round 4b): the AI twin's 3D avatar runs in /avatar.html inside an iframe on this same site. DENY blocked it on
+    # Netlify (the local preview server ignores this file), leaving the still picture. Other sites still can't frame this one.
+    X-Frame-Options = "SAMEORIGIN"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"

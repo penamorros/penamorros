@@ -1,0 +1,390 @@
+/* Final touches, round 3 (2026-11-05): the map in the Resume, light 3D and the interactive details.
+   Positions and centring stay the site's own; see NOTES.md, Round 3. */
+
+/* ---------- the map, inside the Resume card */
+
+.journey-map {
+	margin: 0;
+	position: relative;
+	--jm-dot: rgba(255, 255, 255, .32);
+	--jm-ghost: rgba(255, 255, 255, .16);
+	--jm-route: #fff;
+	--jm-city: rgba(255, 255, 255, .45);
+	--jm-text: rgba(255, 255, 255, .5);
+	--jm-page: #0c0c0e;
+}
+.app.color-mode .journey-map {
+	--jm-dot: rgba(0, 0, 0, .22);
+	--jm-ghost: rgba(0, 0, 0, .18);
+	--jm-route: #000;
+	--jm-city: rgba(0, 0, 0, .45);
+	--jm-text: rgba(0, 0, 0, .5);
+	--jm-page: #f4f4f4;
+}
+.journey-map svg { display: block; width: 100%; height: auto; overflow: hidden; }
+.jm-dots { fill: none; stroke: var(--jm-dot); stroke-width: 2.1; stroke-linecap: round; }
+.jm-ghost { fill: none; stroke: var(--jm-ghost); stroke-width: 1.1; stroke-dasharray: 2 4; }
+.jm-route { fill: none; stroke: var(--jm-route); stroke-width: 1.8; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.jm-spark { fill: #fff; opacity: 0; filter: drop-shadow(0 0 4px rgba(255, 255, 255, .9)) drop-shadow(0 0 10px rgba(255, 255, 255, .5)); }
+.app.color-mode .jm-spark { fill: #000; filter: none; }
+.jm-city { cursor: pointer; }
+.jm-hit { fill: transparent; }
+.jm-c { fill: var(--jm-page); stroke: var(--jm-city); stroke-width: 1.4; transition: fill .4s ease, stroke .4s ease; }
+.jm-ring { fill: none; stroke: var(--jm-route); stroke-width: 1; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.jm-city text {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: .06em;
+	fill: var(--jm-text);
+	transition: fill .4s ease;
+	pointer-events: none;
+}
+.jm-city.is-been .jm-c { fill: var(--jm-city); }
+.jm-city.is-here .jm-c { fill: var(--jm-route); stroke: var(--jm-route); }
+.jm-city.is-here .jm-ring { animation: jmRing 2.4s ease-out infinite; }
+.jm-city.is-here text { fill: var(--jm-route); }
+.jm-city:hover text { fill: var(--jm-route); }
+.jm-city:hover .jm-c { stroke: var(--jm-route); }
+@keyframes jmRing {
+	0% { opacity: .9; transform: scale(.5); }
+	100% { opacity: 0; transform: scale(1.9); }
+}
+.is-offscreen .jm-city .jm-ring { animation-play-state: paused; }
+
+/* Desktop: the card spans the track, from the first logo to the last, and gives the map its right-hand column. Still centred. */
+.timeline-card.has-map {
+	max-width: min(1040px, 100%);
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) clamp(220px, 21vw, 320px);
+	column-gap: clamp(1.25rem, 2.6vw, 2.75rem);
+	align-items: center;
+}
+.timeline-card-stack { display: grid; min-width: 0; align-self: start; }
+.timeline-card-entry { grid-area: 1 / 1; min-width: 0; visibility: hidden; }
+.timeline-card-entry.is-active { visibility: visible; }
+.timeline-card.has-map > .journey-map,
+.journey-map-card > .journey-map {
+	/* the cropped map fades out at its edges instead of ending on a line */
+	-webkit-mask-image: radial-gradient(ellipse 70% 70% at 54% 50%, #000 66%, transparent 100%);
+	mask-image: radial-gradient(ellipse 70% 70% at 54% 50%, #000 66%, transparent 100%);
+}
+.timeline-card.has-map .timeline-achievements li {
+	padding-top: .58rem;
+	padding-bottom: .58rem;
+	font-size: .97rem;
+}
+
+/* Phones and tablets: the map plays the route above the list. */
+.journey-map-card {
+	max-width: 680px;
+	margin: 0 auto 2.25rem;
+	padding: clamp(1rem, 4vw, 1.5rem);
+	border-radius: 20px;
+	background: rgba(255, 255, 255, .04);
+	border: 1px solid rgba(255, 255, 255, .1);
+}
+.app.color-mode .journey-map-card { background: rgba(0, 0, 0, .03); border-color: rgba(0, 0, 0, .1); }
+.journey-map-caption {
+	margin: .9rem 0 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: .35rem .75rem;
+	align-items: baseline;
+	justify-content: space-between;
+	font-size: .9rem;
+	color: rgba(255, 255, 255, .8);
+}
+.journey-map-caption span {
+	font-family: var(--font-mono);
+	font-size: .7rem;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, .5);
+}
+.app.color-mode .journey-map-caption { color: rgba(0, 0, 0, .8); }
+.app.color-mode .journey-map-caption span { color: rgba(0, 0, 0, .5); }
+
+/* ---------- cards that lean to the pointer (tiltCards in src/motion/index.ts) */
+
+[data-tilt] { position: relative; }
+[data-tilt]::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	pointer-events: none;
+	background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, .1), transparent 58%);
+	opacity: 0;
+	transition: opacity .45s ease;
+}
+.app.color-mode [data-tilt]::after {
+	background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, .55), transparent 58%);
+}
+[data-tilt].is-tilting::after { opacity: 1; }
+
+/* ---------- /athletics: medals with thickness that turn on their ribbons, a trophy on a turntable */
+
+.athletics-medal-inner { perspective: 900px; }
+.athletics-medal-turn {
+	position: relative;
+	display: inline-block;
+	height: 100%;
+	transform-style: preserve-3d;
+	transform-origin: 50% 0;
+	cursor: pointer;
+}
+.athletics-medal-turn .athletics-medal-img,
+.athletics-medal:hover .athletics-medal-img {
+	position: relative;
+	transform: none;
+	transition: none;
+	filter: brightness(var(--lit, 1));
+}
+.athletics-medal-edge {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	transform: translateZ(var(--z));
+	filter: brightness(.36) saturate(.7);
+	pointer-events: none;
+}
+.athletics-medal-sheen {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	transform: translateZ(.6px);
+	-webkit-mask: var(--medal) center / contain no-repeat;
+	mask: var(--medal) center / contain no-repeat;
+	background: linear-gradient(104deg, transparent 38%, rgba(255, 255, 255, .55) 50%, transparent 62%) var(--sh, 50%) 0 / 260% 100% no-repeat;
+	mix-blend-mode: soft-light;
+	opacity: var(--sho, 0);
+}
+
+.athletics-trophy-img,
+.athletics-trophy-stage:hover .athletics-trophy-img { transition: none; transform: none; }
+.athletics-trophy-sheen {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	-webkit-mask: url(/trophy.webp) center / contain no-repeat;
+	mask: url(/trophy.webp) center / contain no-repeat;
+	background: linear-gradient(100deg, transparent 36%, rgba(255, 255, 255, .5) 50%, transparent 64%) var(--tx, 50%) 0 / 260% 100% no-repeat;
+	mix-blend-mode: overlay;
+}
+
+@media (max-width: 1024px) {
+	.athletics-medal-turn { height: auto; }
+}
+
+/* The projects block is scaled to 0.8 by the original stylesheet, so its dots need 30 px to give a 24 px target. */
+.projects-carousel-wrapper .carousel-indicator,
+.projects-carousel-wrapper .carousel-indicator.active,
+.app.color-mode .projects-carousel-wrapper .carousel-indicator,
+.app.color-mode .projects-carousel-wrapper .carousel-indicator.active {
+	width: 30px;
+	height: 30px;
+}
+
+/* ---------- the AI twin's 3D body in the chat (round 4; src/avatar/link.tsx, avatar.html) */
+
+/* sizes: src/chat.css */
+.avatar-3d .avatar-still,
+.avatar-3d .avatar-frame {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+.avatar-3d .avatar-still { object-fit: contain; border-radius: 0; transition: opacity .5s ease; }
+.avatar-3d .avatar-frame { background: transparent; pointer-events: none; opacity: 0; transition: opacity .7s ease; color-scheme: normal; }
+.avatar-3d.is-ready .avatar-frame { opacity: 1; }
+.avatar-3d.is-ready .avatar-still { opacity: 0; }
+.avatar-3d.is-still .avatar-frame { display: none; }
+
+/* the line of light between the newest message and his phone, and the spark that runs along it */
+.chat-beam { position: fixed; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 10002; opacity: 0; transition: opacity .35s ease; }
+.chat-beam.is-on { opacity: 1; }
+.chat-beam-line { stroke: rgba(255, 255, 255, .28); stroke-width: 1; }
+.chat-beam-spark { stroke: #fff; stroke-width: 2; stroke-linecap: round; opacity: 0; filter: drop-shadow(0 0 4px rgba(255, 255, 255, .9)) drop-shadow(0 0 10px rgba(255, 200, 150, .6)); }
+.app.color-mode ~ .chat-beam .chat-beam-line, html:has(.app.color-mode) .chat-beam-line { stroke: rgba(0, 0, 0, .3); }
+html:has(.app.color-mode) .chat-beam-spark { stroke: #000; filter: none; }
+
+
+/* ---------- the Resume globe (round 4; src/globe/globe.ts, src/sections/JourneyGlobe.tsx) */
+
+.journey-globe { position: relative; margin: 0; aspect-ratio: 1 / .92; width: 100%; }
+.journey-globe-flat { position: absolute; inset: 0; display: flex; align-items: center; transition: opacity .6s ease; }
+.journey-globe-flat .journey-map { width: 100%; }
+.journey-globe.is-ready .journey-globe-flat { opacity: 0; pointer-events: none; }
+.journey-globe-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .8s ease; cursor: pointer; }
+.journey-globe.is-ready .journey-globe-canvas { opacity: 1; }
+.journey-globe-labels { position: absolute; inset: 0; pointer-events: none; }
+.jg-label { position: absolute; left: 0; top: 0; pointer-events: auto; cursor: pointer; transition: opacity .3s ease; }
+.jg-text {
+	position: absolute;
+	left: 11px;
+	top: 0;
+	transform: translateY(-50%);
+	font: 500 10.5px/1 var(--font-mono);
+	font-style: normal;
+	letter-spacing: .06em;
+	white-space: nowrap;
+	color: rgba(255, 255, 255, .5);
+	transition: color .4s ease;
+}
+.jg-label.is-left .jg-text { left: auto; right: 11px; }
+.jg-label.is-been .jg-text { color: rgba(255, 255, 255, .72); }
+.jg-label.is-here .jg-text { color: #fff; left: 18px; }
+.jg-label.is-here.is-left .jg-text { left: auto; right: 18px; }
+.app.color-mode .jg-text { color: rgba(0, 0, 0, .5); }
+.app.color-mode .jg-label.is-been .jg-text { color: rgba(0, 0, 0, .72); }
+.app.color-mode .jg-label.is-here .jg-text { color: #000; }
+
+/* in the card the globe takes the map's column; the flat map's edge fade only applies to the flat one */
+.timeline-card.has-map > .journey-globe { align-self: center; }
+.timeline-card.has-map > .journey-globe .journey-map { -webkit-mask-image: radial-gradient(ellipse 70% 70% at 54% 50%, #000 66%, transparent 100%); mask-image: radial-gradient(ellipse 70% 70% at 54% 50%, #000 66%, transparent 100%); }
+.journey-map-card > .journey-globe { max-width: 420px; margin: 0 auto; }
+
+/* ---------- Lumina's demo on a 3D phone (round 4; src/phone3d/phone.ts) */
+
+.ll-phone { position: relative; min-height: 260px; }
+.ll-phone .ll-video { transition: opacity .7s ease; }
+.ll-phone.is-ready .ll-video { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.ll-phone-canvas { position: absolute; inset: -6% -4%; width: 108%; height: 112%; display: block; opacity: 0; transition: opacity .9s ease; cursor: pointer; z-index: 1; }
+.ll-phone.is-ready .ll-phone-canvas { opacity: 1; }
+.ll-phone-play {
+	position: absolute;
+	left: 50%;
+	bottom: .4rem;
+	translate: -50% 0;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	gap: .45rem;
+	padding: .5rem .95rem;
+	border-radius: 999px;
+	border: 1px solid rgba(255, 255, 255, .22);
+	background: rgba(10, 10, 12, .72);
+	color: #fff;
+	font: 500 .78rem/1 var(--font-sans);
+	cursor: pointer;
+	transition: background .25s ease, border-color .25s ease;
+}
+.ll-phone-play:hover { background: rgba(255, 255, 255, .12); border-color: rgba(255, 255, 255, .4); }
+.app.color-mode .ll-phone-play { background: rgba(255, 255, 255, .8); color: #000; border-color: rgba(0, 0, 0, .2); }
+
+/* ---------- the contact card as a real card: paper thickness, turns over to a back (round 4) */
+
+.business-card.is-3d,
+.app.color-mode .business-card.is-3d {
+	background: none;
+	box-shadow: none;
+	overflow: visible;
+	transform-style: preserve-3d;
+	cursor: pointer;
+}
+.business-card.is-3d::after { content: none; }
+.bc-flip { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 1.05s cubic-bezier(.2, .75, .2, 1); }
+.business-card.is-turned .bc-flip { transform: rotateY(180deg); }
+.bc-face {
+	position: absolute;
+	inset: 0;
+	border-radius: 20px;
+	overflow: hidden;
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+	background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+	background-image: url('/paper.webp');
+	background-size: cover;
+	background-position: center;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, .15), 0 0 0 1px rgba(255, 255, 255, .1);
+}
+.bc-back { transform: rotateY(180deg) translateZ(4px); background-position: 30% 70%; }
+.bc-front { transform: translateZ(0); }
+/* card stock between the two faces: seen only at the edges as it turns */
+.bc-edge { position: absolute; inset: 0; border-radius: 20px; background: #cfcac1; transform: translateZ(var(--z)); }
+/* the light across the paper follows the pointer on whichever side shows */
+.bc-face::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	border-radius: inherit;
+	background: radial-gradient(420px circle at var(--sx, 50%) var(--sy, 50%), rgba(255, 255, 255, .55), transparent 62%);
+	mix-blend-mode: soft-light;
+	opacity: 0;
+	transition: opacity .5s ease;
+	pointer-events: none;
+}
+.business-card-container:hover .bc-face::after { opacity: 1; }
+
+.bc-turn {
+	position: absolute;
+	right: .9rem;
+	top: .9rem;
+	z-index: 4;
+	display: inline-flex;
+	align-items: center;
+	gap: .35rem;
+	padding: .35rem .6rem;
+	border-radius: 999px;
+	border: 1px solid rgba(0, 0, 0, .14);
+	background: rgba(255, 255, 255, .55);
+	color: rgba(0, 0, 0, .62);
+	font: 500 .68rem/1 var(--font-mono);
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	cursor: pointer;
+	transition: background .25s ease, color .25s ease;
+}
+.bc-turn:hover { background: rgba(255, 255, 255, .9); color: #000; }
+.bc-turn svg { transition: transform .5s ease; }
+.bc-turn:hover svg { transform: rotate(180deg); }
+
+.bc-back-inner {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: .4rem;
+	padding: 2rem;
+	color: #2c2c2c;
+	text-align: center;
+}
+.bc-back-signature { width: min(70%, 360px); height: auto; aspect-ratio: 885 / 292; }
+.bc-back-name { margin: .2rem 0 0; font: 640 1.05rem/1.2 var(--font-sans); letter-spacing: -.02em; }
+.bc-back-role { margin: 0; font: 500 .7rem/1.4 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: rgba(0, 0, 0, .55); }
+.bc-back-links { display: flex; gap: .5rem; margin-top: .9rem; flex-wrap: wrap; justify-content: center; }
+.bc-back-links a {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	padding: .5rem .85rem;
+	border-radius: 999px;
+	border: 1px solid rgba(0, 0, 0, .16);
+	color: #2c2c2c;
+	font: 500 .8rem/1 var(--font-sans);
+	text-decoration: none;
+	transition: background .25s ease, border-color .25s ease;
+}
+.bc-back-links a:hover { background: rgba(0, 0, 0, .06); border-color: rgba(0, 0, 0, .3); }
+.business-card.is-peek:not(.is-turned) .bc-flip { animation: bcPeek 1.6s cubic-bezier(.45, 0, .3, 1); }
+@keyframes bcPeek { 0% { transform: rotateY(0); } 42% { transform: rotateY(28deg); } 100% { transform: rotateY(0); } }
+
+/* ---------- the article page curling away (round 4; src/motion/pageCurl.ts) */
+.page-curl-back { background: #2b2b2b; }
+.app.color-mode .page-curl-back { background: #e4e0d8; }
+.page-curl-front { background: #0f0f10; }
+.app.color-mode .page-curl-front { background: #f3f1ec; }
+
+/* the chat itself: src/chat.css (round 4b) */
+
+/* ---------- the footer signature in particles (round 4; src/components/FooterSignature.tsx) */
+.footer-signature { width: min(100%, 760px); margin: 0 auto 1rem; }
+.footer-signature canvas { display: block; width: 100%; cursor: crosshair; }

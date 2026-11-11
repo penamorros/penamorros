@@ -1,0 +1,1170 @@
+/*
+ * Phones and tablets. Replaces the old "Desktop View Required" gate.
+ *   <= 1024 px  the rail becomes a bottom dock; sections are not pinned; swipe rows instead of carousels
+ *   <= 860 px   the hero stacks
+ *   <= 700 px   phone sizes
+ * No container queries: they don't run on every phone this site has to work on.
+ */
+
+/* Short desktop windows: the pinned sections still fit. */
+@media (min-width: 1025px) and (max-height: 760px) {
+	.section h2,
+	.values-section h2,
+	#resume h2 {
+		font-size: 2.8rem;
+		line-height: 1.3;
+	}
+
+	.values-section {
+		--wheel: min(50vh, 460px);
+	}
+
+	.value-caption h3 {
+		font-size: 1.55rem;
+	}
+
+	.value-caption p {
+		font-size: .95rem;
+	}
+
+	.timeline-track {
+		height: 90px;
+	}
+
+	.timeline-point-inner {
+		width: 50px;
+		height: 50px;
+	}
+
+	.timeline-card-info h3 {
+		font-size: 1.4rem;
+	}
+
+	.timeline-card-subtitle {
+		font-size: 1rem;
+	}
+
+	.timeline-achievements li {
+		padding: .4rem 0 .4rem 1.5rem;
+		font-size: .95rem;
+	}
+}
+
+/* Narrow desktop windows: the same inset on both sides clears the rail, so everything stays on the page centre. */
+@media (min-width: 1025px) and (max-width: 1180px) {
+	.container {
+		width: 100%;
+		max-width: none;
+		padding: 0 6.5rem;
+	}
+
+	.hero-copy {
+		margin-left: 0;
+	}
+
+	.hero-wrap {
+		gap: 2rem;
+	}
+
+	.photo-wrap {
+		width: min(34vw, 480px);
+		height: min(34vw, 480px);
+	}
+
+	.hero-visual {
+		height: min(44vw, 600px);
+	}
+
+	.chat-toggle {
+		right: calc(-1 * min(13vw, 180px));
+	}
+
+	.thinking-bubbles {
+		right: calc(-1 * min(10.2vw, 142px));
+	}
+}
+
+@media (max-width: 1024px) {
+	.section {
+		padding: 72px 0;
+	}
+
+	.section h2 {
+		font-size: clamp(2.3rem, 7vw, 3.1rem);
+		line-height: 1.3;
+		margin-bottom: 2rem;
+	}
+
+	.container {
+		width: 100%;
+		max-width: 860px;
+		padding: 0 28px;
+	}
+
+	/* ---------- the rail becomes a dock ---------- */
+
+	.left-nav {
+		left: 50%;
+		top: auto;
+		bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+		transform: translateX(-50%);
+		flex-direction: row;
+		align-items: center;
+		gap: 2px;
+		padding: 5px 7px;
+		border-radius: 999px;
+		background: rgba(18, 18, 20, .94);
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+		border: 1px solid rgba(255, 255, 255, .16);
+		box-shadow: 0 12px 34px rgba(0, 0, 0, .45);
+		z-index: 1000;
+	}
+
+	.app.color-mode .left-nav {
+		background: rgba(255, 255, 255, .95);
+		border-color: rgba(0, 0, 0, .14);
+		box-shadow: 0 12px 34px rgba(0, 0, 0, .14);
+	}
+
+	.nav-logo,
+	.nav-divider {
+		display: none;
+	}
+
+	.nav-item,
+	.nav-theme-toggle {
+		width: 42px;
+		height: 42px;
+		padding: 0;
+		margin: 0;
+	}
+
+	.nav-item:hover,
+	.nav-theme-toggle:hover {
+		transform: none;
+	}
+
+	.nav-item.active {
+		box-shadow: none;
+	}
+
+	.nav-indicator {
+		width: 20px;
+		height: 3px;
+	}
+
+	.site-footer {
+		padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+	}
+
+	.page-edge-line-wrap.bottom {
+		display: none;
+	}
+
+	/* ---------- hero ---------- */
+
+	.hero {
+		min-height: auto;
+		padding: clamp(56px, 8vh, 96px) 0 64px;
+		/* the portrait's rotating ring swings its corners past the screen edge */
+		overflow: hidden;
+	}
+
+	.hero-copy {
+		margin-left: 0;
+	}
+
+	.hero-wrap {
+		gap: 2rem;
+	}
+
+	.hero-visual {
+		--portrait: min(40vw, 380px);
+		height: auto;
+		padding: 1.25rem 0;
+		min-height: calc(var(--portrait) + 2.5rem);
+	}
+
+	.photo-wrap {
+		width: var(--portrait);
+		height: var(--portrait);
+	}
+
+	.chat-bubble-container {
+		left: 0;
+		transform: none;
+		pointer-events: none;
+	}
+
+	.chat-toggle {
+		top: calc(50% - var(--portrait) / 2 - 2px);
+		right: calc(50% - var(--portrait) / 2 - 8px);
+		width: 48px;
+		height: 48px;
+		pointer-events: auto;
+		z-index: 8;
+	}
+
+	.thinking-bubbles {
+		display: none;
+	}
+
+	/* The chat opens as a sheet from the bottom of the screen. */
+	.chat-sheet-wrap {
+		position: fixed;
+		inset: 0;
+		z-index: 10001;
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
+		background: rgba(0, 0, 0, .6);
+		animation: fadeIn .3s ease;
+	}
+
+	.chat-sheet {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		width: min(100%, 560px);
+		height: min(82vh, 680px);
+		padding: 1.25rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom, 0px));
+		background: #0d0d0f;
+		color: #fff;
+		border: 1px solid rgba(255, 255, 255, .14);
+		border-bottom: none;
+		border-radius: 22px 22px 0 0;
+		animation: sheetUp .55s var(--ease-out);
+	}
+
+	.app.color-mode .chat-sheet {
+		background: #fff;
+		border-color: rgba(0, 0, 0, .12);
+	}
+
+	@keyframes sheetUp {
+		from { transform: translateY(40%); opacity: .4; }
+		to { transform: none; opacity: 1; }
+	}
+
+	.chat-sheet-close {
+		position: absolute;
+		top: .85rem;
+		right: .85rem;
+		width: 44px;
+		height: 44px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		border: 1px solid rgba(255, 255, 255, .2);
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+		z-index: 3;
+	}
+
+	.chat-sheet .chat-avatar {
+		position: static;
+		transform: none;
+		flex: none;
+		height: 140px;
+		z-index: auto;
+	}
+
+	.chat-sheet .avatar-gif {
+		width: 140px;
+		height: 140px;
+		border-radius: 0;
+	}
+
+	.chat-sheet .chat-interface {
+		flex: 1;
+		min-height: 0;
+		width: 100%;
+		height: auto;
+		margin: .5rem 0 0;
+		padding: 0;
+		gap: .75rem;
+		justify-content: flex-end;
+	}
+
+	.chat-sheet .chat-welcome {
+		font-size: 1rem;
+		text-align: center;
+		width: 100%;
+		margin: 0;
+	}
+
+	.chat-sheet .chat-welcome-cta {
+		font-size: 1.05rem;
+	}
+
+	.chat-sheet .chat-messages {
+		max-height: none;
+		gap: .75rem;
+		flex: 1;
+		overscroll-behavior: contain;
+	}
+
+	.chat-sheet .chat-message {
+		font-size: 1rem;
+		line-height: 1.5;
+	}
+
+	.chat-sheet .chat-input-container {
+		gap: .5rem;
+		padding: 0;
+	}
+
+	.chat-sheet .chat-input {
+		font-size: 16px;
+		min-height: 46px;
+		padding: .6rem .9rem;
+		border-radius: 12px;
+	}
+
+	.chat-sheet .chat-send {
+		min-width: 46px;
+		min-height: 46px;
+	}
+
+	/* ---------- values ---------- */
+
+	.values-section {
+		--wheel: min(70vw, 460px);
+		min-height: 0;
+		padding: 72px 0;
+		overflow: hidden;
+	}
+
+	.value-icon {
+		width: 46px;
+		height: 46px;
+	}
+
+	.value-caption {
+		margin-top: 2.25rem;
+	}
+
+	/* ---------- resume: every entry readable ---------- */
+
+	#resume {
+		min-height: 0;
+		display: block;
+		padding: 72px 0;
+	}
+
+	#resume h2 {
+		margin-bottom: 2.25rem;
+	}
+
+	.resume-list {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		gap: 1.1rem;
+		max-width: 680px;
+		margin: 0 auto;
+	}
+
+	.resume-list-line {
+		position: absolute;
+		left: 25px;
+		top: 12px;
+		bottom: 12px;
+		width: 1px;
+		background: rgba(255, 255, 255, .4);
+		transform-origin: top center;
+	}
+
+	.app.color-mode .resume-list-line {
+		background: rgba(0, 0, 0, .4);
+	}
+
+	.resume-entry {
+		position: relative;
+		display: grid;
+		grid-template-columns: 52px 1fr;
+		gap: 1rem;
+		align-items: start;
+	}
+
+	.resume-entry-logo {
+		width: 52px;
+		height: 52px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #111113;
+		border: 1px solid rgba(255, 255, 255, .28);
+		z-index: 1;
+	}
+
+	.app.color-mode .resume-entry-logo {
+		background: #f4f4f4;
+		border-color: rgba(0, 0, 0, .28);
+	}
+
+	.resume-entry-logo .timeline-point-logo {
+		width: 32px;
+		height: 32px;
+	}
+
+	.resume-entry-card {
+		min-width: 0;
+		padding: 0.9rem 1rem;
+		background: rgba(255, 255, 255, .05);
+		border: 1px solid rgba(255, 255, 255, .12);
+		border-radius: 16px;
+	}
+
+	.app.color-mode .resume-entry-card {
+		background: rgba(0, 0, 0, .04);
+		border-color: rgba(0, 0, 0, .12);
+	}
+
+	.resume-entry-card h3 {
+		font-family: var(--font-sans);
+		font-size: 1.15rem;
+		font-weight: 700;
+		line-height: 1.3;
+		margin: 0 0 .3rem;
+		color: #fff;
+	}
+
+	.resume-entry-card .timeline-card-subtitle {
+		font-size: .95rem;
+	}
+
+	.resume-entry-card .timeline-card-period {
+		font-size: .82rem;
+		color: rgba(255, 255, 255, .7);
+		margin-bottom: .5rem;
+	}
+
+	.app.color-mode .resume-entry-card .timeline-card-period {
+		color: rgba(0, 0, 0, .68);
+	}
+
+	.resume-entry-card .timeline-achievements li {
+		font-size: .88rem;
+		line-height: 1.4;
+		padding: .28rem 0 .28rem 1.25rem;
+	}
+
+	.resume-entry-card .timeline-achievements {
+		margin-top: .35rem;
+	}
+
+	/* ---------- projects: a swipe row ---------- */
+
+	#projects h2 {
+		margin-bottom: 2rem;
+	}
+
+	.projects-carousel-wrapper {
+		transform: none;
+		min-height: 0;
+		gap: 1.5rem;
+		margin: 0 calc(50% - 50vw);
+	}
+
+	.projects-carousel {
+		max-width: none;
+		height: auto;
+		perspective: none;
+		cursor: auto;
+		display: block;
+		touch-action: auto;
+	}
+
+	.projects-tilt {
+		height: auto;
+		transform-style: flat;
+		transform: none !important;
+	}
+
+	.projects-container {
+		transform: none !important;
+		transform-style: flat;
+		display: flex;
+		align-items: stretch;
+		justify-content: flex-start;
+		gap: 16px;
+		height: auto;
+		padding: 4px calc(50vw - min(40vw, 180px)) 8px;
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+	}
+
+	.projects-container::-webkit-scrollbar {
+		display: none;
+	}
+
+	.project-item,
+	.project-item:nth-child(1),
+	.project-item:nth-child(2),
+	.project-item:nth-child(3) {
+		position: relative;
+		flex: 0 0 min(80vw, 360px);
+		width: auto;
+		transform: none;
+		scroll-snap-align: center;
+		justify-content: flex-start;
+	}
+
+	.project-item > .project-video,
+	.project-video-button {
+		margin-bottom: .9rem;
+	}
+
+	.project-card {
+		flex: 1;
+		height: auto;
+		padding: 1.5rem 1.25rem;
+		gap: .75rem;
+	}
+
+	.project-title {
+		font-size: 1.25rem;
+		margin-bottom: .25rem;
+	}
+
+	.project-description {
+		margin-bottom: .25rem;
+		max-width: none;
+		font-size: .95rem;
+	}
+
+	.project-technologies {
+		margin-bottom: .25rem;
+	}
+
+	.project-links {
+		margin-top: auto;
+		padding-top: .5rem;
+	}
+
+	.project-link {
+		padding: .65rem 1.15rem;
+	}
+
+	.projects-carousel .carousel-arrows {
+		display: none;
+	}
+
+	.carousel-indicators,
+	.projects-carousel-wrapper .carousel-indicators {
+		margin-top: 0;
+	}
+
+	/* ---------- lumina ---------- */
+
+	.ll-sep {
+		margin: 3rem 0 2rem;
+	}
+
+	.ll-row {
+		grid-template-columns: 1fr;
+	}
+
+	.ll-video {
+		height: auto;
+		aspect-ratio: 16 / 9;
+	}
+
+	.ll-kpis {
+		height: auto;
+	}
+
+	.ll-kpi {
+		padding: 1.1rem .5rem;
+	}
+
+	.ll-screens-clip {
+		margin: 0 calc(50% - 50vw);
+	}
+
+	.ll-screens {
+		display: flex;
+		width: auto;
+		margin: 0;
+		gap: 10px;
+		padding: 0 max(28px, calc(50vw - 402px)) 6px;
+		overflow-x: auto;
+		scroll-snap-type: x proximity;
+		scrollbar-width: none;
+	}
+
+	.ll-screens::-webkit-scrollbar {
+		display: none;
+	}
+
+	.ll-sc {
+		flex: 0 0 min(38vw, 180px);
+		width: auto;
+		scroll-snap-align: start;
+	}
+
+	/* ---------- articles ---------- */
+
+	.articles-carousel-wrapper {
+		padding: 0 56px;
+		margin-top: 0;
+	}
+
+	.articles-carousel {
+		overflow: hidden;
+	}
+
+	.newspaper-name {
+		font-size: 2rem;
+	}
+
+	.newspaper-headline {
+		font-size: 1.6rem;
+	}
+
+	.newspaper-body-text {
+		text-align: left;
+	}
+
+	/* ---------- contact ---------- */
+
+	.business-card-container {
+		min-height: 0;
+		margin: 0;
+		perspective: none;
+	}
+
+	.business-card {
+		width: min(100%, 560px);
+		height: auto;
+		aspect-ratio: 600 / 350;
+	}
+
+	/* ---------- athletics ---------- */
+
+	.athletics-section,
+	.athletics-content {
+		min-height: 0;
+	}
+
+	.athletics-section {
+		overflow: hidden;
+	}
+
+	.athletics-showcase {
+		position: relative;
+		inset: auto;
+		overflow: visible;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 2rem 1.25rem;
+		padding: 96px 28px 48px;
+		pointer-events: auto;
+		max-width: 720px;
+		margin: 0 auto;
+	}
+
+	.athletics-trophy-stage {
+		grid-column: 1 / -1;
+		order: -1;
+		position: relative;
+		left: auto;
+		bottom: auto;
+		transform: none;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.athletics-trophy-wrap {
+		width: min(72vw, 420px);
+		height: min(72vw, 420px);
+	}
+
+	.athletics-medal,
+	.athletics-medal--mid-left,
+	.athletics-medal--mid-right,
+	.athletics-medal--far-left,
+	.athletics-medal--far-right {
+		position: relative;
+		top: auto;
+		left: auto;
+		height: auto;
+		transform: none;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.athletics-medal-inner {
+		height: auto;
+		width: 100%;
+		display: flex;
+		justify-content: center;
+	}
+
+	.athletics-medal-img {
+		height: auto;
+		width: auto;
+		max-width: 100%;
+		max-height: 44vh;
+	}
+
+	/* No hover here, so the labels are captions. */
+	.athletics-medal-tooltip,
+	.athletics-stage-item .athletics-medal-tooltip,
+	.athletics-medal:hover .athletics-medal-tooltip,
+	.athletics-trophy-stage:hover .athletics-medal-tooltip,
+	.athletics-stage-item:hover .athletics-medal-tooltip {
+		position: static;
+		transform: none;
+		opacity: 1;
+		visibility: visible;
+		white-space: normal;
+		text-align: center;
+		text-wrap: balance;
+		overflow-wrap: anywhere;
+		max-width: 100%;
+		width: 100%;
+		box-sizing: border-box;
+		background: none;
+		border: none;
+		padding: .55rem .35rem 0;
+		font-size: clamp(.72rem, 2.8vw, .85rem);
+		line-height: 1.35;
+		letter-spacing: 0.02em;
+		color: rgba(255, 255, 255, .84);
+	}
+
+	.athletics-home-nav {
+		left: 1rem;
+		top: 1rem;
+	}
+
+	.athletics-stage-section {
+		overflow: hidden;
+	}
+
+	.athletics-stage-gallery {
+		flex-direction: column;
+		align-items: center;
+		gap: 2.5rem;
+	}
+
+	.athletics-stage-photo--tall,
+	.athletics-stage-photo--small {
+		height: auto;
+		width: auto;
+		max-width: 100%;
+		max-height: 70vh;
+	}
+
+	.athletics-docs-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.athletics-doc-card span {
+		font-size: .78rem;
+	}
+
+	/* Scrolling content has no glass behind it on touch screens: it would be redrawn every frame. */
+	.timeline-card,
+	.newspaper-card,
+	.ll-kpi,
+	.ll-press {
+		backdrop-filter: none;
+		-webkit-backdrop-filter: none;
+	}
+}
+
+@media (min-width: 701px) and (max-width: 860px) {
+	.newspaper-body {
+		grid-template-columns: 1fr 1.5fr;
+	}
+}
+
+@media (max-width: 860px) {
+	.hero-wrap {
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+		text-align: center;
+	}
+
+	.hero-copy {
+		text-align: center;
+	}
+
+	.cta-row {
+		justify-content: center;
+	}
+
+	.hero-visual {
+		--portrait: min(62vw, 400px);
+	}
+
+	.title {
+		font-size: clamp(2.2rem, 8.2vw, 3.4rem);
+		line-height: 1.18;
+		padding-inline: 0.15rem;
+		overflow-wrap: anywhere;
+		hyphens: auto;
+	}
+
+	.subtitle {
+		font-size: clamp(1.05rem, 2.6vw, 1.25rem);
+		line-height: 1.55;
+		text-wrap: balance;
+		margin-bottom: 1.75rem;
+	}
+
+}
+
+@media (max-width: 700px) {
+	.section {
+		padding: 60px 0;
+	}
+
+	.container {
+		padding: 0 20px;
+	}
+
+	.section h2 {
+		font-size: clamp(2.1rem, 10vw, 2.6rem);
+		margin-bottom: 1.75rem;
+	}
+
+	.hero {
+		padding: 44px 0 48px;
+	}
+
+	.hero .title {
+		font-size: clamp(2rem, 9vw, 2.85rem);
+		line-height: 1.2;
+		padding-inline: 0.25rem;
+	}
+
+	.hero-visual {
+		--portrait: min(76vw, 340px);
+	}
+
+	.button {
+		padding: .875rem 1.5rem;
+	}
+
+	.nav-item,
+	.nav-theme-toggle {
+		width: 39px;
+		height: 42px;
+	}
+
+	/* ---------- values ---------- */
+
+	.values-section {
+		--wheel: min(70vw, 340px);
+		padding: 60px 0;
+	}
+
+	.values-container {
+		padding: 0;
+	}
+
+	.value-icon {
+		width: 42px;
+		height: 42px;
+	}
+
+	.value-caption {
+		padding: 0 20px;
+		margin-top: 2rem;
+	}
+
+	/* ---------- skills ---------- */
+
+	.flappy-game-area,
+	.flappy-sky {
+		min-height: 440px;
+	}
+
+	.flappy-bird {
+		width: 44px;
+		height: 44px;
+	}
+
+	.wing {
+		width: 14px;
+		height: 10px;
+	}
+
+	.flappy-pipe {
+		width: 58px;
+	}
+
+	.pipe-skill-icon {
+		width: 36px;
+		height: 36px;
+	}
+
+	.gap-label {
+		font-size: .72rem;
+		padding: .3rem .65rem;
+	}
+
+	.flappy-instructions,
+	.flappy-game-over {
+		padding: 1.25rem 1.25rem;
+	}
+
+	.instructions-content h3,
+	.game-over-content h3 {
+		font-size: 1.2rem;
+	}
+
+	.instructions-content p {
+		font-size: .9rem;
+	}
+
+	/* ---------- resume ---------- */
+
+	#resume {
+		padding: 60px 0;
+	}
+
+	.resume-list-line {
+		left: 21px;
+	}
+
+	.resume-entry {
+		grid-template-columns: 44px 1fr;
+		gap: .75rem;
+	}
+
+	.resume-entry-logo {
+		width: 44px;
+		height: 44px;
+	}
+
+	.resume-entry-logo .timeline-point-logo {
+		width: 26px;
+		height: 26px;
+	}
+
+	.resume-entry-card {
+		padding: 1rem;
+	}
+
+	/* ---------- projects ---------- */
+
+	.projects-container {
+		padding: 4px 8vw 8px;
+	}
+
+	.project-item,
+	.project-item:nth-child(1),
+	.project-item:nth-child(2),
+	.project-item:nth-child(3) {
+		flex-basis: 84vw;
+	}
+
+	.ll-screens {
+		padding: 0 20px 6px;
+	}
+
+	.ll-sc {
+		flex-basis: 42vw;
+	}
+
+	.ll-press {
+		flex-direction: column;
+		align-items: stretch;
+		gap: .6rem;
+	}
+
+	.ll-press-label {
+		text-align: center;
+	}
+
+	.ll-name {
+		font-size: 1.4rem;
+	}
+
+	.ll-icon {
+		width: 60px;
+		height: 60px;
+	}
+
+	/* ---------- articles: native swipe, card fills the width ---------- */
+
+	.articles-carousel-wrapper {
+		padding: 0;
+		margin: 0 calc(50% - 50vw);
+		width: auto;
+	}
+
+	.articles-carousel {
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		perspective: none;
+		scrollbar-width: none;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.articles-carousel::-webkit-scrollbar {
+		display: none;
+	}
+
+	.articles-container {
+		transform: none !important;
+		transform-style: flat;
+		align-items: stretch;
+	}
+
+	.newspaper-card {
+		flex: 0 0 100%;
+		width: 100%;
+		padding: 1.25rem 20px;
+		scroll-snap-align: start;
+		scroll-snap-stop: always;
+		border-left: none;
+		border-right: none;
+		box-shadow: none;
+	}
+
+	.newspaper-name {
+		font-size: 1.6rem;
+	}
+
+	.newspaper-headline {
+		font-size: 1.3rem;
+	}
+
+	.newspaper-body {
+		gap: 1.1rem;
+	}
+
+	.newspaper-image-column {
+		max-width: 62%;
+		margin: 0 auto;
+	}
+
+	.newspaper-byline {
+		flex-wrap: wrap;
+	}
+
+	.newspaper-body-text {
+		font-size: .98rem;
+		line-height: 1.65;
+	}
+
+	.articles-carousel-wrapper .carousel-arrows {
+		display: none;
+	}
+
+	.articles-carousel-wrapper .carousel-indicators {
+		margin-top: 1.25rem;
+	}
+
+	/* ---------- contact ---------- */
+
+	.business-card {
+		width: 100%;
+		max-width: 400px;
+		aspect-ratio: auto;
+		min-height: 286px;
+	}
+
+	.business-card-content {
+		padding: 1.15rem;
+		gap: .75rem;
+		min-height: 286px;
+	}
+
+	.business-card-top {
+		gap: .85rem;
+	}
+
+	.business-card-profile {
+		width: 56px;
+		height: 56px;
+	}
+
+	.business-card-name {
+		font-size: 1.2rem;
+		margin-bottom: .2rem;
+	}
+
+	.business-card-title,
+	.business-card-location {
+		font-size: .82rem;
+	}
+
+	.business-card-background {
+		display: block;
+		inset: 104px 1.15rem auto;
+	}
+
+	.business-card-quote {
+		font-size: .86rem;
+		line-height: 1.4;
+		max-width: none;
+		color: rgba(0, 0, 0, .68);
+	}
+
+	.business-card-contact {
+		margin-top: auto;
+		gap: .35rem;
+	}
+
+	.contact-item {
+		font-size: .8rem;
+		padding: .35rem 0;
+		gap: .5rem;
+	}
+
+	.business-card-signature {
+		width: 104px;
+		height: 44px;
+		right: 1rem;
+		bottom: .9rem;
+	}
+
+	/* ---------- athletics ---------- */
+
+	.athletics-showcase {
+		padding: 84px 20px 36px;
+	}
+
+	.athletics-stage-section,
+	.athletics-recognitions {
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+
+	.athletics-docs-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Touch screens have no hover, whatever their width. */
+@media (hover: none) {
+	.photo-wrap:hover {
+		transform: none;
+	}
+
+	.value-icon:hover:not(.selected) {
+		box-shadow: none;
+		transform: none;
+	}
+
+	.project-link:hover,
+	.ll-kpi:hover,
+	.button:hover {
+		transform: none;
+	}
+}

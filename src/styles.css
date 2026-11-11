@@ -33,7 +33,7 @@ html, body, #root { height: 100%; }
 html { scroll-behavior: smooth; }
 body {
 margin: 0;
-font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji";
+font-family: var(--font-sans);
 background: var(--bg);
 color: var(--text);
 line-height: 1.6;
@@ -273,12 +273,6 @@ background: rgba(255,255,255,0.8); border-bottom: 1px solid rgba(0,0,0,0.08);
 	flex-direction: column;
 	align-items: center;
 	gap: 8px;
-	transform: translate(-50%, -50%);
-	transition: all 0.3s ease;
-}
-
-.value-item:hover {
-	transform: translate(-50%, -50%) scale(1.1);
 }
 
 .value-icon {
@@ -377,9 +371,6 @@ background: rgba(255,255,255,0.8); border-bottom: 1px solid rgba(0,0,0,0.08);
 		height: 300px;
 	}
 	
-	.value-item {
-		transform: translate(-50%, -50%) scale(0.8);
-	}
 	
 	.value-label {
 		font-size: 12px;

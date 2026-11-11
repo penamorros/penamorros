@@ -1,0 +1,257 @@
+/*
+ * The premium surface pass. Surface only: the client's structure and layout stay exactly as they are.
+ *   blue-black ground instead of pure black · one spotlight from the top onto the portrait, a fainter one over every heading
+ *   icy chrome on the display type · hairline rules with + marks instead of the stark white lines · glass cards with a dot in each corner
+ * Loaded last (src/main.tsx). The light theme gets the same moves in navy on a cool off-white.
+ */
+
+:root {
+	--pm-ground: #05070c;
+	--pm-ground-light: #f5f7fb;
+	--pm-line: rgba(196, 212, 255, .12);
+	--pm-dot: rgba(214, 226, 255, .5);
+	--pm-glow: rgba(150, 182, 255, .16);
+}
+
+/* ---------- the ground */
+
+html,
+body { background-color: var(--pm-ground); }
+.app.color-mode { background-color: var(--pm-ground-light); }
+html:has(.app.color-mode),
+html:has(.app.color-mode) body { background-color: var(--pm-ground-light); }
+
+/* the 80 px grid: cool, a touch quieter */
+.app::after {
+	background-image:
+		linear-gradient(rgba(190, 208, 255, .065) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(190, 208, 255, .065) 1px, transparent 1px),
+		radial-gradient(circle at 25% 25%, rgba(170, 196, 255, .045) 0%, transparent 50%),
+		radial-gradient(circle at 75% 75%, rgba(170, 196, 255, .045) 0%, transparent 50%);
+}
+.app.color-mode::after {
+	background-image:
+		linear-gradient(rgba(20, 34, 70, .07) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(20, 34, 70, .07) 1px, transparent 1px),
+		radial-gradient(circle at 25% 25%, rgba(20, 34, 70, .035) 0%, transparent 50%),
+		radial-gradient(circle at 75% 75%, rgba(20, 34, 70, .035) 0%, transparent 50%);
+}
+
+::selection { background: rgba(170, 200, 255, .3); color: #fff; }
+.app.color-mode ::selection { background: rgba(40, 70, 140, .18); color: #0b1220; }
+
+/* the reading bar along the top: ice, not a rainbow */
+.scroll-progress-bar,
+.app.color-mode .scroll-progress-bar {
+	background: linear-gradient(90deg, rgba(150, 182, 255, .6), #e8efff 70%, #fff);
+	box-shadow: 0 0 12px rgba(170, 200, 255, .45);
+}
+.app.color-mode .scroll-progress-bar { background: linear-gradient(90deg, #6f86b8, #0b1220); box-shadow: none; }
+
+/* ---------- light from above (pin 3) */
+
+/* onto the portrait: a soft cone from the top of the page. It has to be wider than the circle by the time it reaches it, or the circle
+   hides it: the source sits at the top edge and the beam opens to ±40°, fanning out round the circle. Clipped at the hero's sides. */
+.hero { overflow-x: clip; }
+.hero-visual::before {
+	content: '';
+	position: absolute;
+	left: calc(50% - 550px);
+	top: -150px;
+	width: 1100px;
+	height: calc(150px + 100%);
+	background:
+		radial-gradient(22% 9% at 50% 0%, rgba(226, 236, 255, .22), transparent 100%),
+		conic-gradient(at 50% 0%,
+			transparent 0deg 140deg,
+			rgba(176, 200, 255, .06) 154deg,
+			rgba(226, 236, 255, .17) 180deg,
+			rgba(176, 200, 255, .06) 206deg,
+			transparent 220deg 360deg);
+	-webkit-mask-image: linear-gradient(to bottom, #000 22%, transparent 94%);
+	mask-image: linear-gradient(to bottom, #000 22%, transparent 94%);
+	filter: blur(18px);
+	pointer-events: none;
+	z-index: 0;
+}
+/* and a fainter one over every section heading */
+.section > .container > h2 { position: relative; }
+.section > .container > h2::before {
+	content: '';
+	position: absolute;
+	left: calc(50% - min(280px, 45vw));
+	bottom: 20%;
+	width: min(560px, 90vw);
+	height: 300px;
+	background: conic-gradient(at 50% 0%,
+		transparent 0deg 150deg,
+		rgba(176, 200, 255, .07) 162deg,
+		rgba(226, 236, 255, .16) 180deg,
+		rgba(176, 200, 255, .07) 198deg,
+		transparent 210deg 360deg);
+	-webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+	mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+	filter: blur(12px);
+	pointer-events: none;
+	z-index: -1;
+}
+.app.color-mode .hero-visual::before,
+.app.color-mode .section > .container > h2::before { opacity: .55; filter: blur(16px) invert(1) hue-rotate(180deg); }
+
+/* ---------- display type: icy chrome, white at the top of the letters, pale ice at the foot */
+
+.hero.is-lit .title .title-word,
+.section h2 > .write {
+	background-image: linear-gradient(180deg, #ffffff 0%, #ffffff 42%, #c3d4f2 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+/* the glow sits on the words, never on the h2: a filter there would move Resume's fixed-position download tip */
+.hero.is-lit .title { filter: drop-shadow(0 0 28px rgba(150, 182, 255, .14)); }
+.section h2 > .write { filter: drop-shadow(0 0 22px rgba(150, 182, 255, .12)); }
+.app.color-mode .hero.is-lit .title .title-word,
+.app.color-mode .section h2 > .write { background-image: linear-gradient(180deg, #05070c 0%, #0b1220 45%, #3c5381 100%); }
+.app.color-mode .hero .title,
+.app.color-mode .section h2 > .write { filter: none; }
+
+/* ---------- hairline rules with + marks, instead of the stark white lines */
+
+.tone-sep::before {
+	background: linear-gradient(90deg, transparent 0%, rgba(196, 212, 255, .22) 14%, rgba(232, 240, 255, .55) 50%, rgba(196, 212, 255, .22) 86%, transparent 100%);
+	box-shadow: 0 0 18px rgba(170, 200, 255, .12);
+}
+.app.color-mode .tone-sep::before {
+	background: linear-gradient(90deg, transparent 0%, rgba(20, 34, 70, .16) 14%, rgba(20, 34, 70, .4) 50%, rgba(20, 34, 70, .16) 86%, transparent 100%);
+	box-shadow: none;
+}
+/* a small + where the rule meets each edge of the content */
+.tone-sep::after {
+	content: '';
+	position: absolute;
+	top: -5px;
+	/* clear of the rail on narrow desktops (it ends near 100 px); the content edge on wide ones */
+	left: max(7.5rem, calc(50% - 600px));
+	right: max(7.5rem, calc(50% - 600px));
+	height: 11px;
+	background:
+		linear-gradient(rgba(220, 232, 255, .7), rgba(220, 232, 255, .7)) left 0 top 5px / 11px 1px no-repeat,
+		linear-gradient(rgba(220, 232, 255, .7), rgba(220, 232, 255, .7)) left 5px top 0 / 1px 11px no-repeat,
+		linear-gradient(rgba(220, 232, 255, .7), rgba(220, 232, 255, .7)) right 0 top 5px / 11px 1px no-repeat,
+		linear-gradient(rgba(220, 232, 255, .7), rgba(220, 232, 255, .7)) right 5px top 0 / 1px 11px no-repeat;
+	opacity: 0;
+	transition: opacity .8s ease .9s;
+	pointer-events: none;
+}
+.tone-sep.in::after { opacity: 1; }
+@media (max-width: 1024px) { .tone-sep::after { left: 1.25rem; right: 1.25rem; } }
+.app.color-mode .tone-sep::after {
+	background:
+		linear-gradient(rgba(20, 34, 70, .55), rgba(20, 34, 70, .55)) left 0 top 5px / 11px 1px no-repeat,
+		linear-gradient(rgba(20, 34, 70, .55), rgba(20, 34, 70, .55)) left 5px top 0 / 1px 11px no-repeat,
+		linear-gradient(rgba(20, 34, 70, .55), rgba(20, 34, 70, .55)) right 0 top 5px / 11px 1px no-repeat,
+		linear-gradient(rgba(20, 34, 70, .55), rgba(20, 34, 70, .55)) right 5px top 0 / 1px 11px no-repeat;
+}
+.site-footer { border-top: 0; position: relative; }
+.site-footer::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(196, 212, 255, .22) 14%, rgba(232, 240, 255, .5) 50%, rgba(196, 212, 255, .22) 86%, transparent);
+}
+.app.color-mode .site-footer::before { background: linear-gradient(90deg, transparent, rgba(20, 34, 70, .16) 14%, rgba(20, 34, 70, .38) 50%, rgba(20, 34, 70, .16) 86%, transparent); }
+
+/* ---------- glass with a dot in each corner (pin 3) */
+
+.timeline-card,
+.project-card,
+.project-card:hover,
+.ll-kpi,
+.newspaper-card {
+	background-image:
+		radial-gradient(circle, var(--pm-dot) 0 1px, transparent 1.6px),
+		radial-gradient(circle, var(--pm-dot) 0 1px, transparent 1.6px),
+		radial-gradient(circle, var(--pm-dot) 0 1px, transparent 1.6px),
+		radial-gradient(circle, var(--pm-dot) 0 1px, transparent 1.6px),
+		linear-gradient(180deg, rgba(200, 216, 255, .045), rgba(200, 216, 255, 0) 55%);
+	background-position: top 9px left 9px, top 9px right 9px, bottom 9px left 9px, bottom 9px right 9px, 0 0;
+	background-size: 4px 4px, 4px 4px, 4px 4px, 4px 4px, 100% 100%;
+	background-repeat: no-repeat;
+}
+.left-nav,
+.timeline-card,
+.project-card,
+.ll-kpi,
+.newspaper-card {
+	border-color: var(--pm-line);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 30px 70px -36px rgba(0, 0, 0, .95);
+}
+.left-nav {
+	background-color: rgba(14, 18, 27, .55);
+	background-image: linear-gradient(180deg, rgba(200, 216, 255, .045), rgba(200, 216, 255, 0) 55%);
+}
+.timeline-card { background-color: rgba(18, 23, 34, .5); }
+.project-card { background-color: rgb(13, 16, 23); }
+.project-card:hover { background-color: rgb(19, 23, 33); }
+.ll-kpi { background-color: rgba(18, 23, 34, .55); }
+
+.app.color-mode { --pm-dot: rgba(20, 34, 70, .38); --pm-line: rgba(20, 34, 70, .12); }
+.app.color-mode .left-nav,
+.app.color-mode .timeline-card,
+.app.color-mode .project-card,
+.app.color-mode .ll-kpi,
+.app.color-mode .newspaper-card {
+	border-color: var(--pm-line);
+	box-shadow: inset 0 1px 0 #fff, 0 26px 60px -40px rgba(20, 34, 70, .5);
+}
+.app.color-mode .left-nav {
+	background-color: rgba(255, 255, 255, .7);
+	background-image: linear-gradient(180deg, rgba(20, 34, 70, .04), rgba(20, 34, 70, 0) 55%);
+}
+.app.color-mode .timeline-card,
+.app.color-mode .ll-kpi { background-color: rgba(255, 255, 255, .72); }
+.app.color-mode .project-card,
+.app.color-mode .project-card:hover { background-color: #fbfcfe; }
+
+/* the round icon tiles (values ring, resume timeline): a bevel of light on the top edge */
+.value-icon,
+.timeline-point-inner {
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), inset 0 -1px 0 rgba(0, 0, 0, .45), 0 8px 20px -10px rgba(0, 0, 0, .9);
+}
+.app.color-mode .value-icon,
+.app.color-mode .timeline-point-inner { box-shadow: inset 0 1px 0 #fff, 0 8px 18px -10px rgba(20, 34, 70, .45); }
+
+/* ---------- buttons: the primary carries a little of the spotlight */
+
+.hero .button.primary { box-shadow: 0 0 0 1px rgba(255, 255, 255, .25), 0 10px 34px -10px rgba(170, 200, 255, .55); }
+.app.color-mode .hero .button.primary { box-shadow: 0 10px 30px -12px rgba(20, 34, 70, .55); }
+
+/* ---------- the portrait's ring: cool white */
+.photo-wrap::before {
+	background: linear-gradient(0deg, transparent 0%, transparent 45%, rgba(214, 228, 255, .8) 47.5%, #fff 50%, rgba(214, 228, 255, .8) 52.5%, transparent 55%, transparent 100%);
+}
+.app.color-mode .photo-wrap::before {
+	background: linear-gradient(0deg, transparent 0%, transparent 45%, rgba(11, 18, 32, .8) 47.5%, #0b1220 50%, rgba(11, 18, 32, .8) 52.5%, transparent 55%, transparent 100%);
+}
+
+/* ---------- the skills game: its sky on the same blue-black, framed like the other glass */
+.flappy-game-area {
+	border-color: rgba(196, 212, 255, .16);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 30px 70px -36px rgba(0, 0, 0, .95);
+}
+.flappy-sky { background: radial-gradient(120% 90% at 50% 0%, rgba(176, 200, 255, .07), transparent 60%), #070a11; }
+.app.color-mode .flappy-game-area { border-color: rgba(20, 34, 70, .16); }
+
+/* ---------- Netlify's free-plan badge (free-plan hosting only)
+   Netlify writes <script data-nf-variant> into every page it serves and mounts "Powered by Netlify" fixed to the bottom-right corner,
+   64 px tall. On phones it covered the right half of the dock (projects, contact, theme) and the end of the chat sheet. The badge stays;
+   our parts move above it, from the first paint, and only where the script is there (never locally, never on a paid plan). */
+:root:has(script[data-nf-variant]) { --host-badge: 64px; }
+@media (max-width: 1024px) {
+	.left-nav { bottom: calc(14px + var(--host-badge, 0px) + env(safe-area-inset-bottom, 0px)); }
+	.site-footer { padding-bottom: calc(92px + var(--host-badge, 0px) + env(safe-area-inset-bottom, 0px)); }
+	.chat-sheet { padding-bottom: calc(1.25rem + var(--host-badge, 0px) + env(safe-area-inset-bottom, 0px)); }
+}

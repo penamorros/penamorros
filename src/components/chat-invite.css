@@ -1,0 +1,38 @@
+.portrait-stack { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; }
+.chat-invite {
+  position: absolute;
+  width: 32%;
+  height: 40%;
+  left: 73%;
+  top: -12%;
+  z-index: 5;
+  transition: opacity .35s, visibility .35s;
+}
+.chat-invite:not(.is-shown), .chat-invite.is-open { opacity: 0; visibility: hidden; pointer-events: none; }
+.invite-peek { position: absolute; inset: 0; border: 0; padding: 0; background: transparent; cursor: pointer; }
+.invite-character { position: absolute; inset: 0; overflow: hidden; }
+.invite-character iframe { border: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .5s; }
+.is-ready .invite-character iframe { opacity: 1; }
+.invite-character img { width: 100%; height: 100%; object-fit: cover; }
+.invite-thought { position: absolute; left: 52%; top: -13%; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; width: max-content; border: 0; padding: 0; background: transparent; cursor: pointer; color: #d8dce5; }
+.invite-label { display: block; padding: 10px 14px; border: 1px solid #434a58; border-radius: 999px; background: linear-gradient(135deg, #20252eef, #0e1119f5); box-shadow: inset 0 1px 0 #ffffff12, 0 6px 20px #0003; font-family: inherit; font-size: 13px; font-weight: 500; letter-spacing: .01em; white-space: nowrap; transition: border-color .2s, box-shadow .2s, transform .2s; }
+.invite-label > span { margin-left: 8px; color: #a8b1c2; }
+.invite-thought:hover .invite-label { transform: translateY(-2px); border-color: #929eaf; box-shadow: inset 0 1px 0 #ffffff20, 0 6px 24px #d5e3ff15; }
+.invite-thought:focus-visible, .invite-peek:focus-visible { outline: 2px solid #c4d0e5; outline-offset: 4px; border-radius: 20px; }
+.invite-dots { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-left: 5px; }
+.invite-dots i { width: 6px; height: 6px; border: 1px solid #727d90; border-radius: 50%; background: #202630; }
+.invite-dots i:last-child { width: 3px; height: 3px; transform: translateX(-4px); }
+.is-ready .invite-thought { animation: invite-appear .4s .45s both; }
+@keyframes invite-appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.app.color-mode .invite-label { color: #343943; background: linear-gradient(135deg, #fff, #e8ebf1); border-color: #b4bac6; }
+@media (max-width: 900px) {
+  .hero .hero-visual { margin-top: 35px; }
+}
+@media (max-width: 600px) {
+  .invite-thought { left: 34%; top: -22%; }
+  .invite-label { font-size: 11px; padding: 8px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-invite *, .chat-invite { animation: none !important; transition: none !important; }
+}
+.is-still .invite-character { clip-path: polygon(0 0,100% 0,100% 100%,80% 80%,60% 65%,40% 52%,20% 44%,0 37%); }
