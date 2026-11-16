@@ -47,17 +47,25 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
 
   useEffect(() => {
     if (!loaded) return
+    let gotReady = false
     const receive = (event: MessageEvent) => {
       if (event.origin !== location.origin || event.source !== frame.current?.contentWindow || !event.data?.avatar) return
       if (event.data.t === 'ready') {
+        gotReady = true
         frame.current?.contentWindow?.postMessage({ t: 'run', on: false }, location.origin)
         frame.current?.contentWindow?.postMessage({ t: 'theme', light: !!document.querySelector('.app.color-mode') }, location.origin)
+        setStill(false)
         setReady(true)
       }
       if (event.data.t === 'nogl') setStill(true)
     }
     window.addEventListener('message', receive)
-    return () => window.removeEventListener('message', receive)
+    // Safari can hang the WebGL boot with no message — show the still so the peek is never blank.
+    const fallback = window.setTimeout(() => { if (!gotReady) setStill(true) }, 8000)
+    return () => {
+      window.removeEventListener('message', receive)
+      window.clearTimeout(fallback)
+    }
   }, [loaded])
 
   useEffect(() => {

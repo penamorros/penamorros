@@ -55,7 +55,8 @@ export class Stage {
   private sum = 0;
 
   constructor(canvas: HTMLCanvasElement, public tier: Tier) {
-    this.renderer = new WebGLRenderer({ canvas, alpha: true, premultipliedAlpha: true, antialias: true, powerPreference: "high-performance" });
+    // "default" — Safari invites in a tiny iframe stall or black out on "high-performance".
+    this.renderer = new WebGLRenderer({ canvas, alpha: true, premultipliedAlpha: true, antialias: true, powerPreference: inviteMode || peekMode ? "default" : "high-performance" });
     this.renderer.setClearColor(0x000000, 0);
     // Reading a shader's status makes the browser wait for it to finish compiling. In production nothing would act on it anyway.
     this.renderer.debug.checkShaderErrors = import.meta.env.DEV;

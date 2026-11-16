@@ -33,25 +33,59 @@ useFrame()
 // ?solo boots it outside the chat, for the test tools
 const solo = bootParams.has('solo')
 if ((window.parent === window && !solo) || !hasRealGPU() || reduced) tell({ t: 'nogl' })
-else boot().catch((e) => { console.error(e); tell({ t: 'nogl' }) })
+else {
+	// Safari (and stuck workers) must not leave the peek blank forever.
+	const bootWatch = window.setTimeout(() => tell({ t: 'nogl' }), inviteMode || peekMode ? 7000 : 12000)
+	boot()
+		.then(() => window.clearTimeout(bootWatch))
+		.catch((e) => { console.error(e); window.clearTimeout(bootWatch); tell({ t: 'nogl' }) })
+}
+
+/** Decode the figure on this thread — Safari's module workers often never finish for the invite iframe. */
+async function unpackHere(strands: number, lite: boolean) {
+	const { loadPacked } = await import('./gl/decode')
+	const { decodeHead, decodeHair, decodeBody } = await import('./gl/data')
+	const [head, hair, body] = await Promise.all([
+		loadPacked('/head/head.geo').then(decodeHead),
+		loadPacked('/head/hair.geo').then((p) => decodeHair(p, strands)),
+		loadPacked(lite ? '/head/body-lite.geo' : '/head/body.geo').then(decodeBody),
+	])
+	return { head, hair, body }
+}
+
+async function unpackInWorker(strands: number, lite: boolean) {
+	const worker = new Worker(new URL('./gl/worker.ts', import.meta.url), { type: 'module' })
+	try {
+		const data = await new Promise<{ head: any; hair: any; body: any }>((res, rej) => {
+			const got: any = {}
+			const fail = (e: Error) => rej(e)
+			worker.onmessage = (e) => {
+				const m = e.data
+				if (m.t === 'error') fail(new Error(m.message))
+				else if (m.t === 'done') res(got)
+				else if (m.t !== 'bytes') got[m.t] = m.data
+			}
+			worker.onerror = (e) => fail(new Error(e.message || 'worker failed'))
+			// Safari can hang silently — don't wait forever.
+			window.setTimeout(() => fail(new Error('worker timeout')), 5000)
+			worker.postMessage({ strands, lite })
+		})
+		return data
+	} finally {
+		worker.terminate()
+	}
+}
 
 async function boot() {
 	const tier = detectTier()
 	// Peek CTA is a ~70px circle: stay on the lite path so we don't fight the main chat twin for GPU.
-	if (peekMode) { tier.lite = true; tier.maxDpr = 1.25 }
-	const worker = new Worker(new URL('./gl/worker.ts', import.meta.url), { type: 'module' })
-	const unpacked = new Promise<{ head: any; hair: any; body: any }>((res, rej) => {
-		const got: any = {}
-		worker.onmessage = (e) => {
-			const m = e.data
-			if (m.t === 'error') rej(new Error(m.message))
-			else if (m.t === 'done') res(got)
-			else if (m.t !== 'bytes') got[m.t] = m.data
-		}
-		worker.onerror = (e) => rej(new Error(e.message))
-	})
-	// He stands further away here than in Version B's hero, so fewer hair strands look the same.
-	worker.postMessage({ strands: peekMode ? 500 : tier.lite ? 900 : 2400, lite: tier.lite || peekMode })
+	if (peekMode || inviteMode) { tier.lite = true; tier.maxDpr = 1.25 }
+	const strands = peekMode ? 500 : inviteMode ? 700 : tier.lite ? 900 : 2400
+	const liteMesh = tier.lite || peekMode || inviteMode
+	// Invite/peek: decode here. Workers + transferable buffers are flaky in Safari iframes.
+	const unpacked = (inviteMode || peekMode)
+		? unpackHere(strands, liteMesh)
+		: unpackInWorker(strands, liteMesh).catch(() => unpackHere(strands, liteMesh))
 
 	const { animateInvite, configureInvite } = await import('./gl/invite')
 	const [{ Stage }, { shared }, { yieldToMain }, { Spring }, { loadTexture }, { spot }, { glassU }, { bodyU }, { phoneU }] = await Promise.all([
@@ -83,7 +117,6 @@ async function boot() {
 	}
 	applyTheme(bootParams.has('light'))
 	const [data, map] = await Promise.all([unpacked, loadTexture(tier.lite ? '/head/albedo-1k.webp' : '/head/albedo-2k.webp')])
-	worker.terminate()
 	await yieldToMain()
 	stage.place({ head: data.head, hair: data.hair, body: data.body, map })
 	if (inviteMode) await configureInvite(stage)
