@@ -31,13 +31,16 @@ class AnalyticsService {
     };
 
     window.gtag('js', new Date());
+    // Same property on manuelpenamorros.com + manuel.solutions (and www).
     window.gtag('config', this.measurementId, {
       page_title: document.title,
       page_location: window.location.href,
+      page_path: window.location.pathname + window.location.search,
+      cookie_domain: 'auto',
+      send_page_view: true,
     });
 
     this.isInitialized = true;
-    console.log('📊 Google Analytics initialized');
   }
 
   // Track page views
