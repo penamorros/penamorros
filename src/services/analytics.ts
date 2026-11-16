@@ -31,13 +31,21 @@ class AnalyticsService {
     };
 
     window.gtag('js', new Date());
-    // Same property on manuelpenamorros.com + manuel.solutions (and www).
+    // One GA4 property across the live hostnames (primary + old domain).
     window.gtag('config', this.measurementId, {
       page_title: document.title,
       page_location: window.location.href,
       page_path: window.location.pathname + window.location.search,
       cookie_domain: 'auto',
       send_page_view: true,
+      linker: {
+        domains: [
+          'manuelpenamorros.com',
+          'www.manuelpenamorros.com',
+          'manuel.solutions',
+          'www.manuel.solutions',
+        ],
+      },
     });
 
     this.isInitialized = true;
