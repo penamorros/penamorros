@@ -5276,16 +5276,15 @@ body {
 .athletics-showcase {
 	position: absolute;
 	inset: 0;
-	width: 100%;
-	overflow: visible;
+	overflow: hidden;
 	pointer-events: none;
 	z-index: 2;
 }
 
 .athletics-medal {
 	position: absolute;
-	top: -2vh;
-	height: 58vh;
+	top: -6vh;
+	height: 67vh;
 	transform: translateX(-50%);
 	overflow: visible;
 	pointer-events: auto;
@@ -5322,15 +5321,14 @@ body {
 	transform: translateX(-50%) translateY(0);
 }
 
-/* Full-bleed, symmetric around the trophy — room between medals, not a center pile. */
-.athletics-medal--far-left { left: 12%; }
-.athletics-medal--mid-left { left: 30%; }
-.athletics-medal--mid-right { left: 70%; }
-.athletics-medal--far-right { left: 88%; }
+.athletics-medal--far-left { left: 17%; }
+.athletics-medal--mid-left { left: 32%; }
+.athletics-medal--mid-right { left: 68%; }
+.athletics-medal--far-right { left: 83%; }
 
 .athletics-medal--mid-left,
 .athletics-medal--mid-right {
-	top: -8vh;
+	top: -20vh;
 }
 
 .athletics-medal-inner {
@@ -5362,11 +5360,10 @@ body {
 .athletics-trophy-stage {
 	position: absolute;
 	left: 50%;
-	bottom: 6vh;
+	bottom: 8vh;
 	transform: translateX(-50%);
 	overflow: visible;
 	pointer-events: auto;
-	z-index: 3;
 }
 
 .athletics-trophy-stage:hover .athletics-trophy-img {
@@ -5381,8 +5378,8 @@ body {
 
 .athletics-trophy-wrap {
 	position: relative;
-	width: min(38vw, 440px);
-	height: min(38vw, 440px);
+	width: min(46vw, 520px);
+	height: min(46vw, 520px);
 }
 
 .athletics-trophy-img {
