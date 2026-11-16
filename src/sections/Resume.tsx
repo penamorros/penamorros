@@ -1,7 +1,8 @@
 import React, { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Download } from '../icons'
 import { timelineData } from '../content'
-import { ScrollTrigger, gsap, prefersReducedMotion, resumeScroll, useDesktop, useMotion, writeIn } from '../motion'
+import { ScrollTrigger, gsap, prefersReducedMotion, resumeScroll, stopScroll, useDesktop, useMotion, writeIn } from '../motion'
 import JourneyGlobe from './JourneyGlobe'
 import { countText } from '../journeyLog'
 import { Facts, Leg, Points, orgOf, pad2, shortOf } from './JourneyLog'
@@ -75,9 +76,97 @@ export default memo(function Resume() {
 	)
 })
 
+const RESUME_URL = '/resume.pdf'
+// How wide each grey line of the little paper résumé is, and which ones are headings.
+const SHEET_LINES: Array<[number, boolean?]> = [[34, true], [92], [84], [70], [30, true], [88], [94], [62], [38, true], [80], [90], [54]]
+
+/**
+ * The client, 2026-11-16: "when downloading the resume make an animation 3D insane and then it opens the pdf in
+ * another tab". The click lifts a paper résumé out of the button: it tumbles in from there in 3D with a trail behind
+ * it, lands facing the reader while its lines write in and a light crosses it, then rushes at the screen — and the
+ * PDF opens in a new tab. If the browser blocks that tab, the paper stays and offers a button instead.
+ * Reduced motion, and ctrl/cmd-clicks, just open the PDF.
+ */
 function ResumeDownloadLink() {
 	const [hovering, setHovering] = useState(false)
 	const [pos, setPos] = useState({ x: 0, y: 0 })
+	const [flight, setFlight] = useState<{ x: number; y: number; light: boolean } | null>(null)
+	const [blocked, setBlocked] = useState(false)
+	const overlayRef = useRef<HTMLDivElement>(null)
+
+	const close = () => {
+		resumeScroll()
+		setFlight(null)
+		setBlocked(false)
+	}
+
+	const launch = (e: React.MouseEvent<HTMLAnchorElement>) => {
+		if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0 || prefersReducedMotion()) return
+		e.preventDefault()
+		if (flight) return
+		const r = e.currentTarget.getBoundingClientRect()
+		setHovering(false)
+		setFlight({ x: r.left + r.width / 2, y: r.top + r.height / 2, light: !!document.querySelector('.app.color-mode') })
+	}
+
+	useLayoutEffect(() => {
+		const root = overlayRef.current
+		if (!flight || !root) return
+		const q = gsap.utils.selector(root)
+		const sheets = q('.rf-sheet') // the trail first, the real sheet last
+		const ghosts = q('.rf-sheet.ghost')
+		const dx = flight.x - window.innerWidth / 2
+		const dy = flight.y - window.innerHeight / 2
+		stopScroll()
+		const tl = gsap.timeline()
+		tl.fromTo(root, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3, ease: 'none' })
+			// out of the button, tumbling; the real sheet leads and the trail follows
+			.fromTo(sheets,
+				{ x: dx, y: dy, scale: 0.05, rotationY: -540, rotationX: 75, rotationZ: -30 },
+				{ x: 0, y: 0, scale: 1, rotationY: 0, rotationX: 0, rotationZ: 0, duration: 1.3, ease: 'expo.out', stagger: { each: 0.055, from: 'end' } }, 0)
+			// the floor of the page's own grid tips up under it, and a reading line runs down the sheet
+			.fromTo(q('.rf-floor'), { autoAlpha: 0, yPercent: 12 }, { autoAlpha: 1, yPercent: 0, duration: 0.9, ease: 'power2.out' }, 0.1)
+			.fromTo(q('.rf-scan'), { yPercent: -100, autoAlpha: 1 }, { yPercent: 1250, duration: 0.75, ease: 'power1.inOut' }, 0.8)
+			.set(q('.rf-scan'), { autoAlpha: 0 })
+			.fromTo(q('.rf-line'), { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: 'power2.out', stagger: 0.035 }, 0.55)
+			.to(ghosts, { autoAlpha: 0, duration: 0.3, ease: 'none' }, 1.15)
+			.fromTo(q('.rf-shine'), { xPercent: -160 }, { xPercent: 160, duration: 0.7, ease: 'power2.inOut' }, 1.0)
+			.fromTo(q('.rf-caption'), { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 0.9)
+			// it leans back, then comes straight at the reader
+			.to(sheets, { rotationX: -16, scale: 0.88, duration: 0.32, ease: 'power2.out' }, 1.6)
+			.to(q('.rf-floor'), { autoAlpha: 0, duration: 0.4, ease: 'none' }, 1.85)
+			.to(q('.rf-caption'), { autoAlpha: 0, duration: 0.2, ease: 'none' }, 1.85)
+			.to(sheets, { rotationX: 0, scale: 9, duration: 0.5, ease: 'power4.in' }, 1.92)
+			.to(q('.rf-flash'), { autoAlpha: 1, duration: 0.22, ease: 'power2.in' }, 2.2)
+			.add(() => {
+				const tab = window.open(RESUME_URL, '_blank')
+				if (tab) {
+					tab.opener = null
+					return
+				}
+				// blocked: put the paper back and let the reader open it with a real click
+				tl.pause()
+				setBlocked(true)
+				gsap.to(q('.rf-flash'), { autoAlpha: 0, duration: 0.3 })
+				gsap.to(sheets[sheets.length - 1], { scale: 1, rotationX: 0, duration: 0.6, ease: 'expo.out' })
+			}, 2.45)
+			.to(root, { autoAlpha: 0, duration: 0.45, ease: 'none' }, 2.6)
+			.add(close)
+		return () => {
+			tl.kill()
+			resumeScroll()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [flight])
+
+	// Escape closes it.
+	useEffect(() => {
+		if (!flight) return
+		const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
+		window.addEventListener('keydown', onKey)
+		return () => window.removeEventListener('keydown', onKey)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [flight])
 
 	return (
 		<>
@@ -87,14 +176,41 @@ function ResumeDownloadLink() {
 				onMouseLeave={() => setHovering(false)}
 				onMouseMove={(e) => setPos({ x: e.clientX, y: e.clientY })}
 			>
-				<a href="/resume.pdf" download="Manuel_Pena_Morros_Resume.pdf" className="resume-dl" aria-label="Download Resume">
-					<Download size={18} stroke={3} />
+				<a href={RESUME_URL} target="_blank" rel="noopener noreferrer" className="resume-dl" aria-label="Open résumé (PDF) in a new tab" onClick={launch}>
+					<Download size={15} stroke={2.6} />
+					<span className="resume-dl-label">PDF</span>
 				</a>
 			</span>
-			{hovering && (
+			{hovering && !flight && (
 				<span className="resume-dl-tip-cursor" style={{ left: pos.x + 18, top: pos.y - 14 }}>
 					Download
 				</span>
+			)}
+			{flight && createPortal(
+				<div ref={overlayRef} className={`rf-overlay${flight.light ? ' light' : ''}`} onClick={close} aria-hidden={!blocked}>
+					<div className="rf-floor"></div>
+					<div className="rf-stage">
+						{[0, 1, 2].map((g) => <div key={g} className="rf-sheet ghost"></div>)}
+						<div className="rf-sheet">
+							<span className="rf-name">Manuel Peña-Morros</span>
+							<span className="rf-role">Résumé</span>
+							<span className="rf-rule"></span>
+							{SHEET_LINES.map(([w, head], i) => (
+								<span key={i} className={`rf-line${head ? ' head' : ''}`} style={{ width: `${w}%` }}></span>
+							))}
+							<span className="rf-shine"></span>
+							<span className="rf-scan"></span>
+						</div>
+					</div>
+					<span className="rf-caption">resume.pdf</span>
+					<div className="rf-flash"></div>
+					{blocked && (
+						<a href={RESUME_URL} target="_blank" rel="noopener noreferrer" className="rf-open" onClick={(e) => { e.stopPropagation(); close() }}>
+							Open résumé ↗
+						</a>
+					)}
+				</div>,
+				document.body
 			)}
 		</>
 	)

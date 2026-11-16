@@ -7,10 +7,19 @@ import { isLiveSite, saveChatMessage } from '../site-env'
 import { gsap, SplitText, isDesktop, pointerTilt, resumeScroll, stopScroll, useDesktop, useMotion, whenBooted, whenHeroSettled, writeIn } from '../motion'
 import { AvatarFrame, ChatBeam, avatar, beam } from '../avatar/link'
 import ChatInvite from '../components/ChatInvite'
+import MeetingPicker from '../components/MeetingPicker'
+import { FIRST_QUESTIONS, nextQuestions, rememberQuestion } from '../followups'
+import { Calendar, MessageCircle } from '../icons'
 import { Brain, SUGGEST } from '../brain'
 
 type Props = { scrollTo: (id: string) => void; interactive: boolean }
-type Message = { role: string; content: string }
+type Message = { role: string; content: string; meet?: boolean }
+// Questions that are really "can we talk?": his answer comes with a button to book the call.
+const WANTS_CALL = /\b(hir(e|ing)|intern(ship)?s?|recruit\w*|interview|job|role|position|opportunit\w*|freelance|collab\w*|work(ing)? (with|together)|meet(ing)?|call|schedule|talk to (you|him|manuel)|reach (you|him)|contact|available|availability)\b/i
+
+/** Manuel + the value behind each letter — loops forever on the hero. */
+const HERO_WORDS = ['Manuel', 'Motivation', 'Ambition', 'Nobility', 'Understanding', 'Excellence', 'Leadership'] as const
+const MANUEL_LETTERS = ['M', 'A', 'N', 'U', 'E', 'L'] as const
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x))
@@ -67,6 +76,24 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 	const desktop = useDesktop()
 	const [photoHovered, setPhotoHovered] = useState(false)
 	const [chatOpen, setChatOpen] = useState(false)
+	// The call picker takes the conversation's place inside the panel while it is open.
+	const [meet, setMeet] = useState(false)
+	useEffect(() => {
+		if (!chatOpen) setMeet(false)
+		else window.dispatchEvent(new Event('chat:used')) // the corner nudge retires once the chat has been opened
+	}, [chatOpen])
+	// Anything on the page can open the chat (or go straight to booking a call): window.dispatchEvent(new CustomEvent('chat:open', { detail: { meet: true } }))
+	useEffect(() => {
+		const open = (e: Event) => {
+			scrollTo('about')
+			setAvatarWanted(true)
+			setChatOpen(true)
+			setMeet(!!(e as CustomEvent).detail?.meet)
+		}
+		window.addEventListener('chat:open', open)
+		return () => window.removeEventListener('chat:open', open)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 	const [chatMessages, setChatMessages] = useState<Message[]>([])
 	const [currentMessage, setCurrentMessage] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
@@ -84,6 +111,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 	// paint (and Lighthouse's LCP) sees: chrome is text painted through a clipped background, which Lighthouse counts much later.
 	const [lit, setLit] = useState(false)
 	const [heroSettled, setHeroSettled] = useState(false)
+	const [wordIndex, setWordIndex] = useState(0)
 	useEffect(() => {
 		if (!lit && !reducedMotion()) return
 		let alive = true
@@ -103,7 +131,9 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 	}, [desktop, avatarWanted])
 
 	// Round 4b: follow-up questions after an answer (from his own facts, so on the preview only), the box's state, a copied answer
-	const [follow, setFollow] = useState<string[]>(SUGGEST.start)
+	const [follow, setFollow] = useState<string[]>(FIRST_QUESTIONS)
+	// what this conversation has already asked, so the follow-up questions never repeat it
+	const asked = useRef(new Set<string>())
 	const [boxFocus, setBoxFocus] = useState(false)
 	const [boxTall, setBoxTall] = useState(false)
 	const [copied, setCopied] = useState(-1)
@@ -147,6 +177,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 		setChatMessages(newMessages)
 		setCurrentMessage('')
 		setFollow([])
+		rememberQuestion(asked.current, text)
 		requestAnimationFrame(fitBox)
 		setIsLoading(true)
 		scrollMessages()
@@ -193,12 +224,12 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 		}
 
 		// a long answer comes as two messages, each with its own typing
-		let shown = newMessages
+		let shown: Message[] = newMessages
 		for (let i = 0; i < parts.length; i++) {
 			const typingFor = clamp(parts[i].length * 20, 650, 3000)
 			const passed = i === 0 ? performance.now() - started : 0
 			if (!reducedMotion() && typingFor > passed) await wait(typingFor - passed)
-			shown = [...shown, { role: 'assistant', content: parts[i] }]
+			shown = [...shown, { role: 'assistant', content: parts[i], meet: i === parts.length - 1 && WANTS_CALL.test(text) }]
 			setChatMessages(shown)
 			setTyping(false)
 			scrollMessages()
@@ -217,7 +248,8 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 		avatar.send({ t: 'typing', on: false })
 		avatar.send({ t: 'answered', kind })
 		setIsLoading(false)
-		if (!isLiveSite) setFollow((SUGGEST[topic] ?? []).slice(0, 3))
+		// follow-ups under every answer, live or preview: related to what was just said, never one already asked
+		setFollow(nextQuestions(text, parts.join(' '), asked.current))
 		if (isDesktop()) window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 30)
 	}
 
@@ -260,21 +292,56 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 		const q = gsap.utils.selector(section)
 		const tl = gsap.timeline({ paused: true })
 
-		q('.title-word').forEach((word: Element, i: number) => tl.add(writeIn(word, { duration: 1, scrollTrigger: false }), i * 0.42))
+		const titleWord = q('.title-word')[0] as HTMLElement | undefined
+		if (titleWord) tl.add(writeIn(titleWord, { duration: 1.05, scrollTrigger: false }), 0)
 
 		const split = SplitText.create(q('.subtitle'), { type: 'lines', mask: 'lines', aria: 'none' })
-		tl.from(split.lines, { yPercent: 110, duration: 1, stagger: 0.08, onComplete: () => split.revert() }, 1)
+		tl.from(split.lines, { yPercent: 110, duration: 1, stagger: 0.08, onComplete: () => split.revert() }, 0.85)
 
 		const buttons = q('.cta-row .button')
 		gsap.set(buttons, { transition: 'none' })
-		tl.from(buttons, { y: 24, autoAlpha: 0, duration: 0.9, stagger: 0.09, clearProps: 'transform,opacity,visibility,transition' }, 1.25)
+		tl.from(buttons, { y: 24, autoAlpha: 0, duration: 0.9, stagger: 0.09, clearProps: 'transform,opacity,visibility,transition' }, 1.1)
 
 		tl.fromTo(q('.portrait-ring circle'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.7, ease: 'power2.inOut' }, 0)
 		tl.to(q('.portrait-ring'), { autoAlpha: 0, duration: 0.8 }, 1.7)
 		tl.from(q('.hero-photo'), { scale: 1.14, duration: 2.1 }, 0)
 
 		let alive = true
-		tl.eventCallback('onComplete', () => { if (alive) setLit(true) })
+		let loop: gsap.core.Tween | undefined
+		let loopStarted = false
+		const startWordLoop = () => {
+			if (!alive || loopStarted || !titleWord || reducedMotion()) return
+			loopStarted = true
+			setWordIndex(0)
+			let i = 0
+			const swap = () => {
+				if (!alive || !titleWord) return
+				i = (i + 1) % HERO_WORDS.length
+				gsap.to(titleWord, {
+					autoAlpha: 0,
+					y: -8,
+					duration: 0.12,
+					ease: 'power2.in',
+					onComplete: () => {
+						if (!alive || !titleWord) return
+						titleWord.textContent = HERO_WORDS[i]
+						setWordIndex(i)
+						gsap.fromTo(titleWord, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.16, ease: 'power2.out' })
+					},
+				})
+			}
+			// First swap right as the hero settles — don’t wait for a long beat.
+			loop = gsap.delayedCall(0.2, function tick() {
+				swap()
+				if (alive) loop = gsap.delayedCall(1.7, tick)
+			})
+		}
+		// The words start turning only once the signature's particles have settled into the portrait (the client,
+		// 2026-11-16): before that the visitor is watching the particles and would miss "Manuel" and the first words.
+		tl.eventCallback('onComplete', () => {
+			if (alive) setLit(true)
+		})
+		whenHeroSettled().then(startWordLoop)
 		whenBooted().then(() => { if (alive) tl.play() })
 
 		if (isDesktop()) {
@@ -286,6 +353,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 		const untilt = pointerTilt(q('.hero-visual')[0], q('.coin-tilt')[0], 6)
 		return () => {
 			alive = false
+			loop?.kill()
 			untilt()
 		}
 	}, [desktop])
@@ -320,6 +388,16 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 				{desktop && <button type="button" className="tc-close" onClick={() => { setChatOpen(false); setPhotoHovered(false) }} aria-label="Close chat"><X size={16} /></button>}
 			</header>
 
+			{meet && (
+				<MeetingPicker
+					onClose={() => setMeet(false)}
+					onBooked={(when, email) => {
+						setChatMessages((list) => [...list, { role: 'assistant', content: `Done. I sent Manuel your request for ${when}. He'll e-mail ${email} to confirm and send the link.` }])
+						scrollMessages()
+					}}
+				/>
+			)}
+
 			<div className="tc-log" ref={logRef} data-lenis-prevent>
 				{chatMessages.length === 0 && (
 					<div className="tc-hello">
@@ -336,6 +414,11 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 						<div key={i} className="tc-msg assistant">
 							<span className="tc-label">Manuel</span>
 							<p className="tc-text"><Streamed text={m.content} /></p>
+							{m.meet && (
+								<button type="button" className="tc-book" style={{ animationDelay: `${streamMs(m.content)}ms` }} onClick={() => setMeet(true)}>
+									<Calendar size={14} />Book a call with Manuel
+								</button>
+							)}
 							<div className="tc-tools" style={{ animationDelay: `${streamMs(m.content) - 250}ms` }}>
 								<button type="button" className="tc-tool" onClick={() => copyAnswer(i, m.content)} aria-label={copied === i ? 'Copied' : 'Copy answer'}>
 									{copied === i ? <Check size={14} /> : <Copy size={14} />}
@@ -353,8 +436,9 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 				)}
 			</div>
 
-			{follow.length > 0 && !isLoading && (
+			{!isLoading && (
 				<div className="tc-chips">
+					<button type="button" className="tc-chip is-meet" onClick={() => setMeet(true)}><Calendar size={13} />Book a call</button>
 					{follow.map((q) => (
 						<button key={q} type="button" className="tc-chip" onClick={() => sendMessage(q)}>{q}</button>
 					))}
@@ -402,13 +486,21 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 			<ChatBeam open={chatOpen} />
 			<div className="container hero-wrap">
 				<div className="hero-copy">
+					<p className={`title-anchor${wordIndex === 0 ? ' is-all' : ''}`} aria-hidden="true">
+						{MANUEL_LETTERS.map((letter, i) => (
+							<span
+								key={letter}
+								className={`title-anchor-letter${wordIndex === 0 || wordIndex - 1 === i ? ' is-on' : ''}`}
+							>
+								{letter}
+							</span>
+						))}
+					</p>
 					<h1 className="title">
-						<span className="write title-word">Entrepreneur.</span>{' '}
-						<span className="write title-word">Innovator.</span>{' '}
-						<span className="write title-word">Visionary.</span>
+						<span className="write title-word">{HERO_WORDS[0]}</span>
 					</h1>
 					<p className="subtitle">
-						I build and scale businesses from concept to market — turning ideas into profitable ventures.
+						I’m Manuel — 20, from Mexico City, studying data science at UT Austin. I like building things people actually use.
 					</p>
 					<div className="cta-row">
 						<button
@@ -476,12 +568,18 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 										{...{ fetchpriority: 'high' }}
 									/>
 								</div>
-								{desktop && <div className="coin-back">{avatarStage}</div>}
+								{desktop && (
+									<div className="coin-back">
+										{avatarStage}
+										{/* what a click here does, said plainly (the client, 2026-11-16) */}
+										<span className="coin-hint" aria-hidden="true"><MessageCircle size={14} />Click to talk</span>
+									</div>
+								)}
 							</div>
 						</div>
 					</div>
 
-						<ChatInvite heroReady={lit || reducedMotion()} open={chatOpen || (desktop && photoHovered && canPreview)} onOpen={() => { setAvatarWanted(true); setChatOpen(true) }} />
+						<ChatInvite heroReady={lit || reducedMotion()} open={chatOpen || (desktop && photoHovered && canPreview)} onOpen={(toMeet) => { setAvatarWanted(true); setChatOpen(true); setMeet(!!toMeet) }} />
 					</div>
 
 					{desktop && (

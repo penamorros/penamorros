@@ -131,6 +131,8 @@ export default memo(function Values() {
 			<div className="value-caption" ref={captionRef} aria-live="polite">
 				{values.map((value, index) => (
 					<div key={value.id} className={`value-caption-item${index === shown ? ' active' : ''}`}>
+						{/* a large outlined numeral stands behind each value's name */}
+						<span className="vc-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
 						<h3>{value.label}</h3>
 						<p>{value.description}</p>
 					</div>

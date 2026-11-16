@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { Check, HandFinger, Keyboard } from '../icons'
+import { Check, Copy, HandFinger, Keyboard } from '../icons'
 import { skills } from '../content'
 import { gsap, isTouch, prefersReducedMotion, useMotion, writeIn } from '../motion'
 
@@ -13,15 +13,32 @@ const FIRST_PIPE = 400
 const PIPE_GAP = 200
 const GAP_SIZE = 70
 const STEP_MS = 1000 / 60
+// A fair start (the client, 2026-11-16: "I always lose at the start"): the first pipe is a little further off, and for
+// the first second and a half the bird keeps itself in the air, so nobody loses while still finding the key.
+const RUNWAY = 160
+const GRACE_STEPS = 90
 
 const gapTopFor = (index: number) => 15 + (index % 3) * 20
 const endOfCourse = FIRST_PIPE + skills.length * PIPE_GAP + 50
+// The client, 2026-11-16: every skill collected is 1% off Lumina Labs, handed over as a coupon when the game ends.
+// The code is only a label here — it has to exist on the Lumina Labs side for it to take anything off.
+// Each finished run gets its own code: LUM-<five random characters>-<percent>, e.g. LUM-K7Q4X-12. The characters skip
+// the look-alikes (0/O, 1/I/L). It is still only generated here in the page — nothing checks it yet.
+const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+const randomTag = () => Array.from(crypto.getRandomValues(new Uint8Array(5)), (n) => CODE_CHARS[n % CODE_CHARS.length]).join('')
+const couponCode = (tag: string, count: number) => `LUM-${tag}-${String(count).padStart(2, '0')}`
+// A crash while still tapping must not dismiss the coupon before it has been seen.
+const RESTART_HOLD_MS = 900
 
 export default memo(function SkillsGame() {
 	const [gameStarted, setGameStarted] = useState(false)
 	const [gameOver, setGameOver] = useState(false)
 	const [collected, setCollected] = useState<ReadonlySet<number>>(new Set())
 	const [touch] = useState(isTouch)
+	const [copied, setCopied] = useState(false)
+	const [codeTag, setCodeTag] = useState(randomTag)
+	// The "+1%" that flies off the bird each time a skill is collected: which one, and how high the bird was.
+	const [burst, setBurst] = useState<{ n: number; top: number; name: string } | null>(null)
 
 	const sectionRef = useRef<HTMLElement>(null)
 	const areaRef = useRef<HTMLDivElement>(null)
@@ -29,10 +46,11 @@ export default memo(function SkillsGame() {
 	const pipesRef = useRef<HTMLDivElement>(null)
 
 	// The loop works on refs so a frame never re-renders React.
-	const sim = useRef({ pos: 40, vel: 0, offset: 0, birdX: 200, height: 600, inView: false })
+	const sim = useRef({ pos: 40, vel: 0, offset: 0, birdX: 200, height: 600, inView: false, age: 0 })
 	const collectedRef = useRef(new Set<number>())
 	const mode = useRef<'demo' | 'play' | 'over'>('demo')
 	const raf = useRef(0)
+	const overAt = useRef(0)
 
 	const paint = useCallback(() => {
 		const s = sim.current
@@ -41,22 +59,31 @@ export default memo(function SkillsGame() {
 	}, [])
 
 	const reset = useCallback(() => {
-		Object.assign(sim.current, { pos: 40, vel: 0, offset: 0 })
+		Object.assign(sim.current, { pos: 40, vel: 0, offset: 0, age: 0 })
 		collectedRef.current = new Set()
 		setCollected(new Set())
+		setCopied(false)
+		setBurst(null)
 		paint()
 	}, [paint])
 
 	const endGame = useCallback(() => {
 		mode.current = 'over'
+		overAt.current = performance.now()
+		setCodeTag(randomTag())
 		setGameOver(true)
 	}, [])
 
 	const step = useCallback(() => {
 		const s = sim.current
+		s.age++
 		s.vel += GRAVITY
+		// in the opening moments he flaps for himself before he can sink
+		if (s.age < GRACE_STEPS && s.pos > 52 && s.vel > 0) s.vel = JUMP * 0.8
 		s.pos = Math.max(CEILING, Math.min(FLOOR, s.pos + s.vel * FALL_SCALE))
-		if (s.pos >= FLOOR || s.pos <= CEILING) {
+		// the top of the sky is only a ceiling: tapping too eagerly bumps it, it doesn't end the game
+		if (s.pos <= CEILING && s.vel < 0) s.vel = 0
+		if (s.pos >= FLOOR) {
 			endGame()
 			return
 		}
@@ -76,6 +103,7 @@ export default memo(function SkillsGame() {
 			if (isAtPipe && isInGap) {
 				collectedRef.current.add(index)
 				setCollected(new Set(collectedRef.current))
+				setBurst({ n: collectedRef.current.size, top: s.pos, name: skills[index].name })
 				break
 			}
 			if (pipeScreenX < s.birdX - 70 && (birdTop < gapTop || birdBottom > gapBottom)) {
@@ -122,17 +150,17 @@ export default memo(function SkillsGame() {
 
 	const jumpBird = useCallback(() => {
 		if (mode.current === 'over') {
-			mode.current = 'demo'
+			if (performance.now() - overAt.current < RESTART_HOLD_MS) return
 			setGameOver(false)
-			setGameStarted(false)
-			reset()
-			startLoop()
-			return
 		}
-		if (mode.current === 'demo') {
+		// The press that starts (or restarts) a game is also its first flap: the bird lifts instead of dropping
+		// straight to the floor while the player is still finding the key.
+		if (mode.current !== 'play') {
 			mode.current = 'play'
 			setGameStarted(true)
 			reset()
+			sim.current.vel = JUMP
+			sim.current.offset = -RUNWAY
 			startLoop()
 			return
 		}
@@ -173,6 +201,8 @@ export default memo(function SkillsGame() {
 		const handleKeyPress = (e: KeyboardEvent) => {
 			const target = e.target as HTMLElement
 			const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+			// on the coupon, Space presses the copy button like any button
+			if (target.closest?.('.flappy-coupon, .coupon-store')) return
 			if ((e.code === 'Space' || e.key === ' ') && !isTyping && sim.current.inView) {
 				e.preventDefault()
 				jumpBird()
@@ -192,6 +222,11 @@ export default memo(function SkillsGame() {
 	})
 
 	const collectedSkillsCount = collected.size
+	const code = couponCode(codeTag, collectedSkillsCount)
+	const copyCode = useCallback(() => {
+		const done = () => setCopied(true)
+		if (navigator.clipboard?.writeText) navigator.clipboard.writeText(code).then(done, () => {})
+	}, [code])
 	const stripNames = skills.map((s) => s.name)
 
 	return (
@@ -202,32 +237,74 @@ export default memo(function SkillsGame() {
 					{!gameStarted && !gameOver && (
 						<div className="flappy-instructions">
 							<div className="instructions-content">
-								<h3>{touch ? 'Tap to Play!' : 'Press SPACEBAR to Play!'}</h3>
-								<p>{touch ? 'Tap to make the bird fly up' : 'Use SPACEBAR to make the bird fly up'}</p>
-								<p>Collect all {skills.length} skills by flying through the pipes</p>
+								<h3>Collect my skills</h3>
+								<div className="flappy-coupon mini" role="img" aria-label={`Up to ${skills.length}% off Lumina Labs: 1% for every skill you collect`}>
+									<div className="coupon-stub">
+										<span className="coupon-upto">up to</span>
+										<span className="coupon-pct">{skills.length}<small>%</small></span>
+										<span className="coupon-off">off</span>
+									</div>
+									<div className="coupon-body">
+										<span className="coupon-brand">
+											<img src="/lumina-app-icon.png" alt="" loading="lazy" decoding="async" />
+											Lumina Labs
+										</span>
+										<span className="coupon-note">1% off per skill</span>
+									</div>
+								</div>
 								<div className="spacebar-hint">
 									{touch ? <HandFinger size={18} /> : <Keyboard size={18} />}
-									{touch ? 'TAP' : 'SPACE'}
+									{touch ? 'TAP TO FLY' : 'SPACE TO FLY'}
 								</div>
 							</div>
 						</div>
 					)}
 
 					{gameOver && (
-						<div className="flappy-game-over">
+						<div className={`flappy-game-over${collectedSkillsCount ? ' has-coupon' : ''}`}>
 							<div className="game-over-content">
-								<h3>{collectedSkillsCount === skills.length ? 'All Skills Collected!' : 'Game Over!'}</h3>
-								<p className="flappy-final">{collectedSkillsCount} / {skills.length} skills</p>
+								<h3>{collectedSkillsCount === skills.length ? 'All Skills Collected!' : collectedSkillsCount ? `${collectedSkillsCount} / ${skills.length} skills collected` : 'Game Over!'}</h3>
+								<p className="flappy-final">
+									{collectedSkillsCount ? 'Your reward' : `0 / ${skills.length} skills · each one is 1% off Lumina Labs`}
+								</p>
+								{collectedSkillsCount > 0 && (
+									<div className={`flappy-coupon${copied ? ' is-torn' : ''}`} role="group" aria-label={`${collectedSkillsCount}% off Lumina Labs, code ${code}`}>
+										<div className="coupon-stub">
+											<span className="coupon-pct">{collectedSkillsCount}<small>%</small></span>
+											<span className="coupon-off">off</span>
+											<span className="coupon-serial">Nº {String(collectedSkillsCount).padStart(4, '0')}</span>
+										</div>
+										<div className="coupon-body">
+											<span className="coupon-brand">
+												<img src="/lumina-app-icon.png" alt="" loading="lazy" decoding="async" />
+												Lumina Labs
+											</span>
+											<button type="button" className={`coupon-code${copied ? ' copied' : ''}`} onClick={copyCode} aria-label={`Copy code ${code}`}>
+												<span>{code}</span>
+												{copied ? <Check size={16} /> : <Copy size={16} />}
+											</button>
+											<span className="coupon-note" aria-live="polite">{copied ? 'Copied to clipboard' : '1% per skill · click to copy'}</span>
+										</div>
+									</div>
+								)}
+								{collectedSkillsCount > 0 && (
+									<a className="coupon-store" href="https://apps.apple.com/us/app/lumina-labs/id6758263196" target="_blank" rel="noopener noreferrer" aria-label="Get Lumina Labs on the App Store">
+										<span>Use it in the app</span>
+										<img src="/app-store-badge.png" alt="Download on the App Store" loading="lazy" decoding="async" />
+									</a>
+								)}
 								<button className="flappy-btn-restart" onClick={jumpBird}>
-									{touch ? 'Tap to Restart' : 'Press SPACEBAR to Restart'}
+									{collectedSkillsCount === skills.length
+										? (touch ? 'Tap to play again' : 'Press SPACEBAR to play again')
+										: collectedSkillsCount
+											? (touch ? 'Tap to try for more' : 'Press SPACEBAR to try for more')
+											: (touch ? 'Tap to Restart' : 'Press SPACEBAR to Restart')}
 								</button>
 							</div>
 						</div>
 					)}
 
-					{gameStarted && !gameOver && (
-						<div className="flappy-counter" aria-live="polite">{collectedSkillsCount} / {skills.length}</div>
-					)}
+
 
 					<div
 						className="flappy-game-area"
@@ -252,6 +329,13 @@ export default memo(function SkillsGame() {
 									<div className="wing wing-right"></div>
 								</div>
 							</div>
+
+							{burst && gameStarted && !gameOver && (
+								<div key={burst.n} className="flappy-burst" style={{ top: `${burst.top}%` }} aria-hidden="true">
+									<span className="burst-ring"></span>
+									<span className="burst-text">{burst.name}<small>+1% off</small></span>
+								</div>
+							)}
 
 							<div className="pipes-container" ref={pipesRef}>
 								{skills.map((skill, index) => {
@@ -313,6 +397,14 @@ export default memo(function SkillsGame() {
 							</div>
 
 							<div className="flappy-ground"></div>
+
+							{/* The tally sits on the ground strip, under the floor line, so it never covers a gap. */}
+							{gameStarted && !gameOver && (
+								<div className="flappy-tally" role="status">
+									<span className="tally-skills"><b key={collectedSkillsCount}>{collectedSkillsCount}</b> / {skills.length} skills</span>
+									<span className="tally-off">{collectedSkillsCount}% off Lumina Labs</span>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>

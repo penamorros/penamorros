@@ -8,7 +8,7 @@ export default defineConfig({
 	// Local previews use the existing hosted function and its server-side key.
 	server: {
 		proxy: {
-			'/.netlify/functions/chat': { target: 'https://manuel.solutions', changeOrigin: true, secure: true },
+			'/.netlify/functions/chat': { target: 'https://manuelpenamorros.com', changeOrigin: true, secure: true },
 		},
 	},
 	esbuild: {

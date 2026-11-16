@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from 'react'
-import { Code, Download, Mail, Rotate } from '../icons'
+import { Calendar, Code, Download, Mail, Rotate } from '../icons'
 import { analytics } from '../services/analytics'
 import { gsap, isTouch, pointerTilt, prefersReducedMotion, useMotion, writeIn } from '../motion'
 import SignatureCanvas, { type SignatureHandle } from '../motion/SignatureCanvas'
@@ -125,6 +125,7 @@ export default memo(function Contact() {
 										<a href={`mailto:${EMAIL}`} onClick={() => analytics.trackContactAttempt('email')}><Mail size={15} /><span>Email</span></a>
 										<a href="https://github.com/penamorros" target="_blank" rel="noopener noreferrer" onClick={() => analytics.trackContactAttempt('github')}><Code size={15} /><span>GitHub</span></a>
 										<a href="/resume.pdf" download="Manuel_Pena_Morros_Resume.pdf"><Download size={15} /><span>Résumé</span></a>
+										<a href="#about" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new CustomEvent('chat:open', { detail: { meet: true } })) }}><Calendar size={15} /><span>Book a call</span></a>
 									</div>
 								</div>
 								<button type="button" className="bc-turn" onClick={turn} aria-label="Turn the card back">

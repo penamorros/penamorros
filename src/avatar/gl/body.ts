@@ -11,6 +11,8 @@ export const bodyU = {
   uTime: { value: 0 },
   /** 0 = dark theme, 1 = light theme — softens the suit off pure black. */
   uLight: { value: 0 },
+  // Hover on the small peeking twin: the suit's circuit lines charge up (0 = resting, 1 = held, up to ~2 on the first kick).
+  uSurge: { value: 0 },
 };
 
 function fabric(armour: Texture) {
@@ -29,7 +31,7 @@ function fabric(armour: Texture) {
         ${DISSOLVE}
         ${SPOT_GLSL}
         ${PHONE_GLSL}
-        uniform sampler2D uArmour; uniform float uTime; uniform float uLight;
+        uniform sampler2D uArmour; uniform float uTime; uniform float uLight; uniform float uSurge;
         varying float vAO; varying vec3 vObj; varying vec2 vRest;
         vec4 aMap; float aSpot; float aPlate;`)
       .replace("#include <map_fragment>", `#include <map_fragment>
@@ -39,17 +41,22 @@ function fabric(armour: Texture) {
         // Soft armour plates always on (Ali suit), a bit stronger under the cursor spot.
         aPlate = smoothstep(0.04, 0.22, aMap.g) * mix(0.55, 1.0, smoothstep(0.02, 0.5, aSpot));
         float weave = sin((vRest.x + vRest.y) * 1600.0) * sin((vRest.x - vRest.y) * 1600.0);
-        // Light theme: charcoal-slate instead of pure black so he doesn't punch a hole in the page.
+        // Dark theme: black suit. Light theme: white suit so he matches the page.
         vec3 clothDark = vec3(0.055, 0.058, 0.07);
-        vec3 clothLight = vec3(0.16, 0.175, 0.205);
+        vec3 clothLight = vec3(0.92, 0.935, 0.96);
         diffuseColor.rgb = mix(clothDark, clothLight, uLight);
-        diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(0.03, 0.032, 0.04), vec3(0.1, 0.11, 0.13), uLight) + 0.012 * weave, aPlate);
-        diffuseColor.rgb *= 1.0 - aMap.b * 0.8;
-        if (!gl_FrontFacing) diffuseColor.rgb *= 0.12;`)
+        vec3 plateDark = vec3(0.03, 0.032, 0.04) + 0.012 * weave;
+        vec3 plateLight = vec3(0.82, 0.85, 0.9) + 0.02 * weave;
+        diffuseColor.rgb = mix(diffuseColor.rgb, mix(plateDark, plateLight, uLight), aPlate);
+        diffuseColor.rgb *= 1.0 - aMap.b * mix(0.8, 0.35, uLight);
+        // White theme: the suit stays white and its circuit lines are drawn in black, so they read on the pale page
+        // (the client, 2026-11-16). They were pale blue light on white, which all but vanished.
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.025, 0.03, 0.045), smoothstep(0.12, 0.5, aMap.r) * uLight);
+        if (!gl_FrontFacing) diffuseColor.rgb *= mix(0.12, 0.55, uLight);`)
       .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
-        roughnessFactor = mix(roughnessFactor, 0.3, aPlate);`)
+        roughnessFactor = mix(roughnessFactor, mix(0.3, 0.42, uLight), aPlate);`)
       .replace("#include <metalnessmap_fragment>", `#include <metalnessmap_fragment>
-        metalnessFactor = mix(metalnessFactor, 0.85, aPlate);`)
+        metalnessFactor = mix(metalnessFactor, mix(0.85, 0.35, uLight), aPlate);`)
       .replace("#include <normal_fragment_maps>", `#include <normal_fragment_maps>
         if (aPlate > 0.001) {
           float e = 0.0014;
@@ -61,6 +68,8 @@ function fabric(armour: Texture) {
         {
           float occ = smoothstep(0.03, 0.62, vAO);
           occ = mix(occ, 1.0, aPlate * 0.4);
+          // Soften baked AO in light theme so the white suit doesn't go muddy.
+          occ = mix(occ, mix(occ, 1.0, 0.35), uLight);
           reflectedLight.directDiffuse *= occ;
           reflectedLight.directSpecular *= occ * mix(0.42 * mix(0.16, 1.0, smoothstep(0.0, 0.55, saturate(dot(normal, normalize(vViewPosition))))), 1.0, aPlate);
           reflectedLight.indirectDiffuse *= occ;
@@ -68,14 +77,16 @@ function fabric(armour: Texture) {
         }`)
       .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
         {
-          // Always-on blueish circuit lines (Ali's orange seams, iced).
+          // Always-on blueish circuit lines; a bit stronger on the white suit so they still read.
           float line = aMap.r;
           float run = 0.68 + 0.32 * sin(vObj.y * 46.0 + vObj.x * 22.0 - uTime * 2.2);
-          vec3 lineCol = mix(vec3(0.42, 0.72, 1.0), vec3(0.28, 0.48, 0.92), uLight);
-          float lineGain = mix(1.0, 0.75, uLight);
-          totalEmissiveRadiance += lineCol * (line * line * 4.0 * run + line * 1.15) * lineGain;
+          vec3 lineCol = mix(vec3(0.42, 0.72, 1.0), vec3(0.25, 0.5, 0.95), uLight);
+          float lineGain = mix(1.0, 1.15, uLight) * (1.0 + uSurge * (1.5 + 0.5 * sin(uTime * 13.0)));
+          run = mix(run, 0.6 + 0.4 * sin(vObj.y * 46.0 + vObj.x * 22.0 - uTime * 9.0), min(1.0, uSurge));
+          // on the white suit the lines give no light of their own (they are ink) — except under the pointer, when they charge up blue
+          totalEmissiveRadiance += lineCol * (line * line * 4.0 * run + line * 1.15) * lineGain * mix(1.0, min(1.0, uSurge) * 0.85, uLight);
           float nv = saturate(dot(normal, normalize(vViewPosition)));
-          if (gl_FrontFacing) totalEmissiveRadiance += mix(vec3(0.05, 0.07, 0.11), vec3(0.08, 0.09, 0.12), uLight) * pow(1.0 - nv, 3.4) * smoothstep(0.03, 0.62, vAO) * (1.0 - aPlate);
+          if (gl_FrontFacing) totalEmissiveRadiance += mix(vec3(0.05, 0.07, 0.11), vec3(0.12, 0.14, 0.18), uLight) * pow(1.0 - nv, 3.4) * smoothstep(0.03, 0.62, vAO) * (1.0 - aPlate);
           totalEmissiveRadiance += phoneLight(normal, -vViewPosition) * vec3(0.11, 0.095, 0.08) * smoothstep(0.03, 0.5, vAO);
         }`);
   };
@@ -85,7 +96,7 @@ function fabric(armour: Texture) {
 function zipMaterial() {
   const m = new MeshStandardMaterial({ color: 0x2d2c2e, roughness: 0.42, metalness: 1 });
   m.onBeforeCompile = (s) => {
-    Object.assign(s.uniforms, shared);
+    Object.assign(s.uniforms, shared, bodyU);
     s.vertexShader = s.vertexShader
       .replace("#include <common>", `#include <common>
         attribute float tape;
@@ -95,24 +106,27 @@ function zipMaterial() {
     s.fragmentShader = s.fragmentShader
       .replace("#include <common>", `#include <common>
         ${DISSOLVE}
+        uniform float uLight;
         varying float vTape; varying float vY; float zTeeth;`)
       .replace("#include <map_fragment>", `#include <map_fragment>
         ${DISSOLVE_FRAG}
         zTeeth = step(vTape, 0.36) * step(0.42, fract(vY * 330.0));
-        diffuseColor.rgb = mix(vec3(0.016), diffuseColor.rgb * 1.5, zTeeth);`)
+        vec3 zipDark = mix(vec3(0.016), diffuseColor.rgb * 1.5, zTeeth);
+        vec3 zipLight = mix(vec3(0.72, 0.74, 0.78), vec3(0.88, 0.9, 0.94), zTeeth);
+        diffuseColor.rgb = mix(zipDark, zipLight, uLight);`)
       .replace("#include <metalnessmap_fragment>", `#include <metalnessmap_fragment>
-        metalnessFactor = zTeeth;`)
+        metalnessFactor = mix(zTeeth, mix(0.2, 0.85, zTeeth), uLight);`)
       .replace("#include <roughnessmap_fragment>", `#include <roughnessmap_fragment>
-        roughnessFactor = mix(0.7, 0.36, zTeeth);`);
+        roughnessFactor = mix(mix(0.7, 0.36, zTeeth), mix(0.55, 0.28, zTeeth), uLight);`);
   };
   return m;
 }
 
-/** Black gloves, the same dark as the shirt: his hands melt into the outfit, and the eye goes to the phone. Only a little leather sheen, so fingers just read where the light catches them. */
+/** Gloves match the suit: black in dark theme, white in light theme. */
 function glove() {
   const m = new MeshStandardMaterial({ color: new Color(0x0d0e11), roughness: 0.46, metalness: 0, envMapIntensity: 0.3 });
   m.onBeforeCompile = (s) => {
-    Object.assign(s.uniforms, shared, phoneU);
+    Object.assign(s.uniforms, shared, bodyU, phoneU);
     s.vertexShader = s.vertexShader
       .replace("#include <common>", `#include <common>
         attribute float ao;
@@ -123,12 +137,15 @@ function glove() {
       .replace("#include <common>", `#include <common>
         ${DISSOLVE}
         ${PHONE_GLSL}
+        uniform float uLight;
         varying float vAO;`)
       .replace("#include <map_fragment>", `#include <map_fragment>
-        ${DISSOLVE_FRAG}`)
+        ${DISSOLVE_FRAG}
+        diffuseColor.rgb = mix(vec3(0.05, 0.055, 0.065), vec3(0.9, 0.915, 0.94), uLight);`)
       .replace("#include <aomap_fragment>", `#include <aomap_fragment>
         {
           float occ = smoothstep(0.08, 0.6, vAO);
+          occ = mix(occ, mix(occ, 1.0, 0.35), uLight);
           reflectedLight.directDiffuse *= occ;
           reflectedLight.directSpecular *= occ * 0.55;
           reflectedLight.indirectDiffuse *= occ;

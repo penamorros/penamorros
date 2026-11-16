@@ -10,29 +10,170 @@
 }
 .chat-invite:not(.is-shown), .chat-invite.is-open { opacity: 0; visibility: hidden; pointer-events: none; }
 .invite-peek { position: absolute; inset: 0; border: 0; padding: 0; background: transparent; cursor: pointer; }
-.invite-character { position: absolute; inset: 0; overflow: hidden; }
+.invite-character {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* Fade out below the shoulders so no armless torso shows. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 58%, transparent 88%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 58%, transparent 88%);
+}
 .invite-character iframe { border: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .5s; }
 .is-ready .invite-character iframe { opacity: 1; }
-.invite-character img { width: 100%; height: 100%; object-fit: cover; }
-.invite-thought { position: absolute; left: 52%; top: -13%; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; width: max-content; border: 0; padding: 0; background: transparent; cursor: pointer; color: #d8dce5; }
-.invite-label { display: block; padding: 10px 14px; border: 1px solid #434a58; border-radius: 999px; background: linear-gradient(135deg, #20252eef, #0e1119f5); box-shadow: inset 0 1px 0 #ffffff12, 0 6px 20px #0003; font-family: inherit; font-size: 13px; font-weight: 500; letter-spacing: .01em; white-space: nowrap; transition: border-color .2s, box-shadow .2s, transform .2s; }
-.invite-label > span { margin-left: 8px; color: #a8b1c2; }
-.invite-thought:hover .invite-label { transform: translateY(-2px); border-color: #929eaf; box-shadow: inset 0 1px 0 #ffffff20, 0 6px 24px #d5e3ff15; }
+.invite-character img { width: 100%; height: 100%; object-fit: cover; object-position: 55% 12%; }
+/* What he says: a clean speech pill, the page's one white button shape, with a tail towards him. (Round 5: the old
+   grey thought-cloud read as decoration and nobody clicked it.) */
+/* anchored by its right edge, tail towards him, so a longer line grows leftwards and never runs off the screen */
+.invite-thought { position: absolute; right: 22%; top: -22%; width: max-content; border: 0; padding: 0; background: transparent; cursor: pointer; }
+.invite-label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px 10px 12px;
+  color: #0b1220;
+  background: #fff;
+  border-radius: 16px 16px 4px 16px;
+  box-shadow: 0 10px 30px -10px rgba(111, 158, 239, .65), 0 0 0 1px rgba(255, 255, 255, .6);
+  font: 600 13px/1 var(--font-sans, inherit);
+  letter-spacing: -.005em;
+  white-space: nowrap;
+  transition: transform .25s cubic-bezier(.22, 1, .36, 1), box-shadow .25s;
+}
+.invite-live { position: relative; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #3d7be8; }
+.invite-live::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #3d7be8; animation: invite-ping 2.2s ease-out infinite; }
+@keyframes invite-ping { from { transform: scale(1); opacity: .7; } to { transform: scale(3.2); opacity: 0; } }
+.invite-line { display: inline-block; animation: invite-line .45s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes invite-line { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+.invite-arrow { color: #5b6b8c; font-weight: 500; transition: transform .25s cubic-bezier(.22, 1, .36, 1); }
+.invite-thought:hover .invite-label { transform: translateY(-2px) scale(1.03); box-shadow: 0 14px 34px -10px rgba(111, 158, 239, .9), 0 0 0 1px #fff; }
+.invite-thought:hover .invite-arrow { transform: translate(2px, -2px); }
 .invite-thought:focus-visible, .invite-peek:focus-visible { outline: 2px solid #c4d0e5; outline-offset: 4px; border-radius: 20px; }
-.invite-dots { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-left: 5px; }
-.invite-dots i { width: 6px; height: 6px; border: 1px solid #727d90; border-radius: 50%; background: #202630; }
-.invite-dots i:last-child { width: 3px; height: 3px; transform: translateX(-4px); }
-.is-ready .invite-thought { animation: invite-appear .4s .45s both; }
-@keyframes invite-appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-.app.color-mode .invite-label { color: #343943; background: linear-gradient(135deg, #fff, #e8ebf1); border-color: #b4bac6; }
+/* it arrives, then every so often gives one small hop so the eye finds it */
+.is-ready .invite-thought, .is-still .invite-thought { animation: invite-appear .5s .45s cubic-bezier(.22, 1, .36, 1) both, invite-hop 7s 4s ease-in-out infinite; }
+@keyframes invite-appear { from { opacity: 0; transform: translateY(8px) scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes invite-hop { 0%, 90%, 100% { transform: none; } 94% { transform: translateY(-5px); } 97% { transform: translateY(1px); } }
+.app.color-mode .invite-label { color: #fff; background: #0b1220; box-shadow: 0 10px 30px -12px rgba(20, 34, 70, .6); }
+.app.color-mode .invite-arrow { color: #a9b6d0; }
+.app.color-mode .invite-live, .app.color-mode .invite-live::after { background: #7fa9f5; }
 @media (max-width: 900px) {
   .hero .hero-visual { margin-top: 35px; }
 }
 @media (max-width: 600px) {
-  .invite-thought { left: 34%; top: -22%; }
-  .invite-label { font-size: 11px; padding: 8px 10px; }
+  .invite-thought { right: 10%; top: -24%; }
+  .invite-label { font-size: 12px; padding: 9px 12px 9px 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .chat-invite *, .chat-invite { animation: none !important; transition: none !important; }
 }
-.is-still .invite-character { clip-path: polygon(0 0,100% 0,100% 100%,80% 80%,60% 65%,40% 52%,20% 44%,0 37%); }
+/* Still fallback: head + a touch of shoulder. */
+.is-still .invite-character { clip-path: inset(0 0 28% 0); }
+
+/* ---------- the nudge that follows once the hero is out of view (ChatNudge) */
+.chat-nudge {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px;
+  color: #0b1220;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 18px 44px -16px rgba(111, 158, 239, .8), 0 0 0 1px rgba(255, 255, 255, .7);
+  font: 600 13px/1 var(--font-sans, inherit);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  transition: opacity .35s, transform .45s cubic-bezier(.22, 1, .36, 1), visibility .35s;
+}
+.chat-nudge.is-on { opacity: 1; visibility: visible; transform: none; }
+.chat-nudge button { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; color: inherit; background: transparent; border: 0; border-radius: 999px; font: inherit; cursor: pointer; transition: background-color .2s; }
+.chat-nudge button:hover { background: rgba(11, 18, 32, .08); transform: none; }
+/* his face, not his whole figure: the picture is zoomed three times onto the head, on a pale disc so the black suit
+   reads on either pill */
+.chat-nudge .nudge-face { flex: none; width: 32px; height: 32px; margin-left: -9px; border-radius: 50%; background: #dfe8fb url('/avatar-3d.webp') 50% 13% / 300% no-repeat; box-shadow: inset 0 0 0 1px rgba(11, 18, 32, .12); }
+.chat-nudge .nudge-meet { color: #fff; background: #0b1220; }
+.chat-nudge .nudge-meet:hover { background: #26344f; }
+.chat-nudge .nudge-x { width: 28px; height: 28px; padding: 0; justify-content: center; color: #5b6b8c; }
+.app.color-mode .chat-nudge { color: #fff; background: #0b1220; box-shadow: 0 18px 44px -18px rgba(20, 34, 70, .7); }
+.app.color-mode .chat-nudge button:hover { background: rgba(255, 255, 255, .12); }
+.app.color-mode .chat-nudge .nudge-meet { color: #0b1220; background: #fff; }
+.app.color-mode .chat-nudge .nudge-x { color: #a9b6d0; }
+@media (max-width: 1024px) {
+  /* above the bottom dock */
+  .chat-nudge { right: 12px; bottom: 84px; font-size: 12px; }
+  .chat-nudge button { height: 34px; padding: 0 10px; }
+}
+
+/* ---------- hover: he powers up (round 5b). The 3D figure is only ~120 px wide, so a nod alone is easy to miss.
+   Under the pointer he grows and lifts, a halo lights behind him, rings pulse out, a targeting frame locks on around
+   his head and a scan line runs down him — while inside the 3D his suit lines surge and the visor flares (main.ts).
+   Everything here is transform and opacity only. */
+.chat-invite { --fx: #c5d8ff; --fx-strong: #6f9eef; }
+.app.color-mode .chat-invite { --fx: #3d6fc4; --fx-strong: #1f4fa8; }
+.invite-character { transform-origin: 50% 62%; transition: transform .55s cubic-bezier(.2, 1.5, .4, 1); }
+/* Version B (trying it, 2026-11-16): he lifts but does not grow. Version A was: translateY(-4%) scale(1.16) */
+.chat-invite:hover .invite-character { transform: translateY(-4%); }
+/* the frame starts under the speech pill (it used to run up behind it, which crowded the words on hover) */
+.invite-fx { position: absolute; inset: 3% -12% 34% -12%; pointer-events: none; }
+.invite-fx i { position: absolute; display: block; }
+.fx-halo { inset: -4% -18% -18%; border-radius: 50%; background: radial-gradient(circle at 50% 48%, color-mix(in srgb, var(--fx-strong) 62%, transparent), transparent 62%); opacity: 0; transform: scale(.5); transition: opacity .35s, transform .6s cubic-bezier(.2, 1.5, .4, 1); }
+.chat-invite:hover .fx-halo { opacity: 1; transform: scale(1.1); }
+.fx-ring { left: 50%; top: 48%; width: 78%; aspect-ratio: 1; margin: -39% 0 0 -39%; border: 1.5px solid var(--fx); border-radius: 50%; opacity: 0; }
+.chat-invite:hover .fx-ring { animation: fx-ring 1.5s ease-out infinite; }
+.chat-invite:hover .fx-ring.two { animation-delay: .75s; }
+@keyframes fx-ring { from { opacity: .95; transform: scale(.45); } to { opacity: 0; transform: scale(2); } }
+.fx-corner { width: 13px; height: 13px; border: 2px solid var(--fx); opacity: 0; transition: opacity .25s, transform .4s cubic-bezier(.2, 1.6, .4, 1); }
+.fx-corner.tl { left: 0; top: 0; border-right: 0; border-bottom: 0; transform: translate(-16px, -16px); }
+.fx-corner.tr { right: 0; top: 0; border-left: 0; border-bottom: 0; transform: translate(16px, -16px); }
+.fx-corner.bl { left: 0; bottom: 0; border-right: 0; border-top: 0; transform: translate(-16px, 16px); }
+.fx-corner.br { right: 0; bottom: 0; border-left: 0; border-top: 0; transform: translate(16px, 16px); }
+.chat-invite:hover .fx-corner { opacity: 1; transform: none; }
+.fx-scan { left: 4%; right: 4%; top: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--fx) 20%, #fff 50%, var(--fx) 80%, transparent); opacity: 0; }
+.chat-invite:hover .fx-scan { animation: fx-scan 1.5s cubic-bezier(.5, 0, .5, 1) infinite alternate; }
+@keyframes fx-scan { 0% { opacity: 0; top: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; top: 100%; } }
+@media (prefers-reduced-motion: reduce) { .invite-fx { display: none; } .chat-invite:hover .invite-character { transform: none; } }
+
+/* the nudge's two choices are the same filled button; the chat one carries a message icon with an unread dot */
+.chat-nudge { gap: 5px; }
+.chat-nudge .nudge-face { margin: 0 3px 0 0; }
+.chat-nudge .nudge-ico { position: relative; display: inline-flex; }
+.chat-nudge .nudge-ico i { position: absolute; top: -3px; right: -4px; width: 7px; height: 7px; border-radius: 50%; background: #4f8bff; box-shadow: 0 0 0 2px #0b1220; }
+.chat-nudge .nudge-ico i::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #4f8bff; animation: invite-ping 2.2s ease-out infinite; }
+.app.color-mode .chat-nudge .nudge-ico i { box-shadow: 0 0 0 2px #fff; }
+
+/* ---------- the corner nudge, final form (round 5c). A dark glass capsule like the rail, not a white bar:
+   his face with an "online" dot, the main choice as the one white button (chat, with its unread dot), the second
+   choice outlined beside it, and a quiet close. Light theme mirrors it. */
+.chat-nudge {
+  gap: 6px;
+  padding: 6px 8px 6px 6px;
+  color: #fff;
+  background: rgba(13, 16, 24, .9);
+  border: 1px solid rgba(200, 216, 255, .16);
+  box-shadow: 0 22px 50px -22px rgba(0, 0, 0, .8), inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+.chat-nudge .nudge-who { position: relative; flex: none; display: block; margin-right: 2px; }
+.chat-nudge .nudge-who .nudge-face { display: block; width: 34px; height: 34px; margin: 0; }
+.chat-nudge .nudge-who i { position: absolute; right: -1px; bottom: -1px; width: 9px; height: 9px; border-radius: 50%; background: #3ddc84; box-shadow: 0 0 0 2px #0d1018; }
+.chat-nudge .nudge-btn { height: 34px; padding: 0 13px; gap: 7px; font-weight: 600; color: #e8eefa; background: transparent; border: 1px solid rgba(200, 216, 255, .22); border-radius: 999px; transition: background-color .2s, border-color .2s, color .2s; }
+.chat-nudge .nudge-btn:hover { color: #fff; background: rgba(200, 216, 255, .1); border-color: rgba(200, 216, 255, .45); }
+.chat-nudge .nudge-btn.is-primary { color: #0b1220; background: #fff; border-color: #fff; }
+.chat-nudge .nudge-btn.is-primary:hover { color: #0b1220; background: #dfe8fb; border-color: #dfe8fb; }
+.chat-nudge .nudge-btn.is-primary .nudge-ico i { box-shadow: 0 0 0 2px #fff; }
+.chat-nudge .nudge-x { width: 26px; height: 26px; color: rgba(220, 228, 245, .5); border: 0; }
+.chat-nudge .nudge-x:hover { color: #fff; background: rgba(200, 216, 255, .1); }
+.app.color-mode .chat-nudge { color: #0b1220; background: rgba(255, 255, 255, .94); border-color: rgba(20, 34, 70, .14); box-shadow: 0 22px 50px -24px rgba(20, 34, 70, .5); }
+.app.color-mode .chat-nudge .nudge-who i { box-shadow: 0 0 0 2px #fff; }
+.app.color-mode .chat-nudge .nudge-btn { color: #0b1220; background: transparent; border-color: rgba(20, 34, 70, .22); }
+.app.color-mode .chat-nudge .nudge-btn:hover { background: rgba(20, 34, 70, .06); border-color: rgba(20, 34, 70, .45); }
+.app.color-mode .chat-nudge .nudge-btn.is-primary { color: #fff; background: #0b1220; border-color: #0b1220; }
+.app.color-mode .chat-nudge .nudge-btn.is-primary:hover { background: #26344f; border-color: #26344f; }
+.app.color-mode .chat-nudge .nudge-btn.is-primary .nudge-ico i { box-shadow: 0 0 0 2px #0b1220; }
+.app.color-mode .chat-nudge .nudge-x { color: rgba(20, 34, 70, .5); }
+.app.color-mode .chat-nudge .nudge-x:hover { color: #0b1220; background: rgba(20, 34, 70, .06); }
+/* small screens: icons only, so the capsule never sits on top of the text in the middle of the page */
+@media (max-width: 1024px) { .chat-nudge .nudge-btn { height: 34px; padding: 0 11px; gap: 0; font-size: 0; } }

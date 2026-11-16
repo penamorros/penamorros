@@ -336,7 +336,7 @@ export default memo(function Projects() {
 					</div>
 				</div>
 
-				<div className="ll-sep"></div>
+				<div className="ll-sep" data-snap></div>
 
 				<div className="ll-head">
 					<img src="/lumina-app-icon.png" alt="Lumina Labs" className="ll-icon" loading="lazy" decoding="async" />

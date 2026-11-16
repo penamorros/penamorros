@@ -1,0 +1,183 @@
+/* The call picker, inside the chat panel: the same glass, hairlines and type; white is the one strong colour. */
+.mt {
+	--fg: #fff;
+	--mute: rgba(220, 228, 245, .6);
+	--line: rgba(200, 216, 255, .16);
+	--fill: rgba(200, 216, 255, .055);
+	--on: #fff;
+	--on-fg: #0b1220;
+	--accent: #6f9eef;
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	gap: .85rem;
+	padding: .2rem 2px .4rem;
+	overflow-y: auto;
+	scrollbar-width: none;
+	color: var(--fg);
+	font-family: var(--font-sans);
+	animation: mtIn .4s cubic-bezier(.22, 1, .36, 1) both;
+}
+.mt::-webkit-scrollbar { display: none; }
+.app.color-mode .mt {
+	--fg: #0b1220;
+	--mute: rgba(20, 34, 70, .6);
+	--line: rgba(20, 34, 70, .15);
+	--fill: rgba(20, 34, 70, .04);
+	--on: #0b1220;
+	--on-fg: #fff;
+	--accent: #3d6fc4;
+}
+/* while it is open the conversation steps aside */
+.mt ~ .tc-log, .mt ~ .tc-chips, .mt ~ .tc-box { display: none; }
+@keyframes mtIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.mt-top { display: flex; align-items: center; gap: .65rem; }
+.mt-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
+.mt-title strong { font: 700 1.05rem/1.1 var(--font-sans); letter-spacing: -.02em; }
+.mt-title span { font: 500 .62rem/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.mt-icon {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	padding: 0;
+	color: var(--fg);
+	background: var(--fill);
+	border: 1px solid var(--line);
+	border-radius: 50%;
+	cursor: pointer;
+	transition: background-color .2s, color .2s;
+}
+button.mt-icon:hover { color: var(--on-fg); background: var(--on); transform: none; }
+.mt-icon.is-still { cursor: default; color: var(--accent); }
+
+.mt-days { display: flex; gap: .4rem; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.mt-days::-webkit-scrollbar { display: none; }
+.mt-day {
+	flex: none;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: .22rem;
+	min-width: 52px;
+	padding: .55rem .5rem .5rem;
+	color: var(--fg);
+	background: var(--fill);
+	border: 1px solid var(--line);
+	border-radius: 14px;
+	cursor: pointer;
+	transition: background-color .2s, color .2s, border-color .2s;
+}
+.mt-day span, .mt-day i { font: 500 .58rem/1 var(--font-mono); font-style: normal; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+.mt-day b { font: 700 1.15rem/1 var(--font-sans); font-variant-numeric: tabular-nums; }
+.mt-day:hover { border-color: var(--fg); transform: none; }
+.mt-day.is-on { color: var(--on-fg); background: var(--on); border-color: var(--on); }
+.mt-day.is-on span, .mt-day.is-on i { color: inherit; opacity: .65; }
+
+.mt-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+.mt-slot {
+	padding: .62rem .2rem;
+	font: 600 .78rem/1 var(--font-sans);
+	font-variant-numeric: tabular-nums;
+	color: var(--fg);
+	background: transparent;
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	cursor: pointer;
+	animation: mtIn .35s cubic-bezier(.22, 1, .36, 1) both;
+	transition: background-color .2s, color .2s, border-color .2s;
+}
+.mt-slot:hover, .mt-slot:focus-visible { color: var(--on-fg); background: var(--on); border-color: var(--on); transform: none; }
+.mt-zone, .mt-empty { margin: 0; font: 500 .6rem/1.5 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+.mt-empty { margin: auto 0; text-align: center; text-transform: none; font: 400 .86rem/1.55 var(--font-sans); letter-spacing: 0; }
+
+.mt-form, .mt-done { display: flex; flex-direction: column; gap: .6rem; }
+.mt-when { margin: 0 0 .15rem; font: 700 1rem/1.25 var(--font-sans); letter-spacing: -.01em; }
+.mt-field { display: flex; flex-direction: column; gap: .3rem; }
+.mt-field span { font: 500 .58rem/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.mt-field span i { font-style: normal; opacity: .7; text-transform: none; letter-spacing: .04em; }
+.mt-field input {
+	width: 100%;
+	padding: .62rem .75rem;
+	font: 500 .88rem/1.2 var(--font-sans);
+	color: var(--fg);
+	background: var(--fill);
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	outline: none;
+	transition: border-color .2s;
+}
+.mt-field input:focus { border-color: var(--fg); }
+.mt-error { margin: 0; font-size: .78rem; color: #ff8a8a; }
+.mt-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: .72rem 1rem;
+	font: 700 .82rem/1 var(--font-sans);
+	color: var(--on-fg);
+	background: var(--on);
+	border: 1px solid var(--on);
+	border-radius: 11px;
+	text-decoration: none;
+	cursor: pointer;
+	transition: opacity .2s;
+}
+.mt-btn:hover { opacity: .86; transform: none; }
+.mt-btn:disabled { opacity: .35; cursor: default; }
+.mt-btn.is-wide { width: 100%; margin-top: .2rem; }
+.mt-btn.is-ghost { color: var(--fg); background: transparent; border-color: var(--line); }
+.mt-done { align-items: flex-start; margin: auto 0; }
+.mt-check { display: grid; place-items: center; width: 44px; height: 44px; color: var(--on-fg); background: var(--on); border-radius: 50%; animation: mtPop .5s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes mtPop { from { transform: scale(.4); } to { transform: none; } }
+.mt-note { margin: 0; font: 400 .86rem/1.55 var(--font-sans); color: var(--mute); }
+.mt-note b { color: var(--fg); font-weight: 600; }
+.mt-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .3rem; }
+
+/* the chip that opens it, first in the row */
+.tc-chip.is-meet { display: inline-flex; align-items: center; gap: .35rem; color: #0b1220; background: #fff; border-color: #fff; font-weight: 600; }
+.tc-chip.is-meet:hover { color: #0b1220; background: #dfe8fb; border-color: #dfe8fb; }
+.app.color-mode .tc-chip.is-meet { color: #fff; background: #0b1220; border-color: #0b1220; }
+
+@media (prefers-reduced-motion: reduce) { .mt, .mt-slot, .mt-check { animation: none; } }
+
+/* his answer offers the call itself when the question was about working together */
+.tc-book {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	margin-top: .55rem;
+	padding: .55rem .85rem;
+	font: 600 .78rem/1 var(--font-sans);
+	color: #0b1220;
+	background: #fff;
+	border: 0;
+	border-radius: 10px;
+	cursor: pointer;
+	animation: mtIn .45s cubic-bezier(.22, 1, .36, 1) both;
+}
+.tc-book:hover { background: #dfe8fb; transform: none; }
+.app.color-mode .tc-book { color: #fff; background: #0b1220; }
+
+/* the contact section's own way in */
+.contact-book { margin: -.4rem 0 1.6rem; text-align: center; }
+.contact-book-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: .5rem;
+	padding: .8rem 1.3rem;
+	font: 700 .92rem/1 var(--font-sans);
+	color: #0b1220;
+	background: #fff;
+	border: 1px solid #fff;
+	border-radius: 12px;
+	cursor: pointer;
+	box-shadow: 0 14px 34px -16px rgba(111, 158, 239, .8);
+	transition: background-color .2s;
+}
+.contact-book-btn:hover { background: #dfe8fb; transform: none; }
+.app.color-mode .contact-book-btn { color: #fff; background: #0b1220; border-color: #0b1220; box-shadow: 0 14px 34px -18px rgba(20, 34, 70, .6); }
+.app.color-mode .contact-book-btn:hover { background: #26344f; }

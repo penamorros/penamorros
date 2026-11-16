@@ -1,5 +1,6 @@
 // Analytics and the chat database only run on the real site, so local runs and client previews never touch live data.
-export const isLiveSite = /(^|\.)manuel\.solutions$/.test(window.location.hostname)
+// Every domain the published site answers on: the new manuelpenamorros.com, and the earlier manuel.solutions and penamorros.com.
+export const isLiveSite = /(^|\.)(manuelpenamorros\.com|manuel\.solutions|penamorros\.com)$/i.test(window.location.hostname)
 
 type ChatLogEntry = { role: 'user' | 'assistant'; content: string; sessionId: string }
 

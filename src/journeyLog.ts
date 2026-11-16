@@ -10,7 +10,7 @@ export const LATLON: Record<string, { lat: number; lon: number }> = {
 
 /** Short names for the timeline's nodes and the years strip. */
 export const SHORT: Record<string, string> = {
-	education1: 'American School',
+	education1: 'ASF',
 	education2: 'UT Austin',
 	work1: 'TV Azteca',
 	work2: 'UnifAI',

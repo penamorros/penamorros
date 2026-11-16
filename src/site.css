@@ -180,7 +180,15 @@ body {
 	display: none;
 }
 
-.app.color-mode * {
+/* The white theme's blanket "everything black". The newer components carry their own light colours, and this rule
+   was painting their text and icons black on their black buttons (invisible) — so they are left out of it.
+   (:where() keeps this rule's weight exactly what it was for everything else.) */
+.app.color-mode *:not(:where(
+	.mt, .mt *, .chat-nudge, .chat-nudge *, .invite-thought, .invite-thought *, .tc-book, .tc-book *,
+	.tc-chip.is-meet, .tc-chip.is-meet *, .contact-book-btn, .contact-book-btn *,
+	.flappy-coupon, .flappy-coupon *, .flappy-tally, .flappy-tally *, .flappy-burst, .flappy-burst *,
+	.resume-dl, .resume-dl *, .coin-hint, .coin-hint *, .invite-fx, .invite-fx *
+)) {
 	color: #000000;
 	border-color: #000000;
 }

@@ -3,6 +3,7 @@ export {
 	IconArrowRight as ArrowRight,
 	IconArrowUp as ArrowUp,
 	IconCopy as Copy,
+	IconCalendarEvent as Calendar,
 	IconAward as Award,
 	IconBolt as Zap,
 	IconBriefcase as Briefcase,

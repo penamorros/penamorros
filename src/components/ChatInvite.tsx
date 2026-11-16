@@ -2,7 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { whenBooted, whenHeroSettled } from '../motion'
 import './chat-invite.css'
 
-export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean; onOpen: () => void; heroReady: boolean }) {
+// What he says from over the portrait, in turn. The line on show decides where a click goes.
+const LINES = [
+  { text: 'Ask me anything', meet: false },
+  { text: 'Book a call with me', meet: true },
+  { text: 'Curious? Let’s chat', meet: false },
+]
+
+export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean; onOpen: (meet?: boolean) => void; heroReady: boolean }) {
   const frame = useRef<HTMLIFrameElement>(null)
   const button = useRef<HTMLButtonElement>(null)
   const [loaded, setLoaded] = useState(false)
@@ -10,6 +17,14 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
   const [still, setStill] = useState(false)
   const [released, setReleased] = useState(false)
   const shown = released && (ready || still)
+  const [line, setLine] = useState(0)
+  // the line holds still while the pointer is on him or on the pill, so the words never change under a click
+  const [held, setHeld] = useState(false)
+  useEffect(() => {
+    if (!shown || open || held) return
+    const id = window.setInterval(() => setLine((i) => (i + 1) % LINES.length), 3800)
+    return () => window.clearInterval(id)
+  }, [shown, open, held])
   const duck = (on: boolean) => {
     if (!window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) return
     frame.current?.contentWindow?.postMessage({ t: 'duck', on }, location.origin)
@@ -56,16 +71,21 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
   }, [ready, released, open])
 
   return (
-    <div className={`chat-invite${shown ? ' is-shown' : ''}${ready && released ? ' is-ready' : ''}${still ? ' is-still' : ''}${open ? ' is-open' : ''}`} aria-hidden={open || !shown || undefined} {...(open || !shown ? { inert: '' } : {})}>
-      <button ref={button} type="button" className="invite-peek" onPointerEnter={() => duck(true)} onPointerLeave={() => duck(false)} onClick={onOpen} aria-label="Chat with Manuel's AI twin" aria-expanded={open}>
+    <div onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} className={`chat-invite${shown ? ' is-shown' : ''}${ready && released ? ' is-ready' : ''}${still ? ' is-still' : ''}${open ? ' is-open' : ''}`} aria-hidden={open || !shown || undefined} {...(open || !shown ? { inert: '' } : {})}>
+      <button ref={button} type="button" className="invite-peek" onPointerEnter={() => duck(true)} onPointerLeave={() => duck(false)} onClick={() => onOpen(false)} aria-label="Chat with Manuel's AI twin" aria-expanded={open}>
+        <span className="invite-fx is-back" aria-hidden="true"><i className="fx-halo" /><i className="fx-ring" /><i className="fx-ring two" /></span>
         <span className="invite-character" aria-hidden="true">
           {loaded && !still && <iframe ref={frame} src="/avatar.html?invite" title="Manuel peeking over the portrait" tabIndex={-1} />}
           {still && <img src="/avatar-3d.webp" alt="" />}
         </span>
+        <span className="invite-fx is-front" aria-hidden="true"><i className="fx-scan" /><i className="fx-corner tl" /><i className="fx-corner tr" /><i className="fx-corner bl" /><i className="fx-corner br" /></span>
       </button>
-      <button type="button" className="invite-thought" onClick={onOpen} aria-label="Open chat with Manuel's AI twin">
-        <span className="invite-label">Let’s chat <span aria-hidden="true">↗</span></span>
-        <span className="invite-dots" aria-hidden="true"><i /><i /></span>
+      <button type="button" className="invite-thought" onPointerEnter={() => duck(true)} onPointerLeave={() => duck(false)} onClick={() => onOpen(LINES[line].meet)} aria-label={LINES[line].meet ? 'Book a call with Manuel' : "Open chat with Manuel's AI twin"}>
+        <span className="invite-label">
+          <i className="invite-live" aria-hidden="true" />
+          <span className="invite-line" key={line}>{LINES[line].text}</span>
+          <span className="invite-arrow" aria-hidden="true">↗</span>
+        </span>
       </button>
     </div>
   )

@@ -46,7 +46,8 @@ export function placeFigure() {
   if (frameOnly) {
     // ?pad=N: the frame runs N px below the circle (see AVATAR_PAD in link.tsx), so he is framed in the top W×(H-N) only
     const Hc = H - framePad;
-    if (inviteMode) return { cx: W * 0.5, crown: Hc * 0.06, k: W * 1.48 };
+    // Invite: face + a little shoulder peeking over the portrait (hands stay hidden).
+    if (inviteMode) return { cx: W * 0.5, crown: Hc * 0.04, k: Math.min(Hc, W) * 1.62 };
     if (peekMode) {
       // Tight portrait: face fills the disc, looking at you.
       return { cx: W * 0.5, crown: Hc * 0.1, k: Math.min(Hc, W) * 1.55 };

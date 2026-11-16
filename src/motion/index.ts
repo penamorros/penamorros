@@ -80,31 +80,37 @@ let lenis: Lenis | null = null
 
 export function startSmoothScroll() {
 	if (lenis || isTouch() || prefersReducedMotion()) return () => {}
-	// Round 4 (the client, 2026-11-08: "if they scroll too fast, the experience is a bit truncated"): a little more weight,
-	// a cap on how far one input can throw the page, slower going through the pinned sections, and a settle onto the
-	// nearest value or entry when the scroll stops inside one.
+	// Round 5 (the client, 2026-11-16: "never let the user slide down ... every time they slide they don't cut off mid
+	// section ... automatically do it but smoothly"): the wheel and trackpad no longer move the page freely. Each scroll
+	// gesture carries the page one stop on — the next section, or the next value / resume entry inside a pinned one.
+	let onWheel: (data: { deltaX: number; deltaY: number; event: Event }) => boolean = () => true
 	const instance = new Lenis({
 		autoRaf: false,
 		lerp: 0.085,
 		wheelMultiplier: 0.9,
-		virtualScroll: (data) => {
-			lastWheel.at = performance.now()
-			if (data.deltaY) lastWheel.dir = Math.sign(data.deltaY)
-			const max = Math.max(110, window.innerHeight * 0.16)
-			data.deltaY = Math.max(-max, Math.min(max, data.deltaY))
-			if (inPin(instance.scroll)) data.deltaY *= 0.72
-			return true
-		},
+		virtualScroll: (data) => onWheel(data),
 	})
 	lenis = instance
 	window.__lenis = instance
 	instance.on('scroll', ScrollTrigger.update)
-	const unsettle = settleInPins(instance)
-	// Keys scroll natively; a glide still running from the wheel would pull the page back, so it ends where it is.
+	const stepper = stepScroll(instance)
+	onWheel = stepper.wheel
+	const unsettle = settleAfterScroll(instance)
+	// Arrows and Page keys step like the wheel. The other scroll keys stay native; a glide still running would pull
+	// the page back, so it ends where it is. (Space is left alone: the skills game uses it.)
 	const keys = new Set(['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' ', 'Spacebar'])
+	const stepKeys: Record<string, number> = { ArrowDown: 1, PageDown: 1, ArrowUp: -1, PageUp: -1 }
 	const onKey = (e: KeyboardEvent) => {
-		if (!keys.has(e.key) || (e.target as Element | null)?.closest?.('input, textarea, select, [contenteditable]')) return
+		const target = e.target as Element | null
+		if (!keys.has(e.key) || target?.closest?.('input, textarea, select, [contenteditable], [data-lenis-prevent]')) return
+		if (e.altKey || e.ctrlKey || e.metaKey) return
+		const dir = stepKeys[e.key]
 		lastWheel.at = 0 // keys scroll where they're told: no settling after them
+		if (dir && !instance.isStopped) {
+			e.preventDefault()
+			stepper.step(dir)
+			return
+		}
 		if (instance.isScrolling) instance.scrollTo(instance.scroll, { immediate: true, force: true })
 	}
 	window.addEventListener('keydown', onKey, { capture: true })
@@ -133,50 +139,220 @@ export function startSmoothScroll() {
 
 // The pinned sections and how many stops each has (values, resume entries).
 const PINS: Record<string, number> = { values: 6, resume: 6 }
-// When the wheel or trackpad last moved the page, and which way. Keys reset it.
-const lastWheel = { at: 0, dir: 1 }
+// Pinned sections the wheel still scrolls freely through, as it did before the stepping (the client, 2026-11-16:
+// "the core values scrolling transition should be exactly as before"): weighted scroll, then a settle onto a value.
+const FREE_PINS = ['values']
+// When the wheel or trackpad last moved the page freely, and which way. Steps and keys reset it.
+const lastWheel = { at: 0, dir: 1, settling: false }
 
-function inPin(y: number) {
-	for (const id in PINS) {
+/** True where the wheel moves the page itself: inside a free pin, or at its edge heading in. */
+function inFreePin(y: number, dir: number) {
+	for (const id of FREE_PINS) {
 		const st = ScrollTrigger.getById(id)
-		if (st && y > st.start + 2 && y < st.end - 2) return true
+		if (!st) continue
+		if (dir > 0 ? y >= st.start - 2 && y < st.end - 2 : y > st.start + 2 && y <= st.end + 2) return true
 	}
 	return false
 }
 
-/**
- * When a wheel or trackpad scroll comes to rest inside a pinned section, it eases onto a stop (the pin's ends or an
- * item's middle): the next one in the direction it was going, unless the one just passed is very close.
- */
-function settleInPins(instance: Lenis) {
-	let timer = 0, settling = false
+/** After a free scroll comes to rest: inside a free pin, ease onto the next value; outside, onto the nearest stop. */
+function settleAfterScroll(instance: Lenis) {
+	let timer = 0
+	const easeTo = (to: number) => {
+		if (Math.abs(to - instance.scroll) < 4) return
+		lastWheel.settling = true
+		instance.scrollTo(to, { duration: 0.7, easing: (t: number) => 1 - Math.pow(1 - t, 3), onComplete: () => { lastWheel.settling = false } })
+		window.setTimeout(() => { lastWheel.settling = false }, 950)
+	}
+	const pick = (stops: number[], y: number, d: number, keep: number) => {
+		const ahead = d > 0 ? stops.find((s) => s > y + 2) : [...stops].reverse().find((s) => s < y - 2)
+		const behind = d > 0 ? [...stops].reverse().find((s) => s <= y + 2) : stops.find((s) => s >= y - 2)
+		if (ahead === undefined || behind === undefined) return ahead ?? behind
+		const gap = Math.abs(ahead - behind) || 1
+		return Math.abs(y - behind) < gap * keep ? behind : ahead
+	}
 	const settle = () => {
-		if (settling || instance.isStopped || performance.now() - lastWheel.at > 1500) return
+		if (lastWheel.settling || instance.isStopped || performance.now() - lastWheel.at > 1500) return
 		const y = instance.scroll
-		for (const id in PINS) {
+		const d = lastWheel.dir || 1
+		for (const id of FREE_PINS) {
 			const st = ScrollTrigger.getById(id)
 			if (!st || y <= st.start + 2 || y >= st.end - 2) continue
 			const n = PINS[id], len = st.end - st.start
-			const stops = [st.start, ...Array.from({ length: n }, (_, i) => st.start + ((i + 0.5) / n) * len), st.end]
-			const d = lastWheel.dir
-			const ahead = d > 0 ? stops.find((s) => s > y + 2) : [...stops].reverse().find((s) => s < y - 2)
-			const behind = d > 0 ? [...stops].reverse().find((s) => s <= y + 2) : stops.find((s) => s >= y - 2)
-			if (ahead === undefined || behind === undefined) return
-			const gap = Math.abs(ahead - behind) || 1
-			const to = Math.abs(y - behind) < gap * 0.2 ? behind : ahead
-			if (Math.abs(to - y) < 4) return
-			settling = true
-			instance.scrollTo(to, { duration: 0.65, easing: (t: number) => 1 - Math.pow(1 - t, 3), onComplete: () => { settling = false } })
-			window.setTimeout(() => { settling = false }, 900)
+			const to = pick([st.start, ...Array.from({ length: n }, (_, i) => st.start + ((i + 0.5) / n) * len), st.end], y, d, 0.2)
+			if (to !== undefined) easeTo(to)
 			return
 		}
+		const to = pick(scrollStops(), y, d, 0.22)
+		if (to !== undefined) easeTo(to)
 	}
 	const onScroll = () => {
 		window.clearTimeout(timer)
-		if (!settling) timer = window.setTimeout(settle, 170)
+		if (!lastWheel.settling) timer = window.setTimeout(settle, 160)
 	}
 	instance.on('scroll', onScroll)
 	return () => window.clearTimeout(timer)
+}
+
+// Main page sections, in page order.
+const SECTION_IDS = ['about', 'values', 'skills', 'resume', 'projects', 'articles', 'contact'] as const
+
+/**
+ * Every place the page may rest, top to bottom:
+ * - a pinned section: where its pin starts (first value / entry), then the middle of each later one;
+ * - a section that fits the screen: its top (centred when it is only a little taller than the screen);
+ * - a taller section: its top, then each `[data-snap]` block inside it (or screen-sized steps when it has none);
+ * - the very end of the page, so the footer is reachable.
+ */
+function scrollStops(): number[] {
+	const vh = window.innerHeight
+	const max = Math.max(0, document.documentElement.scrollHeight - vh)
+	const raw: number[] = []
+	// The home page's sections by id; on any other page (athletics), whatever <section>s it has, in order.
+	const home = SECTION_IDS.some((id) => document.getElementById(id))
+	const targets: Array<{ id: string; el: HTMLElement | null }> = home
+		? SECTION_IDS.map((id) => ({ id, el: document.getElementById(id) }))
+		: Array.from(document.querySelectorAll<HTMLElement>('main section')).map((el) => ({ id: '', el }))
+	// Off the home page, short sections travel together: as many as fit one screen make one stop, centred, so a strip
+	// like the federations never gets a stop of its own that crops the stage under it.
+	if (!home) {
+		const list = targets.filter((t) => t.el).map((t) => ({ top: t.el!.getBoundingClientRect().top + window.scrollY, h: t.el!.offsetHeight }))
+		for (let i = 0; i < list.length; ) {
+			let h = list[i].h
+			let j = i + 1
+			while (j < list.length && h + list[j].h <= vh) h += list[j++].h
+			raw.push(h < vh ? list[i].top - (vh - h) / 2 : list[i].top)
+			i = j
+		}
+	}
+	for (const { id, el } of home ? targets : []) {
+		const st = id ? ScrollTrigger.getById(id) : undefined
+		if (st) {
+			const n = PINS[id] ?? 1
+			raw.push(st.start)
+			for (let i = 1; i < n; i++) raw.push(st.start + ((i + 0.5) / n) * (st.end - st.start))
+			continue
+		}
+		if (!el) continue
+		const top = el.getBoundingClientRect().top + window.scrollY
+		const h = el.offsetHeight
+		if (h <= vh) raw.push(top)
+		else if (h <= vh * 1.15) raw.push(top + (h - vh) / 2)
+		else {
+			raw.push(top)
+			const marks = el.querySelectorAll<HTMLElement>('[data-snap]')
+			if (marks.length) marks.forEach((m) => raw.push(m.getBoundingClientRect().top + window.scrollY - vh * 0.05))
+			else for (let y = top + vh * 0.85; y < top + h - vh * 0.5; y += vh * 0.85) raw.push(Math.min(y, top + h - vh))
+		}
+	}
+	raw.push(max)
+	const stops: number[] = []
+	for (const y of raw.map((v) => Math.round(Math.max(0, Math.min(max, v)))).sort((a, b) => a - b)) {
+		// two stops almost on top of each other would make a scroll that seems to do nothing
+		if (stops.length && y - stops[stops.length - 1] < 90) {
+			if (y === max) stops[stops.length - 1] = max
+			continue
+		}
+		stops.push(y)
+	}
+	return stops
+}
+
+/** One scroll gesture = one stop. Returns the wheel filter for Lenis and a `step` for the keys. */
+function stepScroll(instance: Lenis) {
+	let busyUntil = 0 // a step is gliding until then: nothing else may start
+	let lastAt = 0
+	let samples: number[] = [] // recent wheel strengths, to tell a fresh push from a trackpad's fading coast
+	let spent = false // this gesture already took its step; it must fade (or pause) before another may start
+	let peak = 0
+	// The client, 2026-11-16: "once reached the end of the page and users want to scroll up, make it free so it's not
+	// very slow". From the first time the bottom is reached, scrolling up is plain smooth scroll: no stops, no settle.
+	let seenEnd = false
+	let coasting = false // the swipe that made the last step is still fading: it may not also scroll a free pin
+
+	const mean = (list: number[], n: number) => {
+		const tail = list.slice(-n)
+		return tail.reduce((sum, v) => sum + v, 0) / (tail.length || 1)
+	}
+
+	const step = (dir: number) => {
+		const now = performance.now()
+		if (now < busyUntil) return
+		const from = instance.scroll
+		const stops = scrollStops()
+		const next = dir > 0 ? stops.find((s) => s > from + 4) : [...stops].reverse().find((s) => s < from - 4)
+		if (next === undefined) return
+		const dist = Math.abs(next - from)
+		const duration = Math.max(0.65, Math.min(1.1, 0.45 + (dist / window.innerHeight) * 0.55))
+		// a touch before the glide has fully come to rest, the next push may already start
+		busyUntil = now + duration * 1000 - 120
+		lastWheel.at = 0 // a step lands on its stop: nothing to settle
+		// Leaves at once (no ease-in, so the page answers the hand straight away) and settles softly.
+		instance.scrollTo(next, { duration, easing: (t: number) => 1 - Math.pow(1 - t, 4) })
+	}
+
+	const wheel = (data: { deltaX: number; deltaY: number; event: Event }) => {
+		const e = data.event
+		// Leave to Lenis: touch, pinch-zoom, sideways swipes, anything that scrolls by itself, and a locked page.
+		if (e.type !== 'wheel' || (e as WheelEvent).ctrlKey || instance.isStopped) return true
+		if (Math.abs(data.deltaX) > Math.abs(data.deltaY)) return true
+		if (e.composedPath().some((n) => n instanceof HTMLElement && (n.hasAttribute('data-lenis-prevent') || n.hasAttribute('data-lenis-prevent-wheel') || n.hasAttribute('data-lenis-prevent-vertical')))) return true
+		const now = performance.now()
+		if (now - lastAt > 200) { samples = []; spent = false; coasting = false; peak = 0 } // the wheel was quiet: a new gesture
+		lastAt = now
+		const abs = Math.abs(data.deltaY)
+		const dir = Math.sign(data.deltaY)
+		samples.push(abs)
+		if (samples.length > 150) samples.shift()
+		// One swipe sends events for a second or more (fingers, then the coast), however long the fingers stay down.
+		// It gets one step. The next needs the swipe to have faded first, and then a push that is getting stronger —
+		// the coast only fades — so a single swipe can never carry the page past more than one stop.
+		let fresh = false
+		if (spent) {
+			peak = Math.max(peak, abs)
+			if (mean(samples, 4) < peak * 0.45) spent = false
+		} else {
+			const recent = mean(samples, 10)
+			fresh = recent >= 2 && recent >= mean(samples, 70)
+		}
+		if (instance.scroll >= instance.limit - 4) seenEnd = true
+		if (seenEnd && dir < 0) {
+			busyUntil = 0
+			lastWheel.at = 0
+			spent = true
+			peak = Math.max(peak, abs)
+			return true
+		}
+		const gliding = now < busyUntil
+
+		// Core values: the page scrolls under the hand as it always did (weighted, capped, slower through the pin).
+		if (!gliding && dir && inFreePin(instance.scroll, dir) && !(coasting && !fresh)) {
+			// the last of a swipe's coast must not knock the settle off its way to a value
+			if (lastWheel.settling && !fresh) {
+				if (e.cancelable) e.preventDefault()
+				return false
+			}
+			coasting = false
+			// ...and the swipe that scrolled it must fade before it can also step the page on past the pin
+			spent = true
+			peak = Math.max(peak, abs)
+			lastWheel.at = now
+			lastWheel.dir = dir
+			const max = Math.max(110, window.innerHeight * 0.16)
+			data.deltaY = Math.max(-max, Math.min(max, data.deltaY)) * 0.72
+			return true
+		}
+
+		if (e.cancelable) e.preventDefault()
+		if (gliding || !fresh) return false
+		spent = true
+		peak = abs
+		coasting = true
+		step(dir)
+		return false
+	}
+
+	return { wheel, step }
 }
 
 export const stopScroll = () => lenis?.stop()

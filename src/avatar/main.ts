@@ -25,6 +25,8 @@ const ease = (x: number) => x * x * (3 - 2 * x)
 const bootParams = new URLSearchParams(location.search)
 let inviteElapsed = 0
 let duckTarget = 0
+let duckPrev = 0
+let surgeKick = 0
 const bootWave = bootParams.has('wave') || peekMode
 
 useFrame()
@@ -97,7 +99,7 @@ async function boot() {
 	const pointer = { x: 0, y: 0 }
 	const REST_YAW = rad(-13), REST_PITCH = rad(-3.5)
 	const yaw = new Spring(0.85, 0.9, 0.2, REST_YAW), pitch = new Spring(0.85, 0.9, 0.2, REST_PITCH)
-	const duckMotion = new Spring(0.8, 1, 0)
+	const duckMotion = new Spring(1.6, 0.85, 0)
 	const eyeY = new Spring(3.2, 0.82, 1.4), eyeP = new Spring(3.2, 0.82, 1.4)
 	let followGain = 0
 	let blinkAt = 2.2, blinkT = -1, blinkDouble = false
@@ -108,7 +110,8 @@ async function boot() {
 	}
 	// Peek CTA: just look toward the visitor — no wave gags.
 	if (bootWave || peekMode) act.lookWant = 0.42
-	let glanceAllowed = !(bootWave || peekMode || inviteMode)
+	// Invite peek: keep head glances on — body is hidden, so the face does the living.
+	let glanceAllowed = !(bootWave || peekMode)
 
 	// The same hooks as Version B's chat, word for word.
 	const hooks = {
@@ -251,10 +254,20 @@ async function boot() {
 		act.tapR *= Math.exp(-dt * 18)
 		if (m > 0.5) rig.tap('R', (act.tapR - 0.25) * (m - 0.5) * 2)
 
+		let inviteHover = 0
 		if (inviteMode) {
-			const duckAmount = Math.max(0, Math.min(1, duckMotion.update(dt, duckTarget)))
-			if (!duckTarget && duckAmount < 0.02) inviteElapsed += dt
-			animateInvite(stage, inviteElapsed, duckAmount)
+			// One nod pulse on hover enter — not a held pitch every frame.
+			if (duckTarget > 0.5 && duckPrev < 0.5) act.nod = 1
+			duckPrev = duckTarget
+			inviteHover = Math.max(0, Math.min(1, duckMotion.update(dt, duckTarget)))
+			if (!duckTarget && inviteHover < 0.02) inviteElapsed += dt
+			animateInvite(stage, inviteElapsed, inviteHover)
+			// Powering up under the pointer: a kick when it arrives, then held. The suit's lines surge and race, and the
+			// visor's display comes up bright — he "switches on" for you instead of only nodding.
+			if (duckTarget > 0.5 && surgeKick < 0.05 && inviteHover < 0.3) surgeKick = 1
+			surgeKick *= Math.exp(-dt * 2.6)
+			bodyU.uSurge.value = Math.min(2, inviteHover * 0.75 + surgeKick * 1.25 * duckTarget)
+			glassU.uHud.value += inviteHover * 1.6 + surgeKick * 1.4 * duckTarget
 		}
 
 		// ---- head and eyes ----
@@ -262,8 +275,12 @@ async function boot() {
 		const idleP = Math.sin(t * 0.53 + 1) * rad(0.5)
 		const look = act.look
 		const away = 1 - look * 0.85
-		const toYaw = (REST_YAW + (pointer.x * rad(16) + idleY) * followGain) * away + rad(4) * look
-		const toPitch = (REST_PITCH + (pointer.y * rad(6) + idleP) * followGain) * away + rad(15) * look + rad(5) * Math.sin(act.nod * Math.PI) * act.nod
+		const inviteAmp = inviteMode ? 1.15 + inviteHover * 0.25 : 1
+		const nodKick = inviteMode ? 6 : 5
+		const toYaw = (REST_YAW + (pointer.x * rad(16 * inviteAmp) + idleY * inviteAmp) * followGain) * away + rad(4) * look
+			// under the pointer he also looks from side to side, slowly, like taking you in (not a head-shake)
+			+ (inviteMode ? rad(11) * Math.sin(t * 2.4) * inviteHover : 0)
+		const toPitch = (REST_PITCH + (pointer.y * rad(6 * inviteAmp) + idleP * inviteAmp) * followGain) * away + rad(15) * look + rad(nodKick) * Math.sin(act.nod * Math.PI) * act.nod
 		const y = yaw.update(dt, toYaw), p = pitch.update(dt, toPitch)
 		const ey = eyeY.update(dt, (pointer.x * rad(14) * followGain) * away)
 		const ep = eyeP.update(dt, (pointer.y * rad(8) * followGain) * away + rad(17) * look)
