@@ -5276,7 +5276,8 @@ body {
 .athletics-showcase {
 	position: absolute;
 	inset: 0;
-	overflow: hidden;
+	width: 100%;
+	overflow: visible;
 	pointer-events: none;
 	z-index: 2;
 }
@@ -5321,10 +5322,11 @@ body {
 	transform: translateX(-50%) translateY(0);
 }
 
-.athletics-medal--far-left { left: 17%; }
-.athletics-medal--mid-left { left: 32%; }
-.athletics-medal--mid-right { left: 68%; }
-.athletics-medal--far-right { left: 83%; }
+/* Symmetric around the trophy so the cluster reads centered on every desktop width. */
+.athletics-medal--far-left { left: 22%; }
+.athletics-medal--mid-left { left: 36%; }
+.athletics-medal--mid-right { left: 64%; }
+.athletics-medal--far-right { left: 78%; }
 
 .athletics-medal--mid-left,
 .athletics-medal--mid-right {

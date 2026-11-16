@@ -28,11 +28,15 @@ dist-ssr
 *.sln
 *.sw?
 
-# Large media files
+# Large media files (site videos/gifs are tracked via Git LFS — see .gitattributes)
 *.mov
 *.mp4
 *.gif
 *.zip
+!public/bb.mp4
+!public/lumina-demo.mp4
+!public/project-azteca.mp4
+!public/Illus.mp4
 
 # Local Netlify folder
 .netlify
