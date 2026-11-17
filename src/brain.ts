@@ -31,7 +31,7 @@ const FACTS: Fact[] = [
   { id: "projects", topic: "projects", say: "Besides Lumina: TV Azteca Digital Metrics, a real-time analytics dashboard, and Unif-AI, an AI platform for business documents. The code's on github.com/penamorros.", words: "projects project portfolio built github dashboard metrics made show examples work demo" },
   { id: "values", topic: "values", say: "Hard work, clean code, teamwork, excellence, innovation and growth. Those six run everything I do.", words: "values value believe principles motto care important philosophy" },
 
-  { id: "contact", topic: "contact", say: "Email's best: penamorrosm@gmail.com. Or use \"Get in Touch\" right here on the page.", words: "contact email mail reach hire hiring talk meet call phone number message linkedin work together collaborate job offer" },
+  { id: "contact", topic: "contact", say: "Email's best: manuel@manuelpenamorros.com. Or use \"Get in Touch\" right here on the page.", words: "contact email mail reach hire hiring talk meet call phone number message linkedin work together collaborate job offer" },
   { id: "resume", topic: "contact", say: "Hit \"See Resume\" on the left and you'll get the whole thing as a PDF.", words: "resume cv pdf download" },
   { id: "where", topic: "about", say: "I'm based in Austin, Texas. Before that, Mexico City.", words: "where live based from location city country home hometown austin mexico" },
 ];
@@ -114,13 +114,13 @@ const SAY = {
   praise: ["Thank you, that means a lot!", "Appreciate it! Still a long way to go, and that's the fun part.", "Thanks! It's been a lot of work, and I love it."],
   laugh: ["Ha! What else do you want to know?", "Haha. Glad you're having fun here!"],
   sorry: ["No need to apologize! What can I tell you?", "All good, really!"],
-  bot: ["I'm Manuel's AI twin: I answer as him, from his real resume. For the man himself, write to penamorrosm@gmail.com!"],
+  bot: ["I'm Manuel's AI twin: I answer as him, from his real resume. For the man himself, write to manuel@manuelpenamorros.com!"],
   name: ["I'm Manuel Peña-Morros! Well, his AI twin, trained on his resume."],
   about: ["I'm Manuel: founder and CEO of Lumina Labs, a Data Science student at UT Austin, and a competitive bodybuilder. What do you want to know?"],
   help: ["Ask me about Lumina Labs, my studies at UT Austin, bodybuilding, my internships or the code I write. Whatever you like!"],
   gibberish: ["Sorry, I didn't catch that. Try me on Lumina Labs, my studies or my work!", "Hmm, I'm not sure what you mean. Want to hear about Lumina Labs?"],
-  unknown: ["I don't have that detail, sorry! Best to check my resume or write to penamorrosm@gmail.com.", "That's one I can't answer here. Email me at penamorrosm@gmail.com and I'll get back to you!", "Hmm, I don't have an answer for that. Ask me about Lumina Labs, my studies or my work?"],
-  outOfFacts: ["That's about all I've got on that here. For more, email me at penamorrosm@gmail.com!"],
+  unknown: ["I don't have that detail, sorry! Best to check my resume or write to manuel@manuelpenamorros.com.", "That's one I can't answer here. Email me at manuel@manuelpenamorros.com and I'll get back to you!", "Hmm, I don't have an answer for that. Ask me about Lumina Labs, my studies or my work?"],
+  outOfFacts: ["That's about all I've got on that here. For more, email me at manuel@manuelpenamorros.com!"],
 };
 
 export type Reply = { parts: string[]; topic: string; kind: string };

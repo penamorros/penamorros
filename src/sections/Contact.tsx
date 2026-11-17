@@ -4,7 +4,7 @@ import { analytics } from '../services/analytics'
 import { gsap, isTouch, pointerTilt, prefersReducedMotion, useMotion, writeIn } from '../motion'
 import SignatureCanvas, { type SignatureHandle } from '../motion/SignatureCanvas'
 
-const EMAIL = 'penamorrosm@gmail.com'
+const EMAIL = 'manuel@manuelpenamorros.com'
 const INK: [number, number, number] = [44, 44, 44]
 
 export default memo(function Contact() {
