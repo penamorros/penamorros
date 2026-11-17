@@ -89,30 +89,23 @@ let lenis: Lenis | null = null
 
 export function startSmoothScroll() {
 	if (lenis || isTouch() || prefersReducedMotion()) return () => {}
-	const safari = isSafari()
 	// Round 5 (the client, 2026-11-16: "never let the user slide down ... every time they slide they don't cut off mid
 	// section ... automatically do it but smoothly"): the wheel and trackpad no longer move the page freely. Each scroll
 	// gesture carries the page one stop on — the next section, or the next value / resume entry inside a pinned one.
-	// Safari: free Lenis + settle only — stepped virtualScroll feels frozen/laggy on its trackpad.
+	// Safari gets exactly the same stepping as Chrome (the client, 2026-11-16). It was given free scroll while its
+	// frame rate was capped at 30; with that gone the stepper is fine there.
 	let onWheel: (data: { deltaX: number; deltaY: number; event: Event }) => boolean = () => true
 	const instance = new Lenis({
 		autoRaf: false,
-		lerp: safari ? 0.12 : 0.085,
-		wheelMultiplier: safari ? 0.85 : 0.9,
+		lerp: 0.085,
+		wheelMultiplier: 0.9,
 		virtualScroll: (data) => onWheel(data),
 	})
 	lenis = instance
 	window.__lenis = instance
 	instance.on('scroll', ScrollTrigger.update)
 	const stepper = stepScroll(instance)
-	onWheel = safari
-		? (data) => {
-			if (data.deltaY) { lastWheel.at = performance.now(); lastWheel.dir = Math.sign(data.deltaY) }
-			const max = Math.max(110, window.innerHeight * 0.16)
-			data.deltaY = Math.max(-max, Math.min(max, data.deltaY))
-			return true
-		}
-		: stepper.wheel
+	onWheel = stepper.wheel
 	const unsettle = settleAfterScroll(instance)
 	// Arrows and Page keys step like the wheel. The other scroll keys stay native; a glide still running would pull
 	// the page back, so it ends where it is. (Space is left alone: the skills game uses it.)

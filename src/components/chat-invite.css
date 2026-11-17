@@ -44,14 +44,14 @@
 .invite-live::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #3d7be8; animation: invite-ping 2.2s ease-out infinite; }
 @keyframes invite-ping { from { transform: scale(1); opacity: .7; } to { transform: scale(3.2); opacity: 0; } }
 .invite-line { display: inline-block; animation: invite-line .45s cubic-bezier(.22, 1, .36, 1) both; }
-@keyframes invite-line { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+@keyframes invite-line { from { transform: translateY(7px); } to { transform: none; } }
 .invite-arrow { color: #5b6b8c; font-weight: 500; transition: transform .25s cubic-bezier(.22, 1, .36, 1); }
 .invite-thought:hover .invite-label { transform: translateY(-2px) scale(1.03); box-shadow: 0 14px 34px -10px rgba(111, 158, 239, .9), 0 0 0 1px #fff; }
 .invite-thought:hover .invite-arrow { transform: translate(2px, -2px); }
 .invite-thought:focus-visible, .invite-peek:focus-visible { outline: 2px solid #c4d0e5; outline-offset: 4px; border-radius: 20px; }
 /* it arrives, then every so often gives one small hop so the eye finds it */
 .is-ready .invite-thought, .is-still .invite-thought { animation: invite-appear .5s .45s cubic-bezier(.22, 1, .36, 1) both, invite-hop 7s 4s ease-in-out infinite; }
-@keyframes invite-appear { from { opacity: 0; transform: translateY(8px) scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes invite-appear { from { transform: translateY(8px) scale(.9); } to { transform: none; } }
 @keyframes invite-hop { 0%, 90%, 100% { transform: none; } 94% { transform: translateY(-5px); } 97% { transform: translateY(1px); } }
 .app.color-mode .invite-label { color: #fff; background: #0b1220; box-shadow: 0 10px 30px -12px rgba(20, 34, 70, .6); }
 .app.color-mode .invite-arrow { color: #a9b6d0; }
