@@ -16,6 +16,8 @@ type FromChat =
 	| { t: 'run'; on: boolean }
 	| { t: 'wave'; on: boolean }
 	| { t: 'duck'; on: boolean }
+	| { t: 'power'; on: boolean }
+	| { t: 'surge' }
 	| { t: 'theme'; light: boolean }
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -27,6 +29,11 @@ let inviteElapsed = 0
 let duckTarget = 0
 let duckPrev = 0
 let surgeKick = 0
+// His suit's lights, switched by the page: dark while the portrait is showing, then 0 -> 100 in a blink when the
+// coin turns and he is the one on show ("Click to talk"). 1 until the page says otherwise, so nothing else changes.
+let powerWant = 1
+let power = 1
+let powerFlash = 0
 const bootWave = bootParams.has('wave') || peekMode
 
 useFrame()
@@ -216,6 +223,15 @@ async function boot() {
 			case 'closed': hooks.closed(); break
 			case 'wave': hooks.wave(m.on); break
 			case 'duck': if (inviteMode) duckTarget = m.on ? 1 : 0; break
+			// clicking "Click to talk" is the activation: the same switch-on, played again — he drops dark for a
+			// blink and comes straight back up to full, so the click visibly does something to him
+			case 'surge': powerWant = 1; power = 0; powerFlash = 1.15; break
+			case 'power':
+				// switching on: one flash and a run down the lines, then it stays lit
+				if (m.on && powerWant < 0.5) powerFlash = 1
+				powerWant = m.on ? 1 : 0
+				if (!m.on) { power = Math.min(power, 1); powerFlash = 0 }
+				break
 			case 'theme': applyTheme(!!m.light); break
 			case 'run': stage.setRunning(m.on); if (m.on) lastPhone = ''; break
 			case 'pointer': {
@@ -301,6 +317,19 @@ async function boot() {
 			surgeKick *= Math.exp(-dt * 2.6)
 			bodyU.uSurge.value = Math.min(2, inviteHover * 0.75 + surgeKick * 1.25 * duckTarget)
 			glassU.uHud.value += inviteHover * 1.6 + surgeKick * 1.4 * duckTarget
+		}
+
+		// ---- switching on ----
+		// The chat twin behind the portrait starts dark and comes up 0 -> 100 the moment the coin turns and shows
+		// "Click to talk": the suit's circuit lines flash on and race, and the visor's display lights with them.
+		// The page says when (a 'power' message); nothing about him changes but the light.
+		if (powerWant < 1 || power < 0.999 || powerFlash > 0.001) {
+			power += (powerWant - power) * (1 - Math.exp(-dt * (powerWant > power ? 17 : 5)))
+			powerFlash *= Math.exp(-dt * 3.4)
+			const pw = Math.min(1, power)
+			bodyU.uCircuit.value = pw * (1 + powerFlash * 2.1)
+			glassU.uHud.value *= (0.14 + 0.86 * pw) * (1 + powerFlash * 1.3)
+			if (!inviteMode) bodyU.uSurge.value = powerFlash * 1.7 * pw
 		}
 
 		// ---- head and eyes ----

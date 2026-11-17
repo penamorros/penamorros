@@ -14,6 +14,8 @@ type ToAvatar =
 	| { t: 'closed' }
 	| { t: 'run'; on: boolean }
 	| { t: 'theme'; light: boolean }
+	| { t: 'power'; on: boolean }
+	| { t: 'surge' }
 
 // On Netlify's free plan every served HTML page gets the "Powered by Netlify" badge, fixed to its bottom-right corner, the avatar's own page
 // included. The page's real badge stays where it is; this one only duplicated it inside the circle. The frame now runs this far below the
@@ -38,10 +40,16 @@ export const avatar = {
 	},
 }
 
-/** The avatar in its circle (or the phone's chat sheet). `on`: the chat side is showing, so he should be drawing. */
-export function AvatarFrame({ on }: { on: boolean }) {
+/**
+ * The avatar in its circle (or the phone's chat sheet). `on`: the chat side is showing, so he should be drawing.
+ * `lit`: his suit's lights are on. He waits in the dark behind the portrait and switches on as the coin turns —
+ * the client's idea, 2026-11-17: "the lights turn on, not like a light bulb but fast from 0 to 100".
+ */
+export function AvatarFrame({ on, lit = true }: { on: boolean; lit?: boolean }) {
 	const ref = useRef<HTMLIFrameElement>(null)
 	const [state, setState] = useState<'loading' | 'ready' | 'still'>('loading')
+	const litNow = useRef(lit)
+	litNow.current = lit
 
 	useEffect(() => {
 		const el = ref.current
@@ -53,6 +61,8 @@ export function AvatarFrame({ on }: { on: boolean }) {
 				ready = true
 				setState('ready')
 				el.contentWindow?.postMessage({ t: 'theme', light: !!document.querySelector('.app.color-mode') }, location.origin)
+				// he boots behind the portrait: start him dark unless he is already the one on show
+				el.contentWindow?.postMessage({ t: 'power', on: litNow.current }, location.origin)
 			}
 			else if (e.data.t === 'nogl') setState('still')
 			else if (e.data.t === 'phone') phone = { x: e.data.x, y: e.data.y }
@@ -80,6 +90,15 @@ export function AvatarFrame({ on }: { on: boolean }) {
 			if (frame === el) { frame = null; ready = false; phone = null }
 		}
 	}, [])
+
+	// The coin takes 0.8s to turn (.coin-inner, site.css); his side of it comes into view around halfway, so the
+	// switch-on waits for that and lands as his face arrives. Going dark again can happen at once: his back is turned.
+	useEffect(() => {
+		if (state !== 'ready') return
+		if (!lit) { avatar.send({ t: 'power', on: false }); return }
+		const id = window.setTimeout(() => avatar.send({ t: 'power', on: true }), 380)
+		return () => window.clearTimeout(id)
+	}, [lit, state])
 
 	// Drawing only while the chat side shows (the coin's back, or the phone's sheet). A short grace lets the coin finish turning away.
 	useEffect(() => {

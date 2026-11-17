@@ -13,6 +13,9 @@ export const bodyU = {
   uLight: { value: 0 },
   // Hover on the small peeking twin: the suit's circuit lines charge up (0 = resting, 1 = held, up to ~2 on the first kick).
   uSurge: { value: 0 },
+  /** Master switch for the suit's circuit lines. 1 everywhere except the peeking twin, who starts dark and
+   *  powers up when you click to talk (it runs past 1 for the flash at the moment of switch-on). */
+  uCircuit: { value: 1 },
 };
 
 function fabric(armour: Texture) {
@@ -31,7 +34,7 @@ function fabric(armour: Texture) {
         ${DISSOLVE}
         ${SPOT_GLSL}
         ${PHONE_GLSL}
-        uniform sampler2D uArmour; uniform float uTime; uniform float uLight; uniform float uSurge;
+        uniform sampler2D uArmour; uniform float uTime; uniform float uLight; uniform float uSurge; uniform float uCircuit;
         varying float vAO; varying vec3 vObj; varying vec2 vRest;
         vec4 aMap; float aSpot; float aPlate;`)
       .replace("#include <map_fragment>", `#include <map_fragment>
@@ -84,7 +87,7 @@ function fabric(armour: Texture) {
           float lineGain = mix(1.0, 1.15, uLight) * (1.0 + uSurge * (1.5 + 0.5 * sin(uTime * 13.0)));
           run = mix(run, 0.6 + 0.4 * sin(vObj.y * 46.0 + vObj.x * 22.0 - uTime * 9.0), min(1.0, uSurge));
           // on the white suit the lines give no light of their own (they are ink) — except under the pointer, when they charge up blue
-          totalEmissiveRadiance += lineCol * (line * line * 4.0 * run + line * 1.15) * lineGain * mix(1.0, min(1.0, uSurge) * 0.85, uLight);
+          totalEmissiveRadiance += lineCol * (line * line * 4.0 * run + line * 1.15) * lineGain * mix(1.0, min(1.0, uSurge) * 0.85, uLight) * uCircuit;
           float nv = saturate(dot(normal, normalize(vViewPosition)));
           if (gl_FrontFacing) totalEmissiveRadiance += mix(vec3(0.05, 0.07, 0.11), vec3(0.12, 0.14, 0.18), uLight) * pow(1.0 - nv, 3.4) * smoothstep(0.03, 0.62, vAO) * (1.0 - aPlate);
           totalEmissiveRadiance += phoneLight(normal, -vViewPosition) * vec3(0.11, 0.095, 0.08) * smoothstep(0.03, 0.5, vAO);

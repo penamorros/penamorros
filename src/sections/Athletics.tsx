@@ -20,7 +20,11 @@ export default function Athletics() {
 		if (isDesktop()) {
 			const leave = { trigger: q('.athletics-section')[0], start: 'top top', end: 'bottom top', scrub: true }
 			gsap.to(q('.athletics-trophy-wrap'), { y: -50, ease: 'none', scrollTrigger: leave })
-			q('.athletics-medal').forEach((medal: Element, i: number) => {
+			// The parallax rides on .athletics-medal-inner, never on .athletics-medal itself: that outer element is
+			// centred on its left: % with transform: translateX(-50%), and a GSAP tween writing its transform would
+			// wipe the centring and shift every medal right by half its width (which is what Safari and the live
+			// build were showing, depending on when the tween initialised).
+			q('.athletics-medal-inner').forEach((medal: Element, i: number) => {
 				gsap.to(medal, { y: i % 2 ? -110 : -60, ease: 'none', scrollTrigger: leave })
 			})
 		}

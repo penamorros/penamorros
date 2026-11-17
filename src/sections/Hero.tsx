@@ -373,8 +373,9 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 	// The circle holds only him; the conversation is a glass panel facing him.
 	const avatarStage = (
 		<div className="chat-avatar">
+			{/* lit: his lights come on as the coin turns to his side, and go out again when it turns back */}
 			{(avatarWanted || chatOpen) && (
-				<AvatarFrame on={chatOpen || avatarWanted || (desktop && photoHovered)} />
+				<AvatarFrame on={chatOpen || avatarWanted || (desktop && photoHovered)} lit={!desktop || chatOpen || photoHovered} />
 			)}
 		</div>
 	)
@@ -540,6 +541,8 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 						onClick={() => {
 							if (!interactive) return
 							setAvatarWanted(true)
+							// clicking "Click to talk" is the activation: his suit flashes and the lines run before the chat opens
+							if (!chatOpen) avatar.send({ t: 'surge' })
 							setChatOpen((open) => !open)
 						}}
 						onKeyDown={(e) => {
@@ -547,6 +550,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 							if (e.key === 'Enter' || e.key === ' ') {
 								e.preventDefault()
 								setAvatarWanted(true)
+								if (!chatOpen) avatar.send({ t: 'surge' })
 								setChatOpen((open) => !open)
 							}
 						}}
