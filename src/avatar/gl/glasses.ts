@@ -1,6 +1,6 @@
 // His digital glasses, built in code to the measurements of his fitted head (face/tools/measure_fit.py): one smoked wraparound lens from temple to
 // temple with a HUD inside it, a machined brow bar carrying a lit strip, temple arms with a small readout and a lit ring. Rides on the head joint.
-import { AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, CatmullRomCurve3, Color, CustomBlending, CylinderGeometry, DoubleSide, Group, LinearFilter, Mesh, MeshStandardMaterial, OneFactor, OneMinusSrcAlphaFactor, ShaderMaterial, SphereGeometry, TorusGeometry, TubeGeometry, Vector2, Vector3 } from "three";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, CatmullRomCurve3, Color, CustomBlending, CylinderGeometry, DoubleSide, Group, LinearFilter, Mesh, MeshStandardMaterial, OneFactor, OneMinusSrcAlphaFactor, ShaderMaterial, SphereGeometry, TorusGeometry, TubeGeometry, Vector2, Vector3, DataTexture, RGBAFormat } from "three";
 import { DISSOLVE, DISSOLVE_FRAG, shared } from "./head";
 import { PHONE_GLSL, phoneU, spot, SPOT_GLSL } from "./reveal";
 
@@ -113,7 +113,11 @@ function drawHud() {
   x.fillText("POINTS", 375 - 84, 156);
   x.textAlign = "left";
   x.fillText("LUMINA", 649 + 84, 156);
-  const t = new CanvasTexture(c);
+  // same as the armour map: the pixels go up directly, because Safari's canvas uploads come through black
+  const px = x.getImageData(0, 0, c.width, c.height).data;
+  const t = new DataTexture(new Uint8Array(px.buffer, px.byteOffset, px.length), c.width, c.height, RGBAFormat);
+  t.flipY = true;
+  t.needsUpdate = true;
   t.minFilter = LinearFilter;
   t.magFilter = LinearFilter;
   t.generateMipmaps = false;

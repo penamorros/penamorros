@@ -1,6 +1,6 @@
 // The cursor spotlight (from Cyberpunk Reveal): under it his clothes are armour with lit seams and his face shows Lumina's 478-point mesh.
 // It's done in each material rather than with a second image, so it stays on the real 3D as he moves.
-import { CanvasTexture, LinearFilter, LinearMipmapLinearFilter, Vector3 } from "three";
+import { DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, Vector3 } from "three";
 
 export const spot = {
   uSpot: { value: new Vector3(-9999, -9999, 300) }, // x, y and radius, in device pixels, with y from the bottom
@@ -168,7 +168,13 @@ export function buildArmour(lite: boolean, rest: Record<string, number[]>) {
   x.lineTo(X(0.3), Y(-0.46));
   x.stroke();
 
-  const t = new CanvasTexture(c);
+  // Safari can hand WebGL an empty picture when the source is a 2-D canvas — it keeps this one on the CPU because of
+  // willReadFrequently, and the upload quietly yields black. Black here means no lit lines, no plates and no seams,
+  // which is exactly how the suit came out there. Sending the pixels themselves leaves nothing in between.
+  const px = x.getImageData(0, 0, W, H).data;
+  const t = new DataTexture(new Uint8Array(px.buffer, px.byteOffset, px.length), W, H, RGBAFormat);
+  t.flipY = true; // what a canvas texture does by default, and what the drawing above assumes
+  t.needsUpdate = true;
   t.minFilter = LinearMipmapLinearFilter;
   t.magFilter = LinearFilter;
   t.generateMipmaps = true;
