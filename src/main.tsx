@@ -10,6 +10,7 @@ import './touches.css'
 import './chat.css'
 import './premium.css'
 import './resume-log.css'
+import './safari.css' // last: it undoes the two things Safari cannot do at speed
 import { startIntro } from './motion/intro'
 
 const container = document.getElementById('root')!

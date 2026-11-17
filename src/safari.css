@@ -1,0 +1,45 @@
+/* ---------- Safari only (html.is-safari is set in src/motion/index.ts)
+   Measured 2026-11-16: Chrome holds 60fps on this page and Safari crawls, for two reasons that are all over the site.
+   1. Backdrop blur ("glassmorphism") on the rail, the cards, the value icons and the panels. Safari recomputes each
+      one every frame the page moves, and it cannot cache them. Taking the blur away keeps every colour exactly as it
+      was — only the frosting of the grid behind the glass is lost.
+   2. Text clipped to a moving gradient (the blue foot of the titles). Safari repaints every glyph each frame, and the
+      drop-shadow around them is re-blurred with it. The titles keep the blue foot; its crest just stops travelling. */
+
+html.is-safari *,
+html.is-safari *::before,
+html.is-safari *::after {
+	-webkit-backdrop-filter: none !important;
+	backdrop-filter: none !important;
+}
+
+/* the panels that sit over busy content have to hold their own now that the blur is gone */
+html.is-safari .twin-chat { background-color: rgba(10, 12, 18, .94); }
+html.is-safari .app.color-mode .twin-chat { background-color: rgba(255, 255, 255, .96); }
+html.is-safari .flappy-instructions,
+html.is-safari .flappy-game-over { background: rgba(10, 10, 12, .96); }
+html.is-safari .app.color-mode .flappy-instructions,
+html.is-safari .app.color-mode .flappy-game-over { background: rgba(255, 255, 255, .97); }
+
+html.is-safari .hero.is-lit .title .title-word,
+html.is-safari .section h2 > .write,
+html.is-safari .section h2 > .write .mk,
+html.is-safari .value-caption h3,
+html.is-safari .athletics-home-title {
+	background-size: 100% 100%, 100% 100% !important;
+	background-position: 0 0, 0 0 !important;
+	animation: none !important;
+}
+/* the value's name still tracks in — that one is a transform, which Safari composites */
+html.is-safari .value-caption-item.active h3 { animation: vc-title .75s var(--ease-out) both !important; }
+
+html.is-safari .hero.is-lit .title,
+html.is-safari .section h2 > .write,
+html.is-safari .value-caption h3 { filter: none !important; }
+
+/* the two arcs around the portrait are a masked element that spins. Left alone Safari re-draws the mask on every
+   frame; promoted to its own layer it is drawn once and the GPU turns it. */
+html.is-safari .photo-wrap::before { will-change: transform; }
+
+/* the blurred glow behind the hero and the section titles is re-blurred whenever its parent is scaled on scroll */
+html.is-safari .hero-visual::before { will-change: transform; }

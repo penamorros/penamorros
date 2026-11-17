@@ -361,7 +361,7 @@ html.sheet-open body {
 	display: grid;
 	text-align: center;
 	width: min(640px, 100%);
-	margin: clamp(2.4rem, 5.5vh, 4rem) auto 0;
+	margin: clamp(3.2rem, 7.5vh, 5.4rem) auto 0;
 	padding: 0 1.5rem;
 }
 
@@ -402,9 +402,9 @@ html.sheet-open body {
 .vc-index {
 	position: absolute;
 	left: 50%;
-	top: -0.35rem;
+	top: 0.5rem;
 	z-index: 0;
-	font: 700 6.2rem/1 var(--font-sans);
+	font: 700 5.4rem/1 var(--font-sans);
 	letter-spacing: -.04em;
 	color: transparent;
 	-webkit-text-stroke: 1px rgba(197, 216, 255, .2);

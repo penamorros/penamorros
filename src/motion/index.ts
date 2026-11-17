@@ -17,6 +17,8 @@ export const isTouch = () => window.matchMedia('(hover: none), (pointer: coarse)
 /** Safari's trackpad + stepped Lenis fights itself and feels frozen; keep free scroll there. */
 export const isSafari = () => /^((?!chrome|android).)*safari/i.test(navigator.userAgent) || /applewebkit/i.test(navigator.userAgent) && !/chrome|crios|fxios|edg/i.test(navigator.userAgent)
 
+if (isSafari()) document.documentElement.classList.add('is-safari')
+
 const DESKTOP = '(min-width: 1025px)'
 export const isDesktop = () => window.matchMedia(DESKTOP).matches
 
@@ -67,9 +69,14 @@ export const whenHeroSettled = () =>
 					return intro?.state === 'done'
 				}
 				if (ready()) return resolve()
-				const tick = window.setInterval(() => {
+				let tick = 0
+				// Safari sometimes leaves the particle flight unfinished, and everything that waits on this — the hero
+				// words, the peeking twin, the hover preview — would then never start at all. Hard cap it.
+				const cap = window.setTimeout(() => { window.clearInterval(tick); resolve() }, 4000)
+				tick = window.setInterval(() => {
 					if (!ready()) return
 					window.clearInterval(tick)
+					window.clearTimeout(cap)
 					// Beat after 'done' so the photo opacity settle is visible.
 					window.setTimeout(resolve, 280)
 				}, 50)
