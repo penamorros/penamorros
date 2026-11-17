@@ -35,10 +35,10 @@ const solo = bootParams.has('solo')
 if ((window.parent === window && !solo) || !hasRealGPU() || reduced) tell({ t: 'nogl' })
 else {
 	// Safari (and stuck workers) must not leave the peek blank forever.
-	const bootWatch = window.setTimeout(() => tell({ t: 'nogl' }), inviteMode || peekMode ? 7000 : 12000)
+	const bootWatch = window.setTimeout(() => tell({ t: 'nogl', err: 'timeout' }), inviteMode || peekMode ? 25000 : 30000)
 	boot()
 		.then(() => window.clearTimeout(bootWatch))
-		.catch((e) => { console.error(e); window.clearTimeout(bootWatch); tell({ t: 'nogl' }) })
+		.catch((e) => { console.error(e); window.clearTimeout(bootWatch); tell({ t: 'nogl', err: String(e?.message || e).slice(0, 120) }) })
 }
 
 /** Decode the figure on this thread — Safari's module workers often never finish for the invite iframe. */

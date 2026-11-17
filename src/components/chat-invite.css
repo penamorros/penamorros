@@ -20,7 +20,7 @@
 }
 .invite-character iframe { border: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .5s; }
 .is-ready .invite-character iframe { opacity: 1; }
-.invite-character img { width: 100%; height: 100%; object-fit: cover; object-position: 55% 12%; }
+.invite-character img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 55% 12%; }
 /* What he says: a clean speech pill, the page's one white button shape, with a tail towards him. (Round 5: the old
    grey thought-cloud read as decoration and nobody clicked it.) */
 /* anchored by its right edge, tail towards him, so a longer line grows leftwards and never runs off the screen */

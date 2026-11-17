@@ -57,11 +57,12 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
         setStill(false)
         setReady(true)
       }
-      if (event.data.t === 'nogl') setStill(true)
+      if (event.data.t === 'nogl') { (window as any).__avatarErr = event.data.err || 'nogl'; setStill(true) }
     }
     window.addEventListener('message', receive)
     // Safari can hang the WebGL boot with no message — show the still so the peek is never blank.
-    const fallback = window.setTimeout(() => { if (!gotReady) setStill(true) }, 8000)
+    // the picture covers the gap while he loads; it no longer ends the attempt (see the frame below)
+    const fallback = window.setTimeout(() => { if (!gotReady) setStill(true) }, 6000)
     return () => {
       window.removeEventListener('message', receive)
       window.clearTimeout(fallback)
@@ -83,7 +84,7 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
       <button ref={button} type="button" className="invite-peek" onPointerEnter={() => duck(true)} onPointerLeave={() => duck(false)} onClick={() => onOpen(false)} aria-label="Chat with Manuel's AI twin" aria-expanded={open}>
         <span className="invite-fx is-back" aria-hidden="true"><i className="fx-halo" /><i className="fx-ring" /><i className="fx-ring two" /></span>
         <span className="invite-character" aria-hidden="true">
-          {loaded && !still && <iframe ref={frame} src="/avatar.html?invite" title="Manuel peeking over the portrait" tabIndex={-1} />}
+          {loaded && <iframe ref={frame} src="/avatar.html?invite" title="Manuel peeking over the portrait" tabIndex={-1} />}
           {still && <img src="/avatar-3d.webp" alt="" />}
         </span>
         <span className="invite-fx is-front" aria-hidden="true"><i className="fx-scan" /><i className="fx-corner tl" /><i className="fx-corner tr" /><i className="fx-corner bl" /><i className="fx-corner br" /></span>
