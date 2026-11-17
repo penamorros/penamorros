@@ -346,6 +346,19 @@ async function boot() {
 
 	stage.start()
 	// The first frames are drawn before the circle shows him, so he never pops in half built.
-	requestAnimationFrame(() => requestAnimationFrame(() => tell({ t: 'ready' })))
+	requestAnimationFrame(() => requestAnimationFrame(() => {
+		const gl = stage.renderer.getContext()
+		tell({
+			t: 'ready',
+			diag: {
+				gl2: (stage.renderer as any).capabilities?.isWebGL2 ?? 'n/a',
+				err: gl.getError(),
+				armour: (window as any).__armour,
+				maxTex: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+				vary: gl.getParameter(gl.MAX_VARYING_VECTORS ?? 0x8DFC),
+				progs: stage.renderer.info.programs?.length,
+			},
+		})
+	}))
 	;(window as any).__avatar = { stage, act, hooks }
 }

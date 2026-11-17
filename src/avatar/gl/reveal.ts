@@ -172,6 +172,10 @@ export function buildArmour(lite: boolean, rest: Record<string, number[]>) {
   // willReadFrequently, and the upload quietly yields black. Black here means no lit lines, no plates and no seams,
   // which is exactly how the suit came out there. Sending the pixels themselves leaves nothing in between.
   const px = x.getImageData(0, 0, W, H).data;
+  // ?diag: is the picture itself empty, or does it go black on its way to the GPU?
+  let r = 0, g = 0, b = 0;
+  for (let i = 0; i < px.length; i += 4) { if (px[i] > 10) r++; if (px[i + 1] > 10) g++; if (px[i + 2] > 10) b++; }
+  (window as any).__armour = { w: W, h: H, r, g, b };
   const t = new DataTexture(new Uint8Array(px.buffer, px.byteOffset, px.length), W, H, RGBAFormat);
   t.flipY = true; // what a canvas texture does by default, and what the drawing above assumes
   t.needsUpdate = true;

@@ -55,6 +55,7 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
         frame.current?.contentWindow?.postMessage({ t: 'run', on: false }, location.origin)
         frame.current?.contentWindow?.postMessage({ t: 'theme', light: !!document.querySelector('.app.color-mode') }, location.origin)
         setStill(false)
+        ;(window as any).__avatarDiag = event.data.diag
         setReady(true)
       }
       if (event.data.t === 'nogl') { (window as any).__avatarErr = event.data.err || 'nogl'; setStill(true) }

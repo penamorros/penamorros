@@ -54,6 +54,15 @@ export async function runDiag() {
 		lines.push(`  op=${cs.opacity} fill=${cs.webkitTextFillColor || cs.color} anim=${cs.animationName}/${cs.animationPlayState}`)
 	}
 
+	// 2c. what the 3D frame itself reports (set by src/avatar/main.ts)
+	const d = W.__avatarDiag
+	if (!d) lines.push(`twin diag: none (err=${W.__avatarErr || '-'})`)
+	else {
+		lines.push(`twin gl2=${d.gl2} glErr=${d.err} progs=${d.progs} vary=${d.vary}`)
+		lines.push(`armour ${d.armour ? `${d.armour.w}x${d.armour.h} R=${d.armour.r} G=${d.armour.g} B=${d.armour.b}` : 'NOT BUILT'}`)
+	}
+	draw()
+
 	// 3. open the chat the way a visitor does
 	dispatchEvent(new CustomEvent('chat:open', { detail: { meet: false } }))
 	await sleep(2600)
