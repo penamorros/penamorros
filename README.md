@@ -1,73 +1,32 @@
-# React + TypeScript + Vite
+# Hi, I'm Manuel 👋
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Founder of **[Lumina Labs](https://apps.apple.com/us/app/lumina-labs/id6758263196)** and Data Science student at **UT Austin**. I like building products people actually use, end to end: the model, the app, and the business around it.
 
-Currently, two official plugins are available:
+🌐 **[manuelpenamorros.com](https://manuelpenamorros.com)** — my portfolio, where you can chat with my 3D AI twin
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+### What I'm working on
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Lumina Labs (Founder & CEO):** an AI-powered facial analysis platform that gives clinicians and patients personalized aesthetic recommendations. It's used by dermatology clinics in Mexico, has grown to $15K in monthly recurring revenue, and is now live on the App Store.
+- **UT Austin:** B.S. in Data Science (I transferred from Tulane, where I studied Computer Science).
 
-## Expanding the ESLint configuration
+### Where I've been
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **UnifAI, New York:** full-stack intern. I built AI agent solutions for enterprise clients, with React frontends and Python APIs.
+- **TV Azteca, Mexico City:** IT intern. I built a Python app that automated Lighthouse performance monitoring for 600+ URLs, making the work 40% more efficient, deployed on AWS.
+- **Diaita, Mexico City:** founder of a health and nutrition app that tackles obesity and diabetes. It reached 1,000+ downloads, and all of its revenue funded the Diaita Foundation.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Tools I use
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+**Languages:** Python · TypeScript · JavaScript · SQL · HTML/CSS
+**Frameworks:** React · Node.js · Django · three.js · Chart.js
+**Data & cloud:** AWS · Firebase · PostgreSQL · machine learning
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### This repo
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+It's the source of my site: React, TypeScript, Vite and three.js, with a real-time 3D avatar you can talk to (OpenAI behind a Netlify function), a jetpack guide that walks you through the page, and a small game where every skill you collect is 1% off Lumina Labs.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+📫 The quickest way to reach me is through [manuelpenamorros.com](https://manuelpenamorros.com): ask my AI twin, or book a call.
