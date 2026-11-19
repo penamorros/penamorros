@@ -17,7 +17,9 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
   const [ready, setReady] = useState(false)
   // with the jetpack fairy on the page, he is the character here: no 3D twin of our own to load
   const [fairy] = useState(fairyActive)
-  const [still, setStill] = useState(fairy)
+  // On every device he is the fairy now: where the flying guide does not run (phones, tablets, small windows, reduced
+  // motion), the fairy hovers here by the portrait on his own, instead of the old 3D twin (the client, 2026-11-19)
+  const [still, setStill] = useState(true)
   const [released, setReleased] = useState(false)
   const shown = released && (ready || still)
   const [line, setLine] = useState(0)
@@ -113,10 +115,14 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
     <div onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} className={`chat-invite${fairy ? ' is-fairy' : ''}${shown ? ' is-shown' : ''}${ready && released ? ' is-ready' : ''}${still ? ' is-still' : ''}${open ? ' is-open' : ''}`} aria-hidden={open || !shown || undefined} {...(open || !shown ? { inert: '' } : {})}>
       <button ref={button} type="button" className="invite-peek" onPointerEnter={() => duck(true)} onPointerLeave={() => duck(false)} onClick={() => onOpen(false)} aria-label="Chat with Manuel's AI twin" aria-expanded={open}>
         <span className="invite-fx is-back" aria-hidden="true"><i className="fx-halo" /><i className="fx-ring" /><i className="fx-ring two" /></span>
-        <span className="invite-character" aria-hidden="true">
-          {loaded && !fairy && <iframe ref={frame} src="/avatar.html?invite" title="Manuel peeking over the portrait" tabIndex={-1} />}
-          {still && !fairy && <img src="/avatar-3d.webp" alt="" />}
-        </span>
+        <span className="invite-character" aria-hidden="true" />
+        {!fairy && (
+          <span className="invite-solo-fairy" aria-hidden="true">
+            <i className="jet-flame" style={{ left: '42%', top: '54.1%' }}><b className="jf-glow" /><b className="jf-body" /><b className="jf-core" /></i>
+            <i className="jet-flame" style={{ left: '53.4%', top: '55.1%' }}><b className="jf-glow" /><b className="jf-body" /><b className="jf-core" /></i>
+            <span className="isf-sheet" />
+          </span>
+        )}
         <span className="invite-fx is-front" aria-hidden="true"><i className="fx-scan" /><i className="fx-corner tl" /><i className="fx-corner tr" /><i className="fx-corner bl" /><i className="fx-corner br" /></span>
       </button>
       <button type="button" className="invite-thought" onPointerEnter={() => duck(true)} onPointerLeave={() => duck(false)} onClick={() => onOpen(LINES[line].meet)} aria-label={LINES[line].meet ? 'Book a call with Manuel' : "Open chat with Manuel's AI twin"}>

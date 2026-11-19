@@ -22,6 +22,24 @@ export async function runDiag() {
 	const ua = navigator.userAgent
 	lines[0] = `DIAG v4  ${/safari/i.test(ua) && !/chrome|crios|edg/i.test(ua) ? 'SAFARI' : 'OTHER'}`
 
+	// 0. the athletics page lays its medals out differently here than in Chrome: report where they actually land
+	if (location.pathname.replace(/\/$/, '') === '/athletics') {
+		const box = (e: Element | null) => { if (!e) return 'missing'; const b = e.getBoundingClientRect(); return `${Math.round(b.left)},${Math.round(b.top)} ${Math.round(b.width)}x${Math.round(b.height)}` }
+		lines.push(`view ${innerWidth}x${innerHeight} dpr${devicePixelRatio}`)
+		lines.push(`content ${box(document.querySelector('.athletics-content'))}`)
+		lines.push(`section ${box(document.querySelector('.athletics-section'))}`)
+		lines.push(`main    ${box(document.querySelector('.main'))}`)
+		for (const m of document.querySelectorAll('.athletics-medal')) {
+			const cls = (m.className.match(/--([a-z-]+)/) || [])[1] || '?'
+			const b = m.getBoundingClientRect()
+			lines.push(`${cls.padEnd(10)} left=${getComputedStyle(m).left} mid=${Math.round(b.left + b.width / 2)} w=${Math.round(b.width)}`)
+		}
+		lines.push(`trophy  ${box(document.querySelector('.athletics-trophy-wrap'))}`)
+		lines.push('', 'done — screenshot this')
+		draw()
+		return
+	}
+
 	// 1. the WebGL the page can actually get
 	let gl2 = 'no', gl1 = 'no', renderer = '-', dbg = 'no'
 	try {

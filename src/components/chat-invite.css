@@ -179,3 +179,14 @@
 .app.color-mode .chat-nudge .nudge-x:hover { color: #0b1220; background: rgba(20, 34, 70, .06); }
 /* small screens: icons only, so the capsule never sits on top of the text in the middle of the page */
 @media (max-width: 1024px) { .chat-nudge .nudge-btn { height: 34px; padding: 0 11px; gap: 0; font-size: 0; } }
+
+/* the fairy on his own (no flying guide on this device): hovering by the portrait, bobbing gently, jets lit */
+.invite-solo-fairy { position: absolute; left: 50%; top: 2%; height: 96%; aspect-ratio: 204 / 420; transform: translateX(-50%); pointer-events: none; animation: isf-hover 3.2s ease-in-out infinite; }
+.invite-solo-fairy .isf-sheet { position: absolute; inset: 0; z-index: 2; background: url('/fairy-front-2.webp') 0 0 / 800% 100% no-repeat; }
+.app.color-mode .invite-solo-fairy .isf-sheet { background-image: url('/fairy-front-light.webp'); }
+.invite-solo-fairy .jet-flame { transform: translate(-50%, 0) scale(.95, .7); animation: isf-jet 2.4s ease-in-out infinite; }
+.invite-solo-fairy .jet-flame + .jet-flame { animation-delay: -.8s; }
+@keyframes isf-hover { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-6px); } }
+@keyframes isf-jet { 0%, 100% { transform: translate(-50%, 0) scale(.95, .66); } 50% { transform: translate(-50%, 2px) scale(.97, .76); } }
+.chat-invite:hover .invite-solo-fairy { filter: drop-shadow(0 0 14px rgba(110, 175, 255, .5)); }
+@media (prefers-reduced-motion: reduce) { .invite-solo-fairy, .invite-solo-fairy .jet-flame { animation: none; } }

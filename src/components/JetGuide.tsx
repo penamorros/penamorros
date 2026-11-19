@@ -145,7 +145,7 @@ function focusKey(section: string): string | null {
 
 const ok = () =>
 	typeof window !== 'undefined' &&
-	window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 1100px)').matches &&
+	window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 960px)').matches &&
 	!prefersReducedMotion()
 
 /** The fairy (the client, 2026-11-18): when the guide runs, he is also the character by the portrait on the hero, in

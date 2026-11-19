@@ -394,8 +394,16 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 		<div className="chat-avatar">
 			{/* lit: his lights come on as the coin turns to his side, and go out again when it turns back */}
 			{(avatarWanted || chatOpen) && (
-				<AvatarFrame on={chatOpen || avatarWanted || (desktop && photoHovered)} lit={!desktop || chatOpen || photoHovered} />
+				<AvatarFrame on={!floating && (chatOpen || avatarWanted || (desktop && photoHovered))} lit={!desktop || (chatOpen && !floating) || photoHovered} />
 			)}
+		</div>
+	)
+	// The floating chat's own twin boots with the hero's and waits out of sight, so a question asked from further down
+	// the page opens on him already lit, in the page's colours, and typing — never a dark still that pops into colour.
+	const floatOpen = desktop && floating && chatOpen
+	const floatStage = (
+		<div className="chat-avatar">
+			<AvatarFrame on={floatOpen} lit />
 		</div>
 	)
 
@@ -593,7 +601,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 								</div>
 								{desktop && (
 									<div className="coin-back">
-										{!floating && avatarStage}
+										{avatarStage}
 										{/* what a click here does, said plainly (the client, 2026-11-16) */}
 										<span className="coin-hint" aria-hidden="true"><MessageCircle size={14} />Click to talk</span>
 									</div>
@@ -615,11 +623,11 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 				</div>
 			</div>
 
-			{desktop && floating && chatOpen && appRoot && createPortal(
-				<div className="chat-float" data-lenis-prevent onClick={() => setChatOpen(false)}>
+			{desktop && avatarWanted && appRoot && createPortal(
+				<div className={`chat-float${floatOpen ? ' is-open' : ''}`} data-lenis-prevent onClick={() => setChatOpen(false)} {...(floatOpen ? {} : { inert: '', 'aria-hidden': true })}>
 					<div className="cf-stage" onClick={(e) => e.stopPropagation()}>
-						<div className="twin-chat in-float is-open" role="dialog" aria-modal="true" aria-label="Chat with Manuel's AI twin">{chatPanel}</div>
-						<div className="tc-stage cf-circle">{avatarStage}</div>
+						{floatOpen ? <div className="twin-chat in-float is-open" role="dialog" aria-modal="true" aria-label="Chat with Manuel's AI twin">{chatPanel}</div> : <div className="twin-chat in-float" />}
+						<div className="tc-stage cf-circle">{floatStage}</div>
 					</div>
 				</div>,
 				appRoot

@@ -1,6 +1,6 @@
 import {
-	Award, Briefcase, Cloud, Code, Cpu, Database, FileText, FolderOpen, GitBranch, Globe, GraduationCap, Heart,
-	Home, Layers, Lightbulb, Mail, Palette, Rocket, Server, Smartphone, Sparkles, Target, Terminal, Users, Zap,
+	Award, Briefcase, Cloud, Code, Cpu, Database, FileText, FolderOpen, Globe, GraduationCap, Heart,
+	Home, Layers, Lightbulb, Mail, Rocket, Server, Sparkles, Target, Users, Zap,
 } from './icons'
 
 export const sections = [
@@ -67,7 +67,7 @@ EDUCATION:
 EXPERIENCE:
 - Founder & CEO, Lumina Labs (New Orleans, LA) — Jan 2025–Present: AI-powered facial analysis platform; $2.5M valuation (CitiBank); $15K MRR; 1,000+ analyses; white-labeled SaaS across 5 dermatology clinics in Mexico; Apple App Store app; patent pending.
 - IT Intern, TV Azteca (Mexico City) — July 2024–July 2025: Python Lighthouse automation for 600+ URLs (40% efficiency gain); React dashboards for 2,000+ real-time events; AWS deployment.
-- Frontend Intern, UnifAI (New York City) — June 2025–August 2025: React, TypeScript, TailwindCSS; real-time charts; UI refactor improved engagement 25%.
+- Full Stack Developer Intern, UnifAI (New York City) — May 2025–August 2025: built full-stack AI agent solutions for enterprise clients at a consulting firm specializing in custom agent deployment; React frontends and Python backend APIs connecting client dashboards with AI agent pipelines; delivered systems to 3+ corporate clients automating customer support, data processing and operations.
 - CEO, Diaita (Mexico City) — May 2022–May 2024: Health/wellness app; 1,000+ downloads; $3,000 USD revenue; 500+ clients; collaborated with nutrition pioneer Barry Sears.
 
 ATHLETICS (natural bodybuilding; there is an Athletics page on this site):
@@ -88,7 +88,7 @@ PROJECTS:
 - Health Education Platform (Diaita) — nutrition, exercise, and education app
 - Lumina Labs — flagship AI venture (see above)
 
-SKILLS: React, TypeScript, JavaScript, Python, Node.js, PostgreSQL, AWS, TensorFlow, React Native, Figma, and more.
+SKILLS: Languages: Python, JavaScript, TypeScript, HTML/CSS, SQL. Frameworks: React, Django, Node.js, Chart.js. Cloud & Data: AWS, Firebase, PostgreSQL. AI/ML: machine learning models, data analysis, AI agent development.
 
 CONTACT: Austin, TX · github.com/penamorros · manuelpenamorros.com
 Keep responses conversational, as if chatting with someone who visited the portfolio.`
@@ -192,38 +192,26 @@ export const values = [
 ]
 
 export const skills = [
-	// Frontend
-	{ id: 'react', name: 'React', category: 'Frontend', icon: Code, color: '#61dafb' },
-	{ id: 'javascript', name: 'JavaScript', category: 'Frontend', icon: Code, color: '#f7df1e' },
-	{ id: 'typescript', name: 'TypeScript', category: 'Frontend', icon: Code, color: '#3178c6' },
-	{ id: 'html', name: 'HTML', category: 'Frontend', icon: Globe, color: '#e34f26' },
-	{ id: 'css', name: 'CSS', category: 'Frontend', icon: Palette, color: '#1572b6' },
-	{ id: 'tailwind', name: 'Tailwind CSS', category: 'Frontend', icon: Layers, color: '#06b6d4' },
-	{ id: 'nextjs', name: 'Next.js', category: 'Frontend', icon: Rocket, color: '#000000' },
-	{ id: 'react-native', name: 'React Native', category: 'Frontend', icon: Smartphone, color: '#61dafb' },
-	
-	// Backend
-	{ id: 'node', name: 'Node.js', category: 'Backend', icon: Server, color: '#339933' },
-	{ id: 'express', name: 'Express', category: 'Backend', icon: Server, color: '#000000' },
-	{ id: 'rest-api', name: 'REST API', category: 'Backend', icon: Globe, color: '#ff6b6b' },
-	{ id: 'sql', name: 'SQL', category: 'Backend', icon: Database, color: '#336791' },
-	{ id: 'postgres', name: 'PostgreSQL', category: 'Backend', icon: Database, color: '#336791' },
-	{ id: 'supabase', name: 'Supabase', category: 'Backend', icon: Database, color: '#3ecf8e' },
-	{ id: 'python', name: 'Python', category: 'Backend', icon: Cpu, color: '#3776ab' },
-	{ id: 'csharp', name: 'C#', category: 'Backend', icon: Cpu, color: '#239120' },
-	
-	// Tools & Platforms
-	{ id: 'git', name: 'Git', category: 'Tools', icon: GitBranch, color: '#f05032' },
-	{ id: 'github', name: 'GitHub', category: 'Tools', icon: GitBranch, color: '#181717' },
-	{ id: 'linux', name: 'Linux', category: 'Tools', icon: Terminal, color: '#fcc624' },
-	{ id: 'vercel', name: 'Vercel', category: 'Tools', icon: Cloud, color: '#000000' },
-	{ id: 'netlify', name: 'Netlify', category: 'Tools', icon: Cloud, color: '#00c7b7' },
-	{ id: 'wordpress', name: 'WordPress', category: 'Tools', icon: Globe, color: '#21759b' },
-	
-	// Design
-	{ id: 'figma', name: 'Figma', category: 'Design', icon: Palette, color: '#f24e1e' },
-	{ id: 'ux-ui', name: 'UX/UI Design', category: 'Design', icon: Palette, color: '#ff6b6b' },
-	{ id: 'wireframe', name: 'Wireframing', category: 'Design', icon: Layers, color: '#8b5cf6' },
+	// the résumé's Technical Skills, nothing more (the client, 2026-11-19: "15 matching the resume")
+	// Languages
+	{ id: 'python', name: 'Python', category: 'Languages', icon: Cpu, color: '#3776ab' },
+	{ id: 'javascript', name: 'JavaScript', category: 'Languages', icon: Code, color: '#f7df1e' },
+	{ id: 'typescript', name: 'TypeScript', category: 'Languages', icon: Code, color: '#3178c6' },
+	{ id: 'html-css', name: 'HTML/CSS', category: 'Languages', icon: Globe, color: '#e34f26' },
+	{ id: 'sql', name: 'SQL', category: 'Languages', icon: Database, color: '#336791' },
+	// Frameworks
+	{ id: 'react', name: 'React', category: 'Frameworks', icon: Code, color: '#61dafb' },
+	{ id: 'django', name: 'Django', category: 'Frameworks', icon: Server, color: '#44b78b' },
+	{ id: 'node', name: 'Node.js', category: 'Frameworks', icon: Server, color: '#339933' },
+	{ id: 'chartjs', name: 'Chart.js', category: 'Frameworks', icon: Layers, color: '#ff6384' },
+	// Cloud & Data
+	{ id: 'aws', name: 'AWS', category: 'Cloud & Data', icon: Cloud, color: '#ff9900' },
+	{ id: 'firebase', name: 'Firebase', category: 'Cloud & Data', icon: Database, color: '#ffca28' },
+	{ id: 'postgres', name: 'PostgreSQL', category: 'Cloud & Data', icon: Database, color: '#336791' },
+	// AI / ML
+	{ id: 'ml', name: 'Machine Learning', category: 'AI / ML', icon: Sparkles, color: '#a78bfa' },
+	{ id: 'data-analysis', name: 'Data Analysis', category: 'AI / ML', icon: Target, color: '#22d3ee' },
+	{ id: 'ai-agents', name: 'AI Agents', category: 'AI / ML', icon: Rocket, color: '#8b5cf6' },
 ]
 
 export const timelineData = [
@@ -271,16 +259,16 @@ export const timelineData = [
 {
 	id: 'work2',
 	city: 'nyc',
-	period: 'June 2025 - August 2025',
-	title: 'Frontend Intern',
+	period: 'May 2025 - August 2025',
+	title: 'Full Stack Developer Intern',
 	subtitle: 'UnifAI | New York City',
 	icon: Briefcase,
 	type: 'work',
 	logo: '/logo-unifai.webp',
 	achievements: [
-		'Developed frontend components for web applications',
-		'Implemented responsive design and user interface improvements',
-		'Collaborated with backend team for seamless integration'
+		'Built full-stack AI agent solutions for enterprise clients at a custom-agent consulting firm',
+		'Developed React frontends and Python backend APIs connecting client dashboards to AI agent pipelines',
+		'Delivered systems to 3+ corporate clients automating support, data processing and operations'
 	]
 },
 {

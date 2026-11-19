@@ -481,6 +481,10 @@
 	backdrop-filter: blur(14px) saturate(1.1);
 	animation: cf-in .28s ease both;
 }
+/* waiting, booted, out of sight until a question from further down opens it */
+.chat-float:not(.is-open) { opacity: 0; pointer-events: none; z-index: -1; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; animation: none; }
+.chat-float:not(.is-open) .cf-stage { animation: none; }
+.chat-float:not(.is-open) .twin-chat.in-float { visibility: hidden; }
 @keyframes cf-in { from { background-color: rgba(4, 6, 12, 0); } }
 html.is-safari .chat-float { background: rgba(4, 6, 12, .86); }
 .app.color-mode .chat-float { background: rgba(236, 240, 248, .6); }

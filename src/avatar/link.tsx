@@ -23,20 +23,30 @@ type ToAvatar =
 // circle and a 480 px one alike.
 const AVATAR_PAD = 100
 
-let frame: HTMLIFrameElement | null = null
-let phone: { x: number; y: number } | null = null
-let ready = false
+// More than one twin can be on the page: the hero coin's and the floating chat's (booted ahead, so it opens already lit and awake).
+// Every message goes to each one that is ready; one that comes up mid-conversation is told the state it missed.
+type Twin = { ready: boolean; phone: { x: number; y: number } | null }
+const twins = new Map<HTMLIFrameElement, Twin>()
+const held: { focus: boolean; writing: boolean; typing: boolean } = { focus: false, writing: false, typing: false }
+
+const post = (el: HTMLIFrameElement, m: unknown) => el.contentWindow?.postMessage(m, location.origin)
+const onScreen = (r: DOMRect) => r.width > 0 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth
 
 export const avatar = {
 	send(m: ToAvatar) {
-		if (frame?.contentWindow && ready) frame.contentWindow.postMessage(m, location.origin)
+		if (m.t === 'focus' || m.t === 'writing' || m.t === 'typing') held[m.t] = m.on
+		else if (m.t === 'closed') { held.focus = held.writing = held.typing = false }
+		twins.forEach((tw, el) => { if (tw.ready) post(el, m) })
 	},
-	/** The phone's place on the page, in CSS pixels, if he's there. */
+	/** The phone's place on the page, in CSS pixels, of the twin that is on show. */
 	phoneOnPage() {
-		if (!frame || !phone || !ready) return null
-		const r = frame.getBoundingClientRect()
-		if (!r.width) return null
-		return { x: r.left + (phone.x / frame.clientWidth) * r.width, y: r.top + (phone.y / frame.clientHeight) * r.height }
+		for (const [el, tw] of twins) {
+			if (!tw.ready || !tw.phone || el.closest('.chat-float:not(.is-open)')) continue
+			const r = el.getBoundingClientRect()
+			if (!onScreen(r)) continue
+			return { x: r.left + (tw.phone.x / el.clientWidth) * r.width, y: r.top + (tw.phone.y / el.clientHeight) * r.height }
+		}
+		return null
 	},
 }
 
@@ -48,24 +58,30 @@ export const avatar = {
 export function AvatarFrame({ on, lit = true }: { on: boolean; lit?: boolean }) {
 	const ref = useRef<HTMLIFrameElement>(null)
 	const [state, setState] = useState<'loading' | 'ready' | 'still'>('loading')
+	// the page's theme at boot only: a later theme change goes by message, it must not reload him
+	const [src] = useState(() => `/avatar.html?pad=${AVATAR_PAD}${document.querySelector('.app.color-mode') ? '&light' : ''}`)
 	const litNow = useRef(lit)
 	litNow.current = lit
 
 	useEffect(() => {
 		const el = ref.current
 		if (!el) return
-		frame = el
+		const tw: Twin = { ready: false, phone: null }
+		twins.set(el, tw)
 		const onMessage = (e: MessageEvent) => {
 			if (e.source !== el.contentWindow || !e.data?.avatar) return
 			if (e.data.t === 'ready') {
-				ready = true
+				tw.ready = true
 				setState('ready')
-				el.contentWindow?.postMessage({ t: 'theme', light: !!document.querySelector('.app.color-mode') }, location.origin)
+				post(el, { t: 'theme', light: !!document.querySelector('.app.color-mode') })
 				// he boots behind the portrait: start him dark unless he is already the one on show
-				el.contentWindow?.postMessage({ t: 'power', on: litNow.current }, location.origin)
+				post(el, { t: 'power', on: litNow.current })
+				if (held.focus) post(el, { t: 'focus', on: true })
+				if (held.writing) post(el, { t: 'writing', on: true })
+				if (held.typing) post(el, { t: 'typing', on: true })
 			}
 			else if (e.data.t === 'nogl') setState('still')
-			else if (e.data.t === 'phone') phone = { x: e.data.x, y: e.data.y }
+			else if (e.data.t === 'phone') tw.phone = { x: e.data.x, y: e.data.y }
 		}
 		window.addEventListener('message', onMessage)
 		// He follows the pointer wherever it is on the page, as in Version B; one message per frame at most.
@@ -76,7 +92,7 @@ export function AvatarFrame({ on, lit = true }: { on: boolean; lit?: boolean }) 
 			if (raf) return
 			raf = requestAnimationFrame(() => {
 				raf = 0
-				if (!ready || !el.contentWindow) return
+				if (!tw.ready || !el.contentWindow) return
 				const r = el.getBoundingClientRect()
 				if (!r.width) return
 				el.contentWindow.postMessage({ t: 'pointer', x: ((px - r.left) / r.width) * el.clientWidth, y: ((py - r.top) / r.height) * el.clientHeight }, location.origin)
@@ -87,7 +103,7 @@ export function AvatarFrame({ on, lit = true }: { on: boolean; lit?: boolean }) 
 			window.removeEventListener('message', onMessage)
 			window.removeEventListener('pointermove', onPointer)
 			cancelAnimationFrame(raf)
-			if (frame === el) { frame = null; ready = false; phone = null }
+			twins.delete(el)
 		}
 	}, [])
 
@@ -95,16 +111,20 @@ export function AvatarFrame({ on, lit = true }: { on: boolean; lit?: boolean }) 
 	// switch-on waits for that and lands as his face arrives. Going dark again can happen at once: his back is turned.
 	useEffect(() => {
 		if (state !== 'ready') return
-		if (!lit) { avatar.send({ t: 'power', on: false }); return }
-		const id = window.setTimeout(() => avatar.send({ t: 'power', on: true }), 380)
+		const el = ref.current
+		if (!el) return
+		if (!lit) { post(el, { t: 'power', on: false }); return }
+		const id = window.setTimeout(() => post(el, { t: 'power', on: true }), 380)
 		return () => window.clearTimeout(id)
 	}, [lit, state])
 
 	// Drawing only while the chat side shows (the coin's back, or the phone's sheet). A short grace lets the coin finish turning away.
 	useEffect(() => {
 		if (state !== 'ready') return
-		if (on) { avatar.send({ t: 'run', on: true }); return }
-		const t = window.setTimeout(() => avatar.send({ t: 'run', on: false }), 900)
+		const el = ref.current
+		if (!el) return
+		if (on) { post(el, { t: 'run', on: true }); return }
+		const t = window.setTimeout(() => post(el, { t: 'run', on: false }), 900)
 		return () => window.clearTimeout(t)
 	}, [on, state])
 
@@ -113,7 +133,7 @@ export function AvatarFrame({ on, lit = true }: { on: boolean; lit?: boolean }) 
 			{/* a still of this same 3D avatar (round 4c: was the old 554 KB photo, which showed for 3–4 s and looked like someone else) */}
 			<img src="/avatar-3d.webp" alt="" className="avatar-gif avatar-still" decoding="async" />
 			{/* booted in the page's theme (?light), so in white mode he never shows a black suit first and then turns white */}
-			<iframe ref={ref} src={`/avatar.html?pad=${AVATAR_PAD}${document.querySelector('.app.color-mode') ? '&light' : ''}`} title="Manuel's AI twin" aria-hidden="true" tabIndex={-1} className="avatar-frame" style={{ height: `calc(100% + ${AVATAR_PAD}px)` }} />
+			<iframe ref={ref} src={src} title="Manuel's AI twin" aria-hidden="true" tabIndex={-1} className="avatar-frame" style={{ height: `calc(100% + ${AVATAR_PAD}px)` }} />
 		</div>
 	)
 }
