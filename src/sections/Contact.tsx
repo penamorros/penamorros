@@ -3,6 +3,7 @@ import { Calendar, Code, Download, Mail, Rotate } from '../icons'
 import { analytics } from '../services/analytics'
 import { gsap, isTouch, pointerTilt, prefersReducedMotion, useMotion, writeIn } from '../motion'
 import SignatureCanvas, { type SignatureHandle } from '../motion/SignatureCanvas'
+import ScriptTitle from '../components/ScriptTitle'
 
 const EMAIL = 'manuel@manuelpenamorros.com'
 const INK: [number, number, number] = [44, 44, 44]
@@ -59,7 +60,7 @@ export default memo(function Contact() {
 	return (
 		<section id="contact" ref={sectionRef} className="section alt tone-1 tone-sep">
 			<div className="container">
-				<h2><span className="write">Contact Card</span></h2>
+				<h2><ScriptTitle text="Contact Card" /></h2>
 				<div className="business-card-container">
 					<div
 						className={`business-card is-3d${turned ? ' is-turned' : ''}`}

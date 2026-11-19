@@ -6,6 +6,7 @@ import { ScrollTrigger, gsap, prefersReducedMotion, resumeScroll, stopScroll, us
 import JourneyGlobe from './JourneyGlobe'
 import { countText } from '../journeyLog'
 import { Facts, Leg, Points, orgOf, pad2, shortOf } from './JourneyLog'
+import ScriptTitle from '../components/ScriptTitle'
 
 export default memo(function Resume() {
 	const sectionRef = useRef<HTMLElement>(null)
@@ -69,7 +70,7 @@ export default memo(function Resume() {
 	return (
 		<section id="resume" ref={sectionRef} className="section tone-2 tone-sep">
 			<div className="container">
-				<h2><span className="write">Resume</span><ResumeDownloadLink /></h2>
+				<h2><ScriptTitle text="Resume" /><ResumeDownloadLink /></h2>
 				{desktop ? <TimelineStepper activeIndex={activeIndex} onSelect={select} fillRef={fillRef} /> : <TimelineList />}
 			</div>
 		</section>

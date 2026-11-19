@@ -16,6 +16,7 @@ export {
 	IconDeviceMobile as Smartphone,
 	IconDownload as Download,
 	IconFileText as FileText,
+	IconNews as Newspaper,
 	IconFolderOpen as FolderOpen,
 	IconGitBranch as GitBranch,
 	IconHeart as Heart,

@@ -1,0 +1,90 @@
+/* ---------- the drawings behind the sections (InkArt.tsx): real pen strokes, the page's own ink, drawn in when they arrive */
+
+:root { --ink-art: #c4d4ff; --ink-art-o: .3; }
+.app.color-mode { --ink-art: #12204a; --ink-art-o: .34; }
+
+.ink-art {
+	position: absolute;
+	z-index: 0;
+	left: 0;
+	right: 0;
+	pointer-events: none;
+	color: var(--ink-art);
+}
+.ink-art canvas,
+.ink-art svg {
+	display: block;
+	width: 100%;
+	opacity: var(--ink-art-o); /* on the whole drawing, so crossing strokes don't darken where they meet */
+}
+.ink-art svg { height: auto; }
+
+/* a panorama on the foot of the section's first screen; the towers thin out as they rise so the words above them stay clear */
+.ink-strip {
+	bottom: max(0px, calc(100% - 100vh));
+	-webkit-mask-image: linear-gradient(0deg, #000 42%, rgba(0, 0, 0, .5) 72%, rgba(0, 0, 0, .1) 94%, transparent), linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+	mask-image: linear-gradient(0deg, #000 42%, rgba(0, 0, 0, .5) 72%, rgba(0, 0, 0, .1) 94%, transparent), linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+	-webkit-mask-composite: source-in;
+	mask-composite: intersect;
+}
+.ink-cdmx { aspect-ratio: 1527 / 405; }
+
+/* a whole composed screen: the drawing keeps to the edges, the content has the middle */
+.ink-screen {
+	top: 0;
+	height: min(100vh, 100%);
+}
+.ink-screen svg { height: 100%; }
+/* clear of the section rail on the left */
+@media (min-width: 960px) { .ink-screen { left: 112px; } }
+
+/* the page ground without its grid, to judge the drawings on plain paper (the client, 2026-11-19: "not back just yet") */
+.app:has(.ink-art)::after { display: none; }
+.app:has(.ink-art) .grid-field { display: none; }
+
+/* anchored objects: placed by InkArt from the content they belong with */
+.ink-anchor { top: auto; }
+.ink-anchor.is-front { z-index: 12; }
+.ink-anchor.is-front canvas, .ink-anchor.is-front svg { opacity: calc(var(--ink-art-o) * 1.6); }
+/* an object reaching in from the edge never widens the page */
+section:has(> .ink-anchor) { overflow-x: clip; }
+/* the easel's legs fade out below the work, into the page */
+.ink-a_easel { -webkit-mask-image: linear-gradient(#000 52%, transparent 74%); mask-image: linear-gradient(#000 52%, transparent 74%); }
+@media (max-width: 959px) { .ink-anchor { display: none !important; } }
+
+/* ---------- a drop of ink where you click the page (InkRipple.tsx) */
+.ink-ripple {
+	position: fixed;
+	z-index: 1;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+	--ink-r: rgba(170, 196, 255, .5);
+	--ink-c: rgba(150, 182, 255, .14);
+}
+.app.color-mode ~ .ink-ripple, html:has(.app.color-mode) .ink-ripple { --ink-r: rgba(18, 30, 64, .4); --ink-c: rgba(18, 30, 64, .07); }
+.ink-ripple b {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 520px;
+	height: 520px;
+	margin: -260px 0 0 -260px;
+	border-radius: 50%;
+	border: 1.2px solid var(--ink-r);
+	transform: scale(0);
+	opacity: 0;
+	animation: ink-drop 1.9s cubic-bezier(.15, .6, .25, 1) forwards;
+}
+/* the soft stain in the middle */
+.ink-ripple b:first-child {
+	border: 0;
+	background: radial-gradient(circle, var(--ink-c) 0%, transparent 62%);
+	animation-duration: 1.4s;
+}
+.ink-ripple b:nth-child(3) { animation-delay: .16s; border-width: .8px; }
+@keyframes ink-drop {
+	0% { transform: scale(0); opacity: 0; }
+	12% { opacity: 1; }
+	100% { transform: scale(1); opacity: 0; border-width: .2px; }
+}

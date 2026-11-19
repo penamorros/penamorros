@@ -1,6 +1,7 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { values } from '../content'
 import { ScrollTrigger, drawIcons, gsap, prefersReducedMotion, resumeScroll, useDesktop, useMotion, writeIn } from '../motion'
+import ScriptTitle from '../components/ScriptTitle'
 
 const STEP_MS = 3400
 
@@ -98,7 +99,7 @@ export default memo(function Values() {
 	return (
 		<section id="values" ref={sectionRef} className="section tone-1 tone-sep values-section">
 			<div className="container">
-				<h2><span className="write">Core Values</span></h2>
+				<h2><ScriptTitle text="Core Values" /></h2>
 			</div>
 			<div className="values-container">
 				<div className="values-visual" style={{ '--accent': current.color } as React.CSSProperties}>

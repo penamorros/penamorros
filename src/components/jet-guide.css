@@ -74,3 +74,8 @@ html:has(.app.color-mode) .jg-aura::after { background: radial-gradient(closest-
 /* dark mode: a faint, steady backlight behind him, so the dark suit reads against the dark page (static: no lag) */
 .jg-wrap::before { content: ''; position: absolute; z-index: 0; left: 50%; top: 40%; width: 190%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(110, 150, 230, .16), rgba(80, 120, 210, .05) 55%, transparent 72%); pointer-events: none; }
 html:has(.app.color-mode) .jg-wrap::before { display: none; }
+
+/* you can pick him up and carry him (JetGuide: drag) */
+.jg-body { cursor: grab; touch-action: none; }
+html.jet-dragging, html.jet-dragging * { cursor: grabbing !important; user-select: none; }
+html.jet-dragging .jg-say { opacity: 0; transition: opacity .2s; }

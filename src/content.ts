@@ -1,6 +1,6 @@
 import {
 	Award, Briefcase, Cloud, Code, Cpu, Database, FileText, FolderOpen, Globe, GraduationCap, Heart,
-	Home, Layers, Lightbulb, Mail, Rocket, Server, Sparkles, Target, Users, Zap,
+	Home, Layers, Lightbulb, Mail, Newspaper, Rocket, Server, Sparkles, Target, Users, Zap,
 } from './icons'
 
 export const sections = [
@@ -9,7 +9,7 @@ export const sections = [
 	{ id: 'skills', label: 'Skills', icon: Zap },
 	{ id: 'resume', label: 'Resume', icon: FileText },
 	{ id: 'projects', label: 'Projects', icon: FolderOpen },
-	{ id: 'articles', label: 'Articles', icon: FileText },
+	{ id: 'articles', label: 'Articles', icon: Newspaper },
 	{ id: 'contact', label: 'Contact', icon: Mail },
 ]
 

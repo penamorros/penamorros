@@ -11,6 +11,7 @@ import MeetingPicker from '../components/MeetingPicker'
 import { FIRST_QUESTIONS, nextQuestions, rememberQuestion } from '../followups'
 import { Calendar, MessageCircle } from '../icons'
 import { Brain, SUGGEST } from '../brain'
+import ScriptTitle from '../components/ScriptTitle'
 
 type Props = { scrollTo: (id: string) => void; interactive: boolean }
 type Message = { role: string; content: string; meet?: boolean }
@@ -19,7 +20,6 @@ const WANTS_CALL = /\b(hir(e|ing)|intern(ship)?s?|recruit\w*|interview|job|role|
 
 /** Manuel + the value behind each letter — loops forever on the hero. */
 const HERO_WORDS = ['Manuel', 'Motivation', 'Ambition', 'Nobility', 'Understanding', 'Excellence', 'Leadership'] as const
-const MANUEL_LETTERS = ['M', 'A', 'N', 'U', 'E', 'L'] as const
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x))
@@ -128,7 +128,9 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 	// paint (and Lighthouse's LCP) sees: chrome is text painted through a clipped background, which Lighthouse counts much later.
 	const [lit, setLit] = useState(false)
 	const [heroSettled, setHeroSettled] = useState(false)
-	const [wordIndex, setWordIndex] = useState(0)
+	const [, setWordIndex] = useState(0)
+	// the hand writes his name once the opening has finished
+	const [inkGo, setInkGo] = useState(false)
 	useEffect(() => {
 		if (!lit && !reducedMotion()) return
 		let alive = true
@@ -361,7 +363,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 			if (alive) setLit(true)
 		})
 		whenHeroSettled().then(startWordLoop)
-		whenBooted().then(() => { if (alive) tl.play() })
+		whenBooted().then(() => { if (alive) { tl.play(); window.setTimeout(() => { if (alive) setInkGo(true) }, 250) } })
 
 		if (isDesktop()) {
 			const leave = { trigger: section, start: 'top top', end: 'bottom top', scrub: true }
@@ -514,21 +516,14 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 			<ChatBeam open={chatOpen} />
 			<div className="container hero-wrap">
 				<div className="hero-copy">
-					<p className={`title-anchor${wordIndex === 0 ? ' is-all' : ''}`} aria-hidden="true">
-						{MANUEL_LETTERS.map((letter, i) => (
-							<span
-								key={letter}
-								className={`title-anchor-letter${wordIndex === 0 || wordIndex - 1 === i ? ' is-on' : ''}`}
-							>
-								{letter}
-							</span>
-						))}
-					</p>
-					<h1 className="title">
-						<span className="write title-word">{HERO_WORDS[0]}</span>
+					<p className="hero-eyebrow">Design <i aria-hidden="true" /> Code <i aria-hidden="true" /> Data</p>
+					{/* his name, written by hand in real calligraphy once the opening has settled (the client, 2026-11-19) */}
+					<h1 className="title hero-script">
+						<ScriptTitle text="Manuel" go={inkGo} scale={2.2} className="hs-first" />
+						<ScriptTitle text="Peña-Morros" go={inkGo} scale={2.2} className="hs-second" />
 					</h1>
 					<p className="subtitle">
-						I’m Manuel — 20, from Mexico City, studying data science at UT Austin. I like building things people actually use.
+						I turn ideas into things people love to use.
 					</p>
 					<div className="cta-row">
 						<button
@@ -538,7 +533,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 								scrollTo('resume')
 							}}
 						>
-							See Resume
+							<span>View résumé</span>
 						</button>
 						<button
 							className="button"
@@ -547,7 +542,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 								scrollTo('contact')
 							}}
 						>
-							Get in Touch
+							<span>Get in touch</span><i className="cta-arrow" aria-hidden="true">→</i>
 						</button>
 					</div>
 				</div>

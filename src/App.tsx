@@ -8,6 +8,11 @@ import { ScrollTrigger, gsap, magnetic, resumeScroll, rewriteOnHover, scrollToSe
 import GridField from './motion/GridField'
 import Cursor from './components/Cursor'
 import JetGuide from './components/JetGuide'
+import InkArt from './components/InkArt'
+import InkRipple from './components/InkRipple'
+import ScrollHint from './components/ScrollHint'
+import './components/ink-art.css'
+import './components/script-title.css'
 import FooterSignature from './components/FooterSignature'
 import Hero from './sections/Hero'
 import Values from './sections/Values'
@@ -136,11 +141,61 @@ export default function App() {
 		nav.style.setProperty('--iy', `${y}px`)
 	}, [active, desktop])
 
+	// The rail stays hidden while the hero sets itself; at the first scroll his initial appears as a small glass pill and the bar unfolds
+	// from it, up and down, the initial carried up by the bar's top edge and the icons arriving once it has passed (the client,
+	// 2026-11-19). Phones keep the fade.
 	useLayoutEffect(() => {
-		if (!ready || !navRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-		const t = gsap.from(navRef.current, { autoAlpha: 0, duration: 1.2, delay: 0.5, clearProps: 'opacity,visibility' })
-		return () => { t.kill() }
-	}, [ready])
+		const nav = navRef.current
+		if (!nav) return
+		const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+		if (!desktop || still) {
+			if (!ready || still) return
+			const t = gsap.from(nav, { autoAlpha: 0, duration: 1.2, delay: 0.5, clearProps: 'opacity,visibility' })
+			return () => { t.kill() }
+		}
+		const logo = nav.querySelector<HTMLElement>('.nav-logo')
+		const rest = nav.querySelectorAll<HTMLElement>(':scope > :not(.nav-logo)')
+		const w = nav.offsetWidth, h = nav.offsetHeight
+		const half = Math.max(0, (h - w) / 2)
+		const lc = logo ? logo.offsetTop + logo.offsetHeight / 2 : 0
+		// one frame of the opening, t from 0 (the pill) to 1 (the bar)
+		const pose = (t: number) => {
+			const v = half * (1 - t)
+			const r = w / 2 + (Math.min(25, w / 2) - w / 2) * t
+			nav.style.clipPath = `inset(${v.toFixed(2)}px 0px ${v.toFixed(2)}px 0px round ${r.toFixed(2)}px)`
+			// the initial stays in the middle of what is open until the top edge reaches it, then rides up with the edge
+			const at = Math.min(h / 2, v + lc)
+			if (logo) logo.style.transform = `translate3d(0, ${(at - lc).toFixed(2)}px, 0)`
+		}
+		// the initial's own hover transition would make it trail the opening: off while it moves
+		if (logo) logo.style.transition = 'none'
+		gsap.set(nav, { autoAlpha: 0 })
+		gsap.set(rest, { autoAlpha: 0 })
+		pose(0)
+		if (!ready) return
+		let tl: gsap.core.Timeline | undefined
+		let unfolded = false
+		const unfold = () => {
+			if (unfolded) return
+			unfolded = true
+			off()
+			const open = { t: 0 }
+			tl = gsap.timeline({ onComplete: () => { nav.style.clipPath = ''; if (logo) { logo.style.transform = ''; requestAnimationFrame(() => { logo.style.transition = '' }) } gsap.set(rest, { clearProps: 'opacity,visibility,transform' }) } })
+			// the pill appears with a little spring, then opens
+			tl.fromTo(nav, { autoAlpha: 0, scale: 0.6 }, { autoAlpha: 1, scale: 1, duration: 0.5, ease: 'back.out(2)', clearProps: 'scale' })
+			tl.to(open, { t: 1, duration: 1, ease: 'power3.inOut', onUpdate: () => pose(open.t) }, 0.4)
+			tl.fromTo(rest, { autoAlpha: 0, y: -6 }, { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.04, ease: 'power2.out' }, 0.9)
+		}
+		const onScroll = () => { if (window.scrollY > 8) unfold() }
+		const onKey = (e: KeyboardEvent) => { if ([' ', 'ArrowDown', 'PageDown', 'End'].includes(e.key)) unfold() }
+		const off = () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('wheel', unfold); window.removeEventListener('touchmove', unfold); window.removeEventListener('keydown', onKey) }
+		window.addEventListener('scroll', onScroll, { passive: true })
+		window.addEventListener('wheel', unfold, { passive: true })
+		window.addEventListener('touchmove', unfold, { passive: true })
+		window.addEventListener('keydown', onKey)
+		if (window.scrollY > 8) unfold()
+		return () => { off(); tl?.kill(); if (logo) { logo.style.transition = ''; logo.style.transform = '' } nav.style.clipPath = '' }
+	}, [ready, desktop])
 
 	if (isAdminMode) {
 		return (
@@ -189,7 +244,9 @@ export default function App() {
 							aria-label={section.label}
 								aria-current={active === section.id ? 'true' : undefined}
 						>
-							<IconComponent size={20} />
+							{/* drawn with a calligraphy nib, to match the titles (public/icons); the plain icon stays as the fallback */}
+							<span className="nav-ink" aria-hidden="true" style={{ ['--icon' as string]: `url(/icons/${section.id === 'about' ? 'home' : section.id}.webp)` }} />
+							<IconComponent size={20} className="nav-plain" />
 						</button>
 					)
 				})}
@@ -207,7 +264,8 @@ export default function App() {
 					}}
 					aria-label="Toggle theme"
 				>
-					{colorMode ? <Sun size={20} /> : <Moon size={20} />}
+					<span className="nav-ink" aria-hidden="true" style={{ ['--icon' as string]: `url(/icons/${colorMode ? 'sun' : 'moon'}.webp)` }} />
+					{colorMode ? <Sun size={20} className="nav-plain" /> : <Moon size={20} className="nav-plain" />}
 				</button>
 			</nav>
 			)}
@@ -227,6 +285,10 @@ export default function App() {
 				</>
 				)}
 			</main>
+
+			{!isAthleticsPage && <InkArt />}
+			<InkRipple />
+			{!isAthleticsPage && <ScrollHint />}
 
 			{!isAthleticsPage && (
 			<footer className="site-footer">

@@ -3,6 +3,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from '../icons'
 import { articles } from '../content'
 import { gsap, prefersReducedMotion, useDesktop, useMotion, writeIn } from '../motion'
 import { curlAway } from '../motion/pageCurl'
+import ScriptTitle from '../components/ScriptTitle'
 
 type Article = (typeof articles)[number]
 
@@ -105,7 +106,7 @@ export default memo(function Articles() {
 	return (
 		<section id="articles" ref={sectionRef} className="section tone-1 tone-sep">
 			<div className="container">
-				<h2><span className="write">Article Mentions</span></h2>
+				<h2><ScriptTitle text="Article Mentions" /></h2>
 				<div className="articles-carousel-wrapper">
 					<div className="articles-carousel" ref={clipRef}>
 						<div className="articles-container" ref={trackRef}>

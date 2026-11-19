@@ -19,7 +19,8 @@ export default function Cursor({ colorMode }: { colorMode: boolean }) {
 		if (isTouch()) return
 
 		const inkRGB = () => inkRef.current
-		const box = el('techy-cursor-container', 'position:fixed;inset:0;pointer-events:none;z-index:9999;', document.body)
+		// above everything, overlays included (the face scan, the chat): the pointer must never disappear
+		const box = el('techy-cursor-container', 'position:fixed;inset:0;pointer-events:none;z-index:2147483000;', document.body)
 		const place = 'position:fixed;left:0;top:0;pointer-events:none;will-change:transform;transition:none;'
 		const dot = el('techy-cursor-dot', `${place}width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:rgb(${inkRGB()});z-index:10000;`, box)
 		const ring = el('techy-cursor-ring', `${place}width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;border:1.5px solid rgba(${inkRGB()},.3);z-index:9999;`, box)

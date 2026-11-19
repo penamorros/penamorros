@@ -4,6 +4,9 @@ import { ChevronLeft, ChevronRight, Coin, Clinic, FaceId, Play, TrendingUp, X } 
 import { projects } from '../content'
 import { analytics } from '../services/analytics'
 import { ScrollTrigger, drawIcons, gsap, pointerTilt, prefersReducedMotion, resumeScroll, revealFrame, stopScroll, useDesktop, useMotion, writeIn } from '../motion'
+import ScriptTitle from '../components/ScriptTitle'
+import LuminaTry from '../components/LuminaTry'
+import '../components/lumina-try.css'
 
 const STEP = 120
 const START_INDEX = 1
@@ -248,7 +251,7 @@ export default memo(function Projects() {
 	return (
 		<section id="projects" ref={sectionRef} className="section tone-1 tone-sep">
 			<div className="container">
-				<h2><span className="write">Projects</span></h2>
+				<h2><ScriptTitle text="Projects" /></h2>
 				<div className="projects-carousel-wrapper">
 					<div className="projects-carousel" ref={carouselRef}>
 						<div className="projects-tilt">
@@ -352,6 +355,8 @@ export default memo(function Projects() {
 							<img src="/app-store-badge.png" alt="Download on the App Store" loading="lazy" decoding="async" />
 						</a>
 					</div>
+					{/* on the right of the header, so the icon, name and badge keep their original stack */}
+					<div className="ll-try-slot"><LuminaTry /></div>
 				</div>
 
 				<div className="ll-row">

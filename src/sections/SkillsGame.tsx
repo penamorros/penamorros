@@ -3,6 +3,7 @@ import { Check, Copy, HandFinger, Keyboard } from '../icons'
 import { skills } from '../content'
 import { gsap, isTouch, prefersReducedMotion, useMotion, writeIn } from '../motion'
 import { createJetScene } from './jetScene'
+import ScriptTitle from '../components/ScriptTitle'
 
 // ---- Jetpack run (the client, 2026-11-18: "like the Joyride game: collect the skills and don't lose at all") ----
 // Hold Space / the mouse / a finger to fire the jetpack and climb; let go and he drops. Nothing kills him: the skills
@@ -421,7 +422,7 @@ export default memo(function SkillsGame() {
 	return (
 		<section id="skills" ref={sectionRef} className="section tone-2 tone-sep skills-flappy-section">
 			<div className="container">
-				<h2><span className="write">My Skills</span></h2>
+				<h2><ScriptTitle text="My Skills" /></h2>
 				<div className="flappy-game-wrapper">
 					{!gameStarted && !gameOver && (
 						<div className="flappy-instructions">

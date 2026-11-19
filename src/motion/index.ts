@@ -389,7 +389,9 @@ export function scrollToSection(id: string) {
 type WriteVars = { duration?: number; delay?: number; scrollTrigger?: ScrollTrigger.Vars | false }
 
 /** Script text writes itself in, left to right. The element needs the `.write` class (see motion.css). */
-export function writeIn(el: Element, { duration = 1.25, delay = 0, scrollTrigger }: WriteVars = {}) {
+export function writeIn(el: Element | undefined, { duration = 1.25, delay = 0, scrollTrigger }: WriteVars = {}) {
+	// a title written in calligraphy (ScriptTitle) writes itself: nothing to do
+	if (!el) return gsap.timeline()
 	const node = el as HTMLElement
 	const state = { p: -14 }
 	node.style.setProperty('--p', '-14%')

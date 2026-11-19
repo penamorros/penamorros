@@ -281,6 +281,49 @@ export default function JetGuide() {
 		}
 		// how fast the page is scrolling (px/s, smoothed) — he travels with it
 		let scrollV = 0, lastSY = window.scrollY, nearT = 0, lastSt: string | undefined = undefined
+		// you can pick him up (the client, 2026-11-19: "drag him anywhere; let go and he flies back, slowly, smoothly"): he follows
+		// the pointer on a stiff spring (so he still leans and trails a little), and when you let go a slow spring takes him home
+		// held = the button is down on him; on = he is actually being carried (after a few pixels, so a click stays a click).
+		// Any sign the press is over ends it: the release anywhere on the page, a lost capture, the window losing focus,
+		// a move with no button down, or a scroll. Let go, and he always flies home.
+		const drag = { held: false, on: false, ox: 0, oy: 0, sx: 0, sy: 0, px: 0, py: 0, moved: 0, back: 0, id: -1 }
+		const bodyEl = root.querySelector<HTMLElement>('.jg-body')
+		const end = () => {
+			if (!drag.held) return
+			const carried = drag.on
+			drag.held = false
+			drag.on = false
+			try { if (drag.id >= 0) bodyEl?.releasePointerCapture(drag.id) } catch { /* already released */ }
+			drag.id = -1
+			html.classList.remove('jet-dragging')
+			if (carried) {
+				drag.back = 1
+				// a real drag is not a click: swallow the click that follows it
+				const eat = (ev: Event) => { ev.stopPropagation(); ev.preventDefault() }
+				bodyEl?.addEventListener('click', eat, { capture: true, once: true })
+				window.setTimeout(() => bodyEl?.removeEventListener('click', eat, { capture: true }), 0)
+			}
+		}
+		const onDown = (e: PointerEvent) => {
+			if (e.button !== 0 || inGame) return
+			drag.held = true; drag.on = false; drag.moved = 0; drag.id = e.pointerId
+			drag.sx = drag.px = e.clientX; drag.sy = drag.py = e.clientY; drag.ox = e.clientX - x; drag.oy = e.clientY - y
+			try { bodyEl?.setPointerCapture(e.pointerId) } catch { /* fine without it */ }
+		}
+		const onMove = (e: PointerEvent) => {
+			if (!drag.held) return
+			if (e.buttons === 0) { end(); return }
+			drag.px = e.clientX; drag.py = e.clientY
+			if (!drag.on && Math.hypot(drag.px - drag.sx, drag.py - drag.sy) > 6) { drag.on = true; html.classList.add('jet-dragging') }
+		}
+		bodyEl?.addEventListener('pointerdown', onDown)
+		window.addEventListener('pointermove', onMove)
+		window.addEventListener('pointerup', end)
+		window.addEventListener('pointercancel', end)
+		bodyEl?.addEventListener('lostpointercapture', end)
+		window.addEventListener('blur', end)
+		window.addEventListener('wheel', end, { passive: true })
+		window.addEventListener('scroll', end, { passive: true })
 		const frame = (now: number) => {
 			const dt = Math.min(0.05, (now - last) / 1000)
 			last = now
@@ -295,11 +338,14 @@ export default function JetGuide() {
 				scrollV += ((sy - lastSY) / step - scrollV) * 0.12
 				lastSY = sy
 			}
-			const t = target()
+			const home = target()
+			const t: typeof home = drag.on ? { x: drag.px - drag.ox, y: drag.py - drag.oy } : home
 			// critically damped spring, a little looser vertically so climbs and drops read
 			// a soft, critically damped spring — he glides in a smooth arc to wherever he is going, no snapping; a little
 			// looser vertically, so long trips curve (he rises and settles) instead of running along a straight line
-			const k = 3.6, kv = 3.0
+			// held: a stiff spring, so he stays under your finger; let go: a slow one for the flight home, back to normal once there
+			if (drag.back && Math.hypot(t.x - x, t.y - y) < 14) drag.back = 0
+			const k = drag.on ? 16 : drag.back ? 1.6 : 3.6, kv = drag.on ? 16 : drag.back ? 1.5 : 3.0
 			vx += ((t.x - x) * k * k - vx * 2 * k) * dt
 			vy += ((t.y - y) * kv * kv - vy * 2 * kv) * dt
 			x += vx * dt
@@ -395,7 +441,14 @@ export default function JetGuide() {
 		// start at the portrait twin
 		const t0 = target(); x = t0.x; y = t0.y
 		raf = requestAnimationFrame(frame)
-		return () => { cancelAnimationFrame(raf); html.classList.remove('jet-guide-on', 'jet-in-game', 'jet-guide-flying') }
+		return () => {
+			cancelAnimationFrame(raf)
+			html.classList.remove('jet-guide-on', 'jet-in-game', 'jet-guide-flying', 'jet-dragging')
+			bodyEl?.removeEventListener('pointerdown', onDown); window.removeEventListener('pointermove', onMove)
+			window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end)
+			bodyEl?.removeEventListener('lostpointercapture', end); window.removeEventListener('blur', end)
+			window.removeEventListener('wheel', end); window.removeEventListener('scroll', end)
+		}
 	}, [enabled])
 
 	if (!enabled) return null
