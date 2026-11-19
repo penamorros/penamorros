@@ -17,14 +17,8 @@ export function animateInvite(stage: Stage, elapsed: number, duck = 0) {
   // Hover peeks him a little higher into the circle — toward you, not away.
   rig.root.position.y = -0.12 * (1 - rise) + settle + 0.022 * duck
   rig.root.updateMatrixWorld(true)
-  if (duck > 0.01) {
-    // Small forward lean (positive X) + chin-in. No yaw twist — that read as a back-swing.
-    rig.add('spine03', 1, 0, 0, 3 * duck)
-    rig.add('spine04', 1, 0, 0, 2 * duck)
-    rig.add('neck01', 1, 0, 0, 4 * duck)
-    rig.add('neck03', 1, 0, 0, 2 * duck)
-    // (A head tilt and a hop were tried here and read wrong for him — the client, 2026-11-16. Keep it square: up and in.)
-  }
+  // (The forward lean and chin-in on hover read as a nod downwards and were taken out — the client, 2026-11-18.
+  // Under the pointer he now only rises a touch and turns his head to look at it; see main.ts, `follow`.)
 }
 
 /** Collar + shoulders on, hands off — soft peek over the portrait. */

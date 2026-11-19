@@ -21,47 +21,49 @@
 .invite-character iframe { border: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .5s; }
 .is-ready .invite-character iframe { opacity: 1; }
 .invite-character img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 55% 12%; }
-/* What he says: a clean speech pill, the page's one white button shape, with a tail towards him. (Round 5: the old
-   grey thought-cloud read as decoration and nobody clicked it.) */
-/* anchored by its right edge, tail towards him, so a longer line grows leftwards and never runs off the screen */
-.invite-thought { position: absolute; right: 22%; top: -22%; width: max-content; border: 0; padding: 0; background: transparent; cursor: pointer; }
+/* What he says: just the words, to his right and level with his head — no pill, no box (the client, 2026-11-18).
+   Each new line is his: as it lands he nods a little and his suit pulses once (ChatInvite posts 'line'). */
+.invite-thought { position: absolute; left: 74%; top: 20%; width: max-content; border: 0; padding: 0; background: transparent; cursor: pointer; text-align: left; }
 .invite-label {
-  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  padding: 10px 14px 10px 12px;
-  color: #0b1220;
-  background: #fff;
-  border-radius: 16px 16px 4px 16px;
-  box-shadow: 0 10px 30px -10px rgba(111, 158, 239, .65), 0 0 0 1px rgba(255, 255, 255, .6);
-  font: 600 13px/1 var(--font-sans, inherit);
-  letter-spacing: -.005em;
-  white-space: nowrap;
-  transition: transform .25s cubic-bezier(.22, 1, .36, 1), box-shadow .25s;
+  /* the room to his right is about 50vw - 520px on the desktop layout (200px at 1440, 120px at 1280):
+     the line wraps onto two before it would ever run off the screen */
+  max-width: max(96px, calc(50vw - 536px));
+  color: rgba(255, 255, 255, .94);
+  font: 500 14px/1.3 var(--font-sans, inherit);
+  letter-spacing: -.01em;
+  white-space: normal;
+  transition: color .25s;
 }
-.invite-live { position: relative; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #3d7be8; }
+.invite-live { position: relative; flex: none; width: 6px; height: 6px; margin-top: .48em; border-radius: 50%; background: #3d7be8; }
 .invite-live::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #3d7be8; animation: invite-ping 2.2s ease-out infinite; }
 @keyframes invite-ping { from { transform: scale(1); opacity: .7; } to { transform: scale(3.2); opacity: 0; } }
-.invite-line { display: inline-block; animation: invite-line .45s cubic-bezier(.22, 1, .36, 1) both; }
+.invite-line { display: inline-block; flex: 1 1 auto; min-width: 0; animation: invite-line .45s cubic-bezier(.22, 1, .36, 1) both; }
 @keyframes invite-line { from { transform: translateY(7px); } to { transform: none; } }
-.invite-arrow { color: #5b6b8c; font-weight: 500; transition: transform .25s cubic-bezier(.22, 1, .36, 1); }
-.invite-thought:hover .invite-label { transform: translateY(-2px) scale(1.03); box-shadow: 0 14px 34px -10px rgba(111, 158, 239, .9), 0 0 0 1px #fff; }
-.invite-thought:hover .invite-arrow { transform: translate(2px, -2px); }
-.invite-thought:focus-visible, .invite-peek:focus-visible { outline: 2px solid #c4d0e5; outline-offset: 4px; border-radius: 20px; }
-/* it arrives, then every so often gives one small hop so the eye finds it */
-.is-ready .invite-thought, .is-still .invite-thought { animation: invite-appear .5s .45s cubic-bezier(.22, 1, .36, 1) both, invite-hop 7s 4s ease-in-out infinite; }
-@keyframes invite-appear { from { transform: translateY(8px) scale(.9); } to { transform: none; } }
-@keyframes invite-hop { 0%, 90%, 100% { transform: none; } 94% { transform: translateY(-5px); } 97% { transform: translateY(1px); } }
-.app.color-mode .invite-label { color: #fff; background: #0b1220; box-shadow: 0 10px 30px -12px rgba(20, 34, 70, .6); }
-.app.color-mode .invite-arrow { color: #a9b6d0; }
-.app.color-mode .invite-live, .app.color-mode .invite-live::after { background: #7fa9f5; }
+.invite-arrow { display: inline-block; margin-left: 6px; color: rgba(255, 255, 255, .5); font-weight: 500; transition: transform .25s cubic-bezier(.22, 1, .36, 1), color .25s; }
+.invite-thought:hover .invite-label { color: #fff; }
+.invite-thought:hover .invite-arrow { color: #7fa9f5; transform: translate(2px, -2px); }
+.invite-thought:focus-visible, .invite-peek:focus-visible { outline: 2px solid #c4d0e5; outline-offset: 4px; border-radius: 6px; }
+.is-ready .invite-thought, .is-still .invite-thought { animation: invite-appear .5s .45s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes invite-appear { from { transform: translateY(8px); } to { transform: none; } }
+.app.color-mode .invite-label { color: #0b1220; }
+.app.color-mode .invite-thought:hover .invite-label { color: #000; }
+.app.color-mode .invite-arrow { color: rgba(11, 18, 32, .45); }
+.app.color-mode .invite-thought:hover .invite-arrow { color: #3d7be8; }
 @media (max-width: 900px) {
   .hero .hero-visual { margin-top: 35px; }
 }
+@media (max-width: 1400px) { .invite-label { font-size: 13px; } }
+/* the stacked layout has no room beside him: the words go back above him */
+@media (max-width: 1279px) {
+  .invite-thought { left: auto; right: 22%; top: -22%; }
+  .invite-label { max-width: none; white-space: nowrap; }
+}
 @media (max-width: 600px) {
   .invite-thought { right: 10%; top: -24%; }
-  .invite-label { font-size: 12px; padding: 9px 12px 9px 10px; }
+  .invite-label { font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .chat-invite *, .chat-invite { animation: none !important; transition: none !important; }

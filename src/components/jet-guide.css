@@ -1,0 +1,76 @@
+/* The jetpack guide: his twin flying down the page with you (JetGuide.tsx). The flames reuse the skills run's
+   .jet-flame layers (motion.css). */
+.jet-guide { position: fixed; left: 0; top: 0; z-index: 60; width: 0; height: 0; pointer-events: none; opacity: 0; transition: opacity .45s ease; will-change: transform; }
+.jet-guide.is-shown { opacity: 1; }
+.jet-guide:not(.is-shown) * { pointer-events: none !important; }
+/* one size for the fairy everywhere: the guide and the skills run both read --fairy-h, so they can never drift apart */
+:root { --fairy-h: 180px; }
+.jg-body { position: absolute; left: calc(var(--fairy-h) * -.267); top: calc(var(--fairy-h) * -.45); width: calc(var(--fairy-h) * .533); height: var(--fairy-h); padding: 0; border: 0; background: none; cursor: pointer; pointer-events: auto; }
+.jg-wrap { position: absolute; left: 50%; top: 0; height: 100%; aspect-ratio: 204 / 420; transform: translateX(-50%); }
+/* no filter on the sheet: it changes frame every frame, and a drop-shadow on it was re-blurred each time (the lag) */
+.jg-sheet { position: absolute; inset: 0; z-index: 2; background: url('/fairy-front-2.webp') 0 0 / 800% 100% no-repeat; }
+.jg-sheet.is-next { z-index: 3; opacity: 0; filter: none; }
+
+
+/* what he says: just the words, like the hero's line — a live dot, the line, a faint arrow — to his left in the corner,
+   to his right by the portrait. A soft shadow under the letters keeps them readable over anything. */
+.jg-say {
+	position: absolute;
+	right: 58px;
+	top: -54px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 0;
+	border: 0;
+	background: none;
+	color: rgba(255, 255, 255, .95);
+	font: 500 14px/1.25 var(--font-sans, inherit);
+	letter-spacing: -.01em;
+	text-shadow: 0 1px 14px rgba(0, 0, 0, .9), 0 0 3px rgba(0, 0, 0, .7);
+	white-space: nowrap;
+	cursor: pointer;
+	pointer-events: auto;
+	animation: jg-say .25s cubic-bezier(.22, 1, .36, 1) both;
+	transition: color .2s ease;
+}
+/* on the hero there is room to his right, so he speaks to the right there; in the corner, to his left */
+.jet-guide.is-home .jg-say { top: -72px; }
+/* to his right unless told to speak to his left (say-left) */
+.jet-guide:not(.say-left) .jg-say { right: auto; left: 58px; }
+.jet-guide:not(.say-left):not(.is-home) .jg-say { white-space: normal; max-width: 170px; }
+.jg-say:hover { color: #fff; }
+.jg-say:hover .jg-arrow { color: #7fa9f5; transform: translate(2px, -2px); }
+@keyframes jg-say { from { transform: translateY(7px); } to { transform: none; } }
+.jg-live { position: relative; flex: none; width: 6px; height: 6px; border-radius: 50%; background: #3d7be8; box-shadow: 0 0 8px rgba(61, 123, 232, .8); }
+.jg-live::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: #3d7be8; animation: jg-ping 2.2s ease-out infinite; }
+@keyframes jg-ping { from { transform: scale(1); opacity: .7; } to { transform: scale(3.2); opacity: 0; } }
+.jg-arrow { display: inline-block; color: rgba(255, 255, 255, .5); font-weight: 500; transition: transform .2s ease, color .2s ease; }
+html:has(.app.color-mode) .jg-say { color: #0b1220; text-shadow: 0 1px 12px rgba(255, 255, 255, .95), 0 0 3px rgba(255, 255, 255, .9); }
+html:has(.app.color-mode) .jg-arrow { color: rgba(11, 18, 32, .45); }
+
+/* his flames, as the guide: exactly the game's jets (motion.css), so nothing changes when he flies in */
+
+
+/* hand-offs: while he is out flying, the twin over the portrait is him, so it hides; the skills run shows its own player
+   only once he has flown into the game */
+html.jet-guide-flying .chat-invite { opacity: 0 !important; visibility: hidden !important; transition: opacity .2s; }
+/* with the fairy, the portrait's own corner is his: its contents stay out of sight (its box still tells him where to hover) */
+.chat-invite.is-fairy { pointer-events: none; }
+.chat-invite.is-fairy > * { visibility: hidden !important; }
+html.jet-guide-on .flappy-game-area .flappy-bird.is-jet { opacity: 0; transition: none; }
+html.jet-guide-on.jet-in-game .flappy-game-area .flappy-bird.is-jet { opacity: 1; }
+
+/* hovering him: a glowing aura comes up behind him and his suit lights up (as the small 3D twin used to do on hover) */
+/* the aura fades in and out on the same soft curve; its pulse lives on an inner layer, so taking the hover away never
+   cuts a running animation short (that was the abrupt switch-off) */
+.jg-aura { position: absolute; z-index: 0; left: 50%; top: 42%; width: 210%; aspect-ratio: 1; transform: translate(-50%, -50%) scale(.7); border-radius: 50%; opacity: 0; transition: opacity .8s cubic-bezier(.4, 0, .2, 1), transform .9s cubic-bezier(.22, 1, .36, 1); pointer-events: none; }
+.jg-aura::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(127, 175, 255, .55), rgba(61, 123, 232, .22) 45%, transparent 72%); animation: jg-aura 3s ease-in-out infinite; }
+.jg-body.is-hover .jg-aura { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+@keyframes jg-aura { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: .85; } }
+/* (no brightness filter on him: on a figure that redraws every frame it made the glow twitch) */
+html:has(.app.color-mode) .jg-aura::after { background: radial-gradient(closest-side, rgba(61, 123, 232, .35), rgba(61, 123, 232, .12) 45%, transparent 72%); }
+
+/* dark mode: a faint, steady backlight behind him, so the dark suit reads against the dark page (static: no lag) */
+.jg-wrap::before { content: ''; position: absolute; z-index: 0; left: 50%; top: 40%; width: 190%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(110, 150, 230, .16), rgba(80, 120, 210, .05) 55%, transparent 72%); pointer-events: none; }
+html:has(.app.color-mode) .jg-wrap::before { display: none; }

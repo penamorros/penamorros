@@ -85,15 +85,32 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 	// Anything on the page can open the chat (or go straight to booking a call): window.dispatchEvent(new CustomEvent('chat:open', { detail: { meet: true } }))
 	useEffect(() => {
 		const open = (e: Event) => {
-			scrollTo('about')
+			const detail = (e as CustomEvent).detail || {}
+			// from further down the page the chat comes to you, over the page (blurred behind it), instead of scrolling you
+			// all the way back up to the hero (the client, 2026-11-18); you stay where you were when you close it
+			const hero = document.getElementById('about')?.getBoundingClientRect()
+			if (isDesktop() && hero && hero.bottom < innerHeight * 0.5) setFloating(true)
+			else scrollTo('about')
 			setAvatarWanted(true)
 			setChatOpen(true)
-			setMeet(!!(e as CustomEvent).detail?.meet)
+			setMeet(!!detail.meet)
+			// the jetpack guide can open the chat already asking something (JetGuide)
+			if (typeof detail.ask === 'string' && detail.ask) window.setTimeout(() => sendRef.current?.(detail.ask), 650)
 		}
 		window.addEventListener('chat:open', open)
 		return () => window.removeEventListener('chat:open', open)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
+	const [floating, setFloating] = useState(false)
+	useEffect(() => {
+		if (!chatOpen) { setFloating(false); return }
+		if (!floating) return
+		// the page holds still behind it; Escape closes it
+		stopScroll()
+		const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setChatOpen(false) }
+		window.addEventListener('keydown', esc)
+		return () => { window.removeEventListener('keydown', esc); resumeScroll() }
+	}, [chatOpen, floating])
 	const [chatMessages, setChatMessages] = useState<Message[]>([])
 	const [currentMessage, setCurrentMessage] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
@@ -168,6 +185,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 
 	// One exchange, as in Version B: the message flies to the phone in his hand, it buzzes, he reads it, types for as long as the answer
 	// takes, the answer flies back, he looks up and nods.
+	const sendRef = useRef<((given?: string) => void) | null>(null)
 	const sendMessage = async (given?: string) => {
 		const text = (given ?? currentMessage).trim()
 		if (!text || isLoading) return
@@ -252,6 +270,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 		setFollow(nextQuestions(text, parts.join(' '), asked.current))
 		if (isDesktop()) window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 30)
 	}
+	sendRef.current = sendMessage
 
 	const copyAnswer = async (i: number, text: string) => {
 		try {
@@ -574,7 +593,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 								</div>
 								{desktop && (
 									<div className="coin-back">
-										{avatarStage}
+										{!floating && avatarStage}
 										{/* what a click here does, said plainly (the client, 2026-11-16) */}
 										<span className="coin-hint" aria-hidden="true"><MessageCircle size={14} />Click to talk</span>
 									</div>
@@ -586,7 +605,7 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 						<ChatInvite heroReady={lit || reducedMotion()} open={chatOpen || (desktop && photoHovered && canPreview)} onOpen={(toMeet) => { setAvatarWanted(true); setChatOpen(true); setMeet(!!toMeet) }} />
 					</div>
 
-					{desktop && (
+					{desktop && !floating && (
 						<div className={`twin-chat${chatOpen ? ' is-open' : ''}`} role="dialog" aria-label="Chat with Manuel's AI twin" {...(chatOpen ? {} : { inert: '', 'aria-hidden': true })}>
 							{chatPanel}
 						</div>
@@ -595,6 +614,16 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 
 				</div>
 			</div>
+
+			{desktop && floating && chatOpen && appRoot && createPortal(
+				<div className="chat-float" data-lenis-prevent onClick={() => setChatOpen(false)}>
+					<div className="cf-stage" onClick={(e) => e.stopPropagation()}>
+						<div className="twin-chat in-float is-open" role="dialog" aria-modal="true" aria-label="Chat with Manuel's AI twin">{chatPanel}</div>
+						<div className="tc-stage cf-circle">{avatarStage}</div>
+					</div>
+				</div>,
+				appRoot
+			)}
 
 			{!desktop && chatOpen && appRoot && createPortal(
 				<div className="chat-sheet-wrap" onClick={() => setChatOpen(false)}>

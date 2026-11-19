@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { whenBooted, whenHeroSettled } from '../motion'
 import './chat-invite.css'
+import { fairyActive } from './JetGuide'
 
 // What he says from over the portrait, in turn. The line on show decides where a click goes.
 const LINES = [
@@ -14,7 +15,9 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
   const button = useRef<HTMLButtonElement>(null)
   const [loaded, setLoaded] = useState(false)
   const [ready, setReady] = useState(false)
-  const [still, setStill] = useState(false)
+  // with the jetpack fairy on the page, he is the character here: no 3D twin of our own to load
+  const [fairy] = useState(fairyActive)
+  const [still, setStill] = useState(fairy)
   const [released, setReleased] = useState(false)
   const shown = released && (ready || still)
   const [line, setLine] = useState(0)
@@ -25,6 +28,13 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
     const id = window.setInterval(() => setLine((i) => (i + 1) % LINES.length), 3800)
     return () => window.clearInterval(id)
   }, [shown, open, held])
+  // Each new line is his: as it lands he gives a small nod and his suit pulses once (src/avatar/main.ts, 'line').
+  // Not for the first line, which arrives with him.
+  const firstLine = useRef(true)
+  useEffect(() => {
+    if (firstLine.current) { firstLine.current = false; return }
+    frame.current?.contentWindow?.postMessage({ t: 'line' }, location.origin)
+  }, [line])
   const duck = (on: boolean) => {
     if (!window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) return
     frame.current?.contentWindow?.postMessage({ t: 'duck', on }, location.origin)
@@ -70,6 +80,25 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
     }
   }, [loaded])
 
+  // The pointer, in his frame's pixels, so he can turn his head to it while it is on him (src/avatar/main.ts).
+  useEffect(() => {
+    if (!ready) return
+    let raf = 0, px = 0, py = 0
+    const onPointer = (e: PointerEvent) => {
+      px = e.clientX; py = e.clientY
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        const el = frame.current
+        const r = el?.getBoundingClientRect()
+        if (!el || !r || !r.width) return
+        el.contentWindow?.postMessage({ t: 'pointer', x: ((px - r.left) / r.width) * el.clientWidth, y: ((py - r.top) / r.height) * el.clientHeight }, location.origin)
+      })
+    }
+    window.addEventListener('pointermove', onPointer, { passive: true })
+    return () => { window.removeEventListener('pointermove', onPointer); cancelAnimationFrame(raf) }
+  }, [ready])
+
   useEffect(() => {
     if (!ready || !button.current) return
     let visible = false
@@ -81,20 +110,20 @@ export default function ChatInvite({ open, onOpen, heroReady }: { open: boolean;
   }, [ready, released, open])
 
   return (
-    <div onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} className={`chat-invite${shown ? ' is-shown' : ''}${ready && released ? ' is-ready' : ''}${still ? ' is-still' : ''}${open ? ' is-open' : ''}`} aria-hidden={open || !shown || undefined} {...(open || !shown ? { inert: '' } : {})}>
+    <div onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)} className={`chat-invite${fairy ? ' is-fairy' : ''}${shown ? ' is-shown' : ''}${ready && released ? ' is-ready' : ''}${still ? ' is-still' : ''}${open ? ' is-open' : ''}`} aria-hidden={open || !shown || undefined} {...(open || !shown ? { inert: '' } : {})}>
       <button ref={button} type="button" className="invite-peek" onPointerEnter={() => duck(true)} onPointerLeave={() => duck(false)} onClick={() => onOpen(false)} aria-label="Chat with Manuel's AI twin" aria-expanded={open}>
         <span className="invite-fx is-back" aria-hidden="true"><i className="fx-halo" /><i className="fx-ring" /><i className="fx-ring two" /></span>
         <span className="invite-character" aria-hidden="true">
-          {loaded && <iframe ref={frame} src="/avatar.html?invite" title="Manuel peeking over the portrait" tabIndex={-1} />}
-          {still && <img src="/avatar-3d.webp" alt="" />}
+          {loaded && !fairy && <iframe ref={frame} src="/avatar.html?invite" title="Manuel peeking over the portrait" tabIndex={-1} />}
+          {still && !fairy && <img src="/avatar-3d.webp" alt="" />}
         </span>
         <span className="invite-fx is-front" aria-hidden="true"><i className="fx-scan" /><i className="fx-corner tl" /><i className="fx-corner tr" /><i className="fx-corner bl" /><i className="fx-corner br" /></span>
       </button>
       <button type="button" className="invite-thought" onPointerEnter={() => duck(true)} onPointerLeave={() => duck(false)} onClick={() => onOpen(LINES[line].meet)} aria-label={LINES[line].meet ? 'Book a call with Manuel' : "Open chat with Manuel's AI twin"}>
         <span className="invite-label">
           <i className="invite-live" aria-hidden="true" />
-          <span className="invite-line" key={line}>{LINES[line].text}</span>
-          <span className="invite-arrow" aria-hidden="true">↗</span>
+          {/* the arrow rides inside the line, so when a narrow screen wraps it, it follows the last word */}
+          <span className="invite-line" key={line}>{LINES[line].text}<span className="invite-arrow" aria-hidden="true">↗</span></span>
         </span>
       </button>
     </div>

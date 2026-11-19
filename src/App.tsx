@@ -7,7 +7,7 @@ import { isLiveSite } from './site-env'
 import { ScrollTrigger, gsap, magnetic, resumeScroll, rewriteOnHover, scrollToSection, startSmoothScroll, tiltCards, useDesktop, whenBooted } from './motion'
 import GridField from './motion/GridField'
 import Cursor from './components/Cursor'
-import ChatNudge from './components/ChatNudge'
+import JetGuide from './components/JetGuide'
 import FooterSignature from './components/FooterSignature'
 import Hero from './sections/Hero'
 import Values from './sections/Values'
@@ -154,7 +154,8 @@ export default function App() {
 		<div className={`app ${colorMode ? 'color-mode' : ''}${isAthleticsPage ? ' athletics-page' : ''}`}>
 			<GridField light={colorMode} />
 			<Cursor colorMode={colorMode} />
-			{!isAthleticsPage && <ChatNudge />}
+			{/* the jetpack guide replaces the old corner capsule ("Book a call / Ask my AI twin") */}
+			{!isAthleticsPage && <JetGuide />}
 
 			{!isAthleticsPage && ready && createPortal(
 				<>

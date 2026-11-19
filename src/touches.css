@@ -203,6 +203,8 @@
 .avatar-3d .avatar-frame { background: transparent; pointer-events: none; opacity: 0; transition: opacity .7s ease; color-scheme: normal; }
 .avatar-3d.is-ready .avatar-frame { opacity: 1; }
 .avatar-3d.is-ready .avatar-still { opacity: 0; }
+/* the waiting still is the dark-suited twin: in white mode, nothing shows until the white-suited 3D twin is ready */
+.app.color-mode .avatar-3d:not(.is-still) .avatar-still { opacity: 0; }
 .avatar-3d.is-still .avatar-frame { display: none; }
 
 /* the line of light between the newest message and his phone, and the spark that runs along it */

@@ -112,7 +112,8 @@ export function AvatarFrame({ on, lit = true }: { on: boolean; lit?: boolean }) 
 		<div className={`avatar-3d is-${state}`}>
 			{/* a still of this same 3D avatar (round 4c: was the old 554 KB photo, which showed for 3–4 s and looked like someone else) */}
 			<img src="/avatar-3d.webp" alt="" className="avatar-gif avatar-still" decoding="async" />
-			<iframe ref={ref} src={`/avatar.html?pad=${AVATAR_PAD}`} title="Manuel's AI twin" aria-hidden="true" tabIndex={-1} className="avatar-frame" style={{ height: `calc(100% + ${AVATAR_PAD}px)` }} />
+			{/* booted in the page's theme (?light), so in white mode he never shows a black suit first and then turns white */}
+			<iframe ref={ref} src={`/avatar.html?pad=${AVATAR_PAD}${document.querySelector('.app.color-mode') ? '&light' : ''}`} title="Manuel's AI twin" aria-hidden="true" tabIndex={-1} className="avatar-frame" style={{ height: `calc(100% + ${AVATAR_PAD}px)` }} />
 		</div>
 	)
 }
@@ -148,10 +149,16 @@ export function ChatBeam({ open }: { open: boolean }) {
 			const p = avatar.phoneOnPage()
 			const el = target && target.isConnected ? target : null
 			let d = ''
-			if (p && el) {
+			// only while the chat is actually on screen: with the chat left open and the page scrolled on, the phone's last
+			// known place goes stale and the line was left hanging across whatever section was showing
+			const panel = document.querySelector('.twin-chat.is-open, .chat-sheet')?.getBoundingClientRect()
+			const onScreen = (y: number) => y > 0 && y < innerHeight
+			const visible = !!panel && panel.bottom > 40 && panel.top < innerHeight - 40
+			if (p && el && visible && onScreen(p.y)) {
 				const r = el.getBoundingClientRect()
 				const y1 = r.top + Math.min(11, r.height / 2)
-				if (r.width && p.x > r.right + 12) {
+				if (!onScreen(y1)) { /* the message itself has scrolled away: no line */ }
+				else if (r.width && p.x > r.right + 12) {
 					// Round 4b, desktop: the panel faces him from the left. From the right end of the message's first line, across to his phone.
 					const x1 = r.right + 6
 					const reach = Math.max(36, (p.x - x1) * 0.45)

@@ -467,3 +467,45 @@
 .tc-close { display: grid; place-items: center; flex: none; width: 30px; height: 30px; margin: -6px -2px -6px 6px; border: 1px solid #ffffff20; border-radius: 50%; background: #ffffff06; color: inherit; cursor: pointer; }
 .tc-close:hover { background: #ffffff15; }
 .tc-close:focus-visible { outline: 2px solid #c4d0e5; outline-offset: 3px; }
+
+/* ---------- the chat, brought to you: opened from further down the page, it comes over the page where you are,
+   the page blurred behind it, his circle beside the panel as on the hero (Hero, floating) */
+.chat-float {
+	position: fixed;
+	inset: 0;
+	z-index: 90;
+	display: grid;
+	place-items: center;
+	background: rgba(4, 6, 12, .55);
+	-webkit-backdrop-filter: blur(14px) saturate(1.1);
+	backdrop-filter: blur(14px) saturate(1.1);
+	animation: cf-in .28s ease both;
+}
+@keyframes cf-in { from { background-color: rgba(4, 6, 12, 0); } }
+html.is-safari .chat-float { background: rgba(4, 6, 12, .86); }
+.app.color-mode .chat-float { background: rgba(236, 240, 248, .6); }
+html.is-safari .app.color-mode .chat-float { background: rgba(236, 240, 248, .92); }
+.cf-stage { display: flex; align-items: center; gap: 28px; animation: cf-rise .42s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes cf-rise { from { transform: translateY(18px) scale(.97); } }
+.twin-chat.in-float {
+	position: relative;
+	top: auto;
+	right: auto;
+	width: min(400px, 34vw);
+	height: min(500px, 74vh);
+	opacity: 1;
+	visibility: visible;
+	transform: none;
+	transition: none;
+}
+.tc-stage.cf-circle {
+	position: relative;
+	flex: none;
+	width: min(440px, 36vw);
+	aspect-ratio: 1;
+	border-radius: 50%;
+	overflow: hidden;
+	border: 2px solid rgba(255, 255, 255, .22);
+	box-shadow: 0 40px 90px -30px rgba(0, 0, 0, .8), 0 0 60px -10px rgba(140, 175, 255, .25);
+}
+.app.color-mode .tc-stage.cf-circle { border-color: rgba(0, 0, 0, .2); }

@@ -18,6 +18,7 @@ type FromChat =
 	| { t: 'duck'; on: boolean }
 	| { t: 'power'; on: boolean }
 	| { t: 'surge' }
+	| { t: 'line' }
 	| { t: 'theme'; light: boolean }
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -27,13 +28,15 @@ const ease = (x: number) => x * x * (3 - 2 * x)
 const bootParams = new URLSearchParams(location.search)
 let inviteElapsed = 0
 let duckTarget = 0
-let duckPrev = 0
 let surgeKick = 0
 // His suit's lights, switched by the page: dark while the portrait is showing, then 0 -> 100 in a blink when the
 // coin turns and he is the one on show ("Click to talk"). 1 until the page says otherwise, so nothing else changes.
 let powerWant = 1
 let power = 1
 let powerFlash = 0
+// the tiny twin "says" each new line of his speech text: a small nod and one soft pulse down his suit
+let linePulse = 0
+let lineNod = 0
 const bootWave = bootParams.has('wave') || peekMode
 
 useFrame()
@@ -122,11 +125,18 @@ async function boot() {
 		stage.key.color.set(light ? 0xfff6ea : 0xf3f5ff)
 		stage.fill.color.set(light ? 0xe8eef8 : 0xdfe6ff)
 	}
+	// white mode from the first frame when the page asks for it (link.tsx adds ?light)
+	if (bootParams.has('light')) applyTheme(true)
 	applyTheme(bootParams.has('light'))
 	const [data, map] = await Promise.all([unpacked, loadTexture(tier.lite ? '/head/albedo-1k.webp' : '/head/albedo-2k.webp')])
 	await yieldToMain()
 	stage.place({ head: data.head, hair: data.hair, body: data.body, map })
-	if (inviteMode) await configureInvite(stage)
+	if (inviteMode) {
+		await configureInvite(stage)
+		// he wears his jetpack over the portrait too, tank tops showing over his shoulders (the guide takes off from here)
+		const { addJetpack } = await import('./gl/jetpack')
+		addJetpack(stage.rig, 0.17, 0.1)
+	}
 	await yieldToMain()
 	await stage.warm()
 
@@ -138,8 +148,11 @@ async function boot() {
 
 	const pointer = { x: 0, y: 0 }
 	const REST_YAW = rad(-13), REST_PITCH = rad(-3.5)
-	const yaw = new Spring(0.85, 0.9, 0.2, REST_YAW), pitch = new Spring(0.85, 0.9, 0.2, REST_PITCH)
-	const duckMotion = new Spring(1.6, 0.85, 0)
+	// the small twin's head is a bit quicker to follow than the big one's (the client, 2026-11-18: "a bit faster"),
+	// still damped, so it turns and settles without overshooting
+	const headHz = inviteMode ? 2.1 : 0.85
+	const yaw = new Spring(headHz, 0.9, 0.2, REST_YAW), pitch = new Spring(headHz, 0.9, 0.2, REST_PITCH)
+	const duckMotion = new Spring(2.4, 0.85, 0)
 	const eyeY = new Spring(3.2, 0.82, 1.4), eyeP = new Spring(3.2, 0.82, 1.4)
 	let followGain = 0
 	let blinkAt = 2.2, blinkT = -1, blinkDouble = false
@@ -186,6 +199,9 @@ async function boot() {
 			act.ping = 1
 			act.lookWant = 0
 			act.nod = 1
+			// he says it: as his answer lands in the chat he gives a clear nod and his suit flashes once and settles
+			lineNod = 1
+			if (!inviteMode) powerFlash = Math.max(powerFlash, 0.75)
 			act.want = kind === 'bye' ? 0.3 : kind === 'answer' || kind === 'unknown' ? 0.72 : 0.55
 			act.screenWant = 0.7
 			const hold = kind === 'bye' ? 800 : kind === 'thanks' ? 2600 : kind === 'ok' || kind === 'praise' || kind === 'laugh' ? 4500 : 9000
@@ -225,6 +241,7 @@ async function boot() {
 			case 'duck': if (inviteMode) duckTarget = m.on ? 1 : 0; break
 			// clicking "Click to talk" is the activation: the same switch-on, played again — he drops dark for a
 			// blink and comes straight back up to full, so the click visibly does something to him
+			case 'line': if (inviteMode) { lineNod = 1; linePulse = 1 } break
 			case 'surge': powerWant = 1; power = 0; powerFlash = 1.15; break
 			case 'power':
 				// switching on: one flash and a run down the lines, then it stays lit
@@ -237,8 +254,10 @@ async function boot() {
 			case 'pointer': {
 				// the page's pointer, in this frame's pixels: he follows it even when it is outside the circle
 				const W = innerWidth, H = innerHeight
-				pointer.x = Math.max(-1, Math.min(1, (m.x - stage.cx) / (Math.max(W, 320) * 1.6)))
-				pointer.y = Math.max(-1, Math.min(1, (m.y - (stage.cy - 0.07 * stage.k)) / (Math.max(H, 320) * 1.6)))
+				// the small twin's frame is tiny, so a pointer on him needs a shorter reach to turn his head at all
+				const reach = inviteMode ? 0.65 : 1.6
+				pointer.x = Math.max(-1, Math.min(1, (m.x - stage.cx) / (Math.max(W, 320) * reach)))
+				pointer.y = Math.max(-1, Math.min(1, (m.y - (stage.cy - 0.07 * stage.k)) / (Math.max(H, 320) * reach)))
 				break
 			}
 		}
@@ -305,9 +324,7 @@ async function boot() {
 
 		let inviteHover = 0
 		if (inviteMode) {
-			// One nod pulse on hover enter — not a held pitch every frame.
-			if (duckTarget > 0.5 && duckPrev < 0.5) act.nod = 1
-			duckPrev = duckTarget
+			// (Hover no longer nods him — the client, 2026-11-18: he turns, slowly, to look where the pointer is instead.)
 			inviteHover = Math.max(0, Math.min(1, duckMotion.update(dt, duckTarget)))
 			if (!duckTarget && inviteHover < 0.02) inviteElapsed += dt
 			animateInvite(stage, inviteElapsed, inviteHover)
@@ -315,8 +332,10 @@ async function boot() {
 			// visor's display comes up bright — he "switches on" for you instead of only nodding.
 			if (duckTarget > 0.5 && surgeKick < 0.05 && inviteHover < 0.3) surgeKick = 1
 			surgeKick *= Math.exp(-dt * 2.6)
-			bodyU.uSurge.value = Math.min(2, inviteHover * 0.75 + surgeKick * 1.25 * duckTarget)
-			glassU.uHud.value += inviteHover * 1.6 + surgeKick * 1.4 * duckTarget
+			// strong enough to read at his small size: the lines flash and race like the hover kick, then settle
+			linePulse *= Math.exp(-dt * 2.2)
+			bodyU.uSurge.value = Math.min(2, inviteHover * 0.75 + surgeKick * 1.25 * duckTarget + linePulse * 1.8)
+			glassU.uHud.value += inviteHover * 1.6 + surgeKick * 1.4 * duckTarget + linePulse * 1.8
 		}
 
 		// ---- switching on ----
@@ -332,6 +351,8 @@ async function boot() {
 			if (!inviteMode) bodyU.uSurge.value = powerFlash * 1.7 * pw
 		}
 
+		lineNod *= Math.exp(-dt * 2.0)
+
 		// ---- head and eyes ----
 		const idleY = Math.sin(t * 0.37) * rad(1.4) + Math.sin(t * 0.17 + 2) * rad(0.9)
 		const idleP = Math.sin(t * 0.53 + 1) * rad(0.5)
@@ -339,13 +360,18 @@ async function boot() {
 		const away = 1 - look * 0.85
 		const inviteAmp = inviteMode ? 1.15 + inviteHover * 0.25 : 1
 		const nodKick = inviteMode ? 6 : 5
-		const toYaw = (REST_YAW + (pointer.x * rad(16 * inviteAmp) + idleY * inviteAmp) * followGain) * away + rad(4) * look
-			// under the pointer he also looks from side to side, slowly, like taking you in (not a head-shake)
-			+ (inviteMode ? rad(11) * Math.sin(t * 2.4) * inviteHover : 0)
-		const toPitch = (REST_PITCH + (pointer.y * rad(6 * inviteAmp) + idleP * inviteAmp) * followGain) * away + rad(15) * look + rad(nodKick) * Math.sin(act.nod * Math.PI) * act.nod
+		// The small twin over the portrait only follows the pointer while it is on him, and eases back to rest when it
+		// leaves; the head springs are slow (0.85 Hz), so he turns to look, he does not snap.
+		const follow = inviteMode ? inviteHover : 1
+		// the small twin turns further for the same pointer (the client, 2026-11-18: "slightly more")
+		const turnY = inviteMode ? 21 : 16, turnP = inviteMode ? 8.5 : 6
+		const toYaw = (REST_YAW + (pointer.x * rad(turnY * inviteAmp) * follow + idleY * inviteAmp) * followGain) * away + rad(4) * look
+		const toPitch = (REST_PITCH + (pointer.y * rad(turnP * inviteAmp) * follow + idleP * inviteAmp) * followGain) * away + rad(15) * look + rad(nodKick) * Math.sin(act.nod * Math.PI) * act.nod
+			// his nod as a new line of his lands: deeper than the hover one, so it reads as him saying it
+			+ rad(11) * Math.sin(lineNod * Math.PI) * lineNod
 		const y = yaw.update(dt, toYaw), p = pitch.update(dt, toPitch)
-		const ey = eyeY.update(dt, (pointer.x * rad(14) * followGain) * away)
-		const ep = eyeP.update(dt, (pointer.y * rad(8) * followGain) * away + rad(17) * look)
+		const ey = eyeY.update(dt, (pointer.x * rad(14) * followGain * follow) * away)
+		const ep = eyeP.update(dt, (pointer.y * rad(8) * followGain * follow) * away + rad(17) * look)
 		if (blinkT < 0 && t > blinkAt) { blinkT = t; blinkDouble = Math.random() < 0.18 }
 		let b = 0
 		if (blinkT >= 0) {

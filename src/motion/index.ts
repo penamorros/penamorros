@@ -114,8 +114,13 @@ export function startSmoothScroll() {
 	const onKey = (e: KeyboardEvent) => {
 		const target = e.target as Element | null
 		if (!keys.has(e.key) || target?.closest?.('input, textarea, select, [contenteditable], [data-lenis-prevent]')) return
-		if (e.altKey || e.ctrlKey || e.metaKey) return
-		const dir = stepKeys[e.key]
+		if (e.altKey || e.ctrlKey || e.metaKey || e.repeat && (e.key === ' ' || e.key === 'Spacebar')) { if (e.repeat && (e.key === ' ' || e.key === 'Spacebar') && !document.documentElement.classList.contains('space-for-game')) e.preventDefault(); return }
+		// Space steps a section like the arrows (Shift+Space back) — except while the skills game is on screen: it is the
+		// game's jetpack there (SkillsGame sets space-for-game)
+		const isSpace = e.key === ' ' || e.key === 'Spacebar'
+		if (isSpace && document.documentElement.classList.contains('space-for-game')) return
+		if (isSpace && target?.closest?.('button, a, [role="button"]')) return
+		const dir = isSpace ? (e.shiftKey ? -1 : 1) : stepKeys[e.key]
 		lastWheel.at = 0 // keys scroll where they're told: no settling after them
 		if (dir && !instance.isStopped) {
 			e.preventDefault()
