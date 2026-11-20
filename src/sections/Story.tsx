@@ -61,7 +61,12 @@ function Art({ name, className = '', exact }: { name: string; className?: string
 	useEffect(() => {
 		const el = ref.current
 		if (!el || !exact) return
-		const mo = new MutationObserver(() => { if (el.querySelector(':scope > svg')) { mo.disconnect(); el.classList.add('is-exact') } })
+		// the finished strokes must be painted once at full strength before they fade, or there is a blink with nothing on screen
+		const mo = new MutationObserver(() => {
+			if (!el.querySelector(':scope > svg')) return
+			mo.disconnect()
+			requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('is-exact')))
+		})
 		mo.observe(el, { childList: true })
 		return () => mo.disconnect()
 	}, [exact])
