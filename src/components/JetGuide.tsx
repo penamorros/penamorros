@@ -13,8 +13,8 @@ type Station = { id: string; lines: Line[]; y: number; side?: 'left' | 'right' }
 
 const STATIONS: Station[] = [
 	{ id: 'values', side: 'right', y: 0.5, lines: [
-		{ text: 'These are the values I work by', ask: 'What are your core values, and where do they come from?' },
-		{ text: 'Ask me which one is hardest', ask: 'Which of your core values is the hardest for you to live by?' },
+		{ text: 'This is how I got here', ask: 'Tell me your story in a minute: how did you get from Mexico City to here?' },
+		{ text: 'Ask me about any chapter', ask: 'Which chapter of your story taught you the most?' },
 	] },
 	{ id: 'skills', y: 0.5, lines: [{ text: 'Fly with me: every skill is 1% off Lumina Labs' }] },
 	{ id: 'resume', side: 'left', y: 0.46, lines: [

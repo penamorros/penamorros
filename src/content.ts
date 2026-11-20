@@ -5,7 +5,7 @@ import {
 
 export const sections = [
 	{ id: 'about', label: 'Home', icon: Home },
-	{ id: 'values', label: 'Values', icon: Heart },
+	{ id: 'values', label: 'My Story', icon: Heart },
 	{ id: 'skills', label: 'Skills', icon: Zap },
 	{ id: 'resume', label: 'Resume', icon: FileText },
 	{ id: 'projects', label: 'Projects', icon: FolderOpen },

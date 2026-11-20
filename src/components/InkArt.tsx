@@ -37,7 +37,7 @@ const SWEEP = 1.45 // seconds for the pen to cross the page
 const STROKE = 0.9 // seconds for one stroke
 const JITTER = 0.28
 
-function parse(svg: string): Drawing | null {
+export function parse(svg: string): Drawing | null {
 	const vb = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg)
 	if (!vb) return null
 	const strokes: Stroke[] = []
@@ -58,7 +58,7 @@ function parse(svg: string): Drawing | null {
 }
 
 const cache = new Map<string, Promise<Drawing | null>>()
-const load = (name: string) => {
+export const load = (name: string) => {
 	if (!cache.has(name)) cache.set(name, fetch(`/ink/${name}.svg`).then((r) => (r.ok ? r.text() : '')).then(parse).catch(() => null))
 	return cache.get(name)!
 }
@@ -86,7 +86,7 @@ function segment(ctx: CanvasRenderingContext2D, s: Stroke, a: number, b: number)
 }
 
 /** One drawing on one canvas: draws in once, repaints whole on resize or theme change. */
-function mount(host: HTMLElement, d: Drawing, still: boolean) {
+export function mount(host: HTMLElement, d: Drawing, still: boolean) {
 	const canvas = document.createElement('canvas')
 	host.appendChild(canvas)
 	const ctx = canvas.getContext('2d')!

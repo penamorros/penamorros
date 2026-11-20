@@ -15,7 +15,8 @@ import './components/ink-art.css'
 import './components/script-title.css'
 import FooterSignature from './components/FooterSignature'
 import Hero from './sections/Hero'
-import Values from './sections/Values'
+import Story from './sections/Story'
+import './sections/story.css'
 import SkillsGame from './sections/SkillsGame'
 import Resume from './sections/Resume'
 import Projects from './sections/Projects'
@@ -141,7 +142,7 @@ export default function App() {
 		nav.style.setProperty('--iy', `${y}px`)
 	}, [active, desktop])
 
-	// The rail stays hidden while the hero sets itself; at the first scroll his initial appears as a small glass pill and the bar unfolds
+	// The rail stays hidden through the hero and the story; when My Skills arrives his initial appears as a small glass pill and the bar unfolds
 	// from it, up and down, the initial carried up by the bar's top edge and the icons arriving once it has passed (the client,
 	// 2026-11-19). Phones keep the fade.
 	useLayoutEffect(() => {
@@ -186,14 +187,13 @@ export default function App() {
 			tl.to(open, { t: 1, duration: 1, ease: 'power3.inOut', onUpdate: () => pose(open.t) }, 0.4)
 			tl.fromTo(rest, { autoAlpha: 0, y: -6 }, { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.04, ease: 'power2.out' }, 0.9)
 		}
-		const onScroll = () => { if (window.scrollY > 8) unfold() }
-		const onKey = (e: KeyboardEvent) => { if ([' ', 'ArrowDown', 'PageDown', 'End'].includes(e.key)) unfold() }
-		const off = () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('wheel', unfold); window.removeEventListener('touchmove', unfold); window.removeEventListener('keydown', onKey) }
+		// it opens when My Skills arrives: the hero and the story are read without it (the client, 2026-11-20)
+		const skills = document.getElementById('skills')
+		const reached = () => !skills || skills.getBoundingClientRect().top < window.innerHeight * 0.55
+		const onScroll = () => { if (reached()) unfold() }
+		const off = () => { window.removeEventListener('scroll', onScroll) }
 		window.addEventListener('scroll', onScroll, { passive: true })
-		window.addEventListener('wheel', unfold, { passive: true })
-		window.addEventListener('touchmove', unfold, { passive: true })
-		window.addEventListener('keydown', onKey)
-		if (window.scrollY > 8) unfold()
+		if (reached()) unfold()
 		return () => { off(); tl?.kill(); if (logo) { logo.style.transition = ''; logo.style.transform = '' } nav.style.clipPath = '' }
 	}, [ready, desktop])
 
@@ -276,7 +276,7 @@ export default function App() {
 				) : (
 				<>
 						<Hero scrollTo={scrollToSection} interactive={ready} />
-						<Values />
+						<Story />
 						<SkillsGame />
 						<Resume />
 						<Projects />

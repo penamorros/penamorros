@@ -9,9 +9,10 @@ export default function ScrollHint() {
 		let alive = true
 		const gone = () => { if (alive) setState('gone'); off() }
 		const onScroll = () => { if (window.scrollY > 8) gone() }
-		const off = () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('wheel', gone); window.removeEventListener('touchmove', gone) }
+		const onWheel = (e: WheelEvent) => { if (e.deltaY > 0) gone() }
+		const off = () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('wheel', onWheel); window.removeEventListener('touchmove', gone) }
 		window.addEventListener('scroll', onScroll, { passive: true })
-		window.addEventListener('wheel', gone, { passive: true })
+		window.addEventListener('wheel', onWheel, { passive: true })
 		window.addEventListener('touchmove', gone, { passive: true })
 		if (window.scrollY > 8) gone()
 		whenHeroSettled().then(() => window.setTimeout(() => { if (alive) setState((s) => (s === 'wait' ? 'in' : s)) }, 600))

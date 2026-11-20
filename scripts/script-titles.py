@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from importlib import import_module
 hy = import_module('script-hybrid')
 base, alt = hy.load(sys.argv[1]), hy.load(sys.argv[2])
-WORDS = {'title': ['Core Values', 'My Skills', 'Resume', 'Projects', 'Article Mentions', 'Contact Card'], 'hero': ['Manuel', 'Peña-Morros']}
+WORDS = {'title': ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'My Story', 'Core Values', 'My Skills', 'Resume', 'Projects', 'Article Mentions', 'Contact Card'], 'hero': ['Manuel', 'Peña-Morros']}
 out = {}
 for kind, words in WORDS.items():
     for w in words:
