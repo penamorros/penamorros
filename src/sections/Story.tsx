@@ -13,19 +13,20 @@ type Chapter = { id: string; when: string; title: string; body: string; art: str
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII']
 
+// who he is, in six chapters of 34 words each (draft for him to make his own)
 const CHAPTERS: Chapter[] = [
-	{ id: 'cdmx', when: 'Mexico City · the beginning', art: 'story-1', title: 'It started at a desk by the window',
-		body: 'I grew up in Mexico City taking apart whatever was left on the table. The first thing I ever built was a website nobody visited. I was hooked anyway.' }, // draft
-	{ id: 'diaita', when: 'Diaita · sixteen', art: 'story-2', title: 'Building something that mattered',
-		body: 'At sixteen I started Diaita, a nutrition app to fight obesity and diabetes in Mexico. I earned a nutritionist certification under Barry Sears, reached 500+ clients, and gave every peso to food drives at two public hospitals.' },
-	{ id: 'azteca', when: 'TV Azteca · first job', art: 'story-3', title: 'Learning how real systems run',
-		body: 'My first real job: IT at TV Azteca. I wrote Python that watched 600+ pages so no one had to, and learned that the best code is the kind people stop noticing.' },
-	{ id: 'lumina', when: 'New Orleans · Lumina Labs', art: 'story-4', title: 'A phone that reads a face',
-		body: 'In New Orleans I founded Lumina Labs: AI that analyses a face the way a dermatologist would. Today it runs in five clinics in Mexico, with 1,000+ analyses and an app on the App Store.' },
-	{ id: 'nyc', when: 'UnifAI · summer 2025', art: 'story-5', title: 'A summer of shipping',
-		body: 'At UnifAI, a New York AI studio, I built AI agents for companies that needed them yesterday, and knew for certain this is the work I want to do.' },
-	{ id: 'atx', when: 'Austin · now', art: 'story-6', title: 'Still building',
-		body: 'Now I study data science at UT Austin and keep building. The story isn’t finished, and that’s the best part.' },
+	{ id: 'home', when: 'Mexico City', art: 'story4-1', title: 'Where I come from',
+		body: 'Mexico City raised me: its noise, its color, its traditions, its people. I grew up surrounded by family and by a culture that always taught me to be proud of where I come from.' },
+	{ id: 'two', when: 'Growing up', art: 'story4-2', title: 'Seeing both sides',
+		body: 'Growing up, I had every opportunity, and I saw how many people around me didn’t. That contrast stayed with me. Mexico has so much talent; what it lacks is the chance to use it.' },
+	{ id: 'help', when: 'Teenage years', art: 'story4-3', title: 'Learning to give back',
+		body: 'As a teenager I started looking for ways to help: giving talks at schools and children’s homes, volunteering, listening. I realized I could do something, and that small actions add up to real change.' },
+	{ id: 'leave', when: 'Leaving home', art: 'story3-4', title: 'Leaving to learn',
+		body: 'Leaving Mexico to study was the hardest decision I’ve ever made. I left to learn from the world, see how things are built elsewhere, and to bring everything I learn back home one day.' },
+	{ id: 'build', when: 'Austin · now', art: 'story2-6', title: 'Learning to build',
+		body: 'Today I study data science at UT Austin. Every project, every late night, every product I ship is practice for the very same goal: building tools that can change things at scale back home.' },
+	{ id: 'back', when: 'Mexico · next', art: 'story4-6', title: 'Going back',
+		body: 'One day I’ll go back for good. Not to visit, but to build: companies, jobs and opportunities for the kids at those red lights. Mexico gave me everything. I want to return the favor.' },
 ]
 
 /** One drawing: laid in undrawn when its chapter is near, drawn when it arrives. */
@@ -183,7 +184,7 @@ export default memo(function Story() {
 					<div className="story-text">
 						<span className="story-when"><i>VII</i>So far</span>
 						<h3>And that’s me.</h3>
-						<p>Twenty, from Mexico City, building things people use. Here’s what I can do.</p>
+						<p className="story-next">Here’s what I can do.</p>
 					</div>
 				</article>
 			</div>

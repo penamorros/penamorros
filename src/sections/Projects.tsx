@@ -9,7 +9,7 @@ import LuminaTry from '../components/LuminaTry'
 import '../components/lumina-try.css'
 
 const STEP = 120
-const START_INDEX = 1
+const START_INDEX = 0 // TV Azteca first (the client, 2026-11-22)
 
 const press = [
 	{ i: '/press-el_universal_white.png', n: 'El Universal', u: 'https://www.eluniversal.com.mx/de-ultima/la-inteligencia-artificial-y-la-alta-tecnologia-tambien-cuidan-tu-cabello/' },

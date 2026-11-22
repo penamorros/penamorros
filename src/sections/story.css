@@ -97,3 +97,7 @@
 .story-ink.is-exact > svg { opacity: 0 !important; transition: opacity 1.2s ease; }
 .story-ink.is-exact { filter: drop-shadow(0 0 14px rgba(120, 170, 255, .22)); }
 .app.color-mode .story-ink.is-exact { filter: none; }
+
+/* "Here's what I can do." — the bridge into the rest of the page, plain text */
+.story-next { margin: 4px 0 0; font-size: 1.15rem; color: rgba(226, 234, 255, .9); }
+.app.color-mode .story-next { color: rgba(11, 18, 32, .85); }
