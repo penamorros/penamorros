@@ -1,7 +1,7 @@
 import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ArrowRight, ChevronLeft, ChevronRight } from '../icons'
 import { articles } from '../content'
-import { gsap, prefersReducedMotion, useDesktop, useMotion, writeIn } from '../motion'
+import { gsap, prefersReducedMotion, useDesktop, useMotion, whenBooted, writeIn } from '../motion'
 import { curlAway } from '../motion/pageCurl'
 import ScriptTitle from '../components/ScriptTitle'
 
@@ -11,6 +11,15 @@ export default memo(function Articles() {
 	const sectionRef = useRef<HTMLElement>(null)
 	const trackRef = useRef<HTMLDivElement>(null)
 	const clipRef = useRef<HTMLDivElement>(null)
+	// the covers load and decode in the background as soon as the page has opened, so the first one lands whole when you scroll down
+	useEffect(() => {
+		let alive = true
+		whenBooted().then(() => {
+			if (!alive) return
+			articles.forEach((a) => { const im = new Image(); im.src = a.image; im.decode?.().catch(() => {}) })
+		})
+		return () => { alive = false }
+	}, [])
 	const desktop = useDesktop()
 	const [current, setCurrent] = useState(0)
 	const previous = useRef(0)
@@ -151,7 +160,7 @@ function ArticleCard({ article }: { article: Article }) {
 			<div className="newspaper-body">
 				<div className="newspaper-column newspaper-image-column">
 					<div className="newspaper-image-wrapper">
-						<img src={article.image} alt={article.title} className="newspaper-image" loading="lazy" decoding="async" />
+						<img src={article.image} alt={article.title} className="newspaper-image" loading="eager" decoding="sync" fetchPriority="low" />
 						<div className="newspaper-image-caption">{article.category}</div>
 					</div>
 				</div>

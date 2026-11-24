@@ -24,6 +24,15 @@ export const projects = [
 		github: 'https://github.com/penamorros/dashtva'
 	},
 	{
+		id: 'project3',
+		title: 'Health Education Platform',
+		description: 'Comprehensive health app with nutrition tracking, exercise monitoring, and educational resources for underserved communities.',
+		technologies: ['React', 'Django', 'PostgreSQL', 'Chart.js', 'Python', 'TypeScript'],
+		image: '/project3.jpg',
+		link: 'https://chart-app-demo.netlify.app/',
+		github: 'https://github.com/penamorros/chart-app-front'
+	},
+	{
 		id: 'project1',
 		title: 'Unif-AI Business Platform',
 		description: 'AI-powered business transformation platform with document analysis and smart insights for companies of all sizes.',
@@ -32,15 +41,6 @@ export const projects = [
 		link: 'https://unif-ai.netlify.app/',
 		github: 'https://github.com/penamorros/unif-ai'
 	},
-	{
-		id: 'project3',
-		title: 'Health Education Platform',
-		description: 'Comprehensive health app with nutrition tracking, exercise monitoring, and educational resources for underserved communities.',
-		technologies: ['React', 'Django', 'PostgreSQL', 'Chart.js', 'Python', 'TypeScript'],
-		image: '/project3.jpg',
-		link: 'https://chart-app-demo.netlify.app/',
-		github: 'https://github.com/penamorros/chart-app-front'
-	}
 ]
 
 export const CHAT_SYSTEM_PROMPT = `You are Manuel Peña-Morros's AI avatar on his portfolio website. Speak in first person as Manuel. Be enthusiastic, energetic, and personable — like a young founder genuinely excited to talk about what he's building. Keep it concise (2–4 sentences unless more detail is requested).

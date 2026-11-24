@@ -19,7 +19,7 @@ const CHAPTERS: Chapter[] = [
 		body: 'Mexico City raised me: its noise, its color, its traditions, its people. I grew up surrounded by family and by a culture that always taught me to be proud of where I come from.' },
 	{ id: 'two', when: 'Growing up', art: 'story4-2', title: 'Seeing both sides',
 		body: 'Growing up, I had every opportunity, and I saw how many people around me didn’t. That contrast stayed with me. Mexico has so much talent; what it lacks is the chance to use it.' },
-	{ id: 'help', when: 'Teenage years', art: 'story4-3', title: 'Learning to give back',
+	{ id: 'help', when: 'Teenage years', art: 'story2-5', title: 'Learning to give back',
 		body: 'As a teenager I started looking for ways to help: giving talks at schools and children’s homes, volunteering, listening. I realized I could do something, and that small actions add up to real change.' },
 	{ id: 'leave', when: 'Leaving home', art: 'story3-4', title: 'Leaving to learn',
 		body: 'Leaving Mexico to study was the hardest decision I’ve ever made. I left to learn from the world, see how things are built elsewhere, and to bring everything I learn back home one day.' },

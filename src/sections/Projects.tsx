@@ -258,7 +258,7 @@ export default memo(function Projects() {
 							<div className="projects-container" ref={ringRef}>
 								{projects.map((project, index) => (
 									<div key={project.id} className="project-item">
-										{index === 2 ? (
+										{project.id === 'project3' ? (
 											<img
 												src="/diaita-preview.png"
 												alt="Health Education Platform"
@@ -272,11 +272,11 @@ export default memo(function Projects() {
 												className="project-video-button"
 												aria-label={`Play the ${project.title} video`}
 												onClick={() => {
-													if (!moved.current) setViewer(index === 0 ? '/project-azteca.mp4' : '/bb.mp4')
+													if (!moved.current) setViewer(project.id === 'project2' ? '/project-azteca.mp4' : '/bb.mp4')
 												}}
 											>
 												<video muted loop playsInline preload="none" data-autoplay-on-visible data-playback-rate="2.5" className="project-video">
-													<source src={index === 0 ? '/project-azteca.mp4' : '/bb.mp4'} type="video/mp4" />
+													<source src={project.id === 'project2' ? '/project-azteca.mp4' : '/bb.mp4'} type="video/mp4" />
 												</video>
 											</button>
 										)}
