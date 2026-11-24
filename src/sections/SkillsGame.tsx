@@ -578,10 +578,11 @@ export default memo(function SkillsGame() {
 							<i className="jet-vignette" aria-hidden="true" />
 							<i className="jet-grain" aria-hidden="true" />
 
-							{/* The tally sits on the ground strip, under the floor line, out of his way. */}
+							{/* The tally: top centre, big and easy to read while flying (the client, 2026-11-23). */}
 							{gameStarted && !gameOver && (
-								<div className="flappy-tally" role="status">
-									<span className="tally-skills"><b key={collectedSkillsCount}>{collectedSkillsCount}</b> / {skills.length} skills</span>
+								<div className="flappy-tally is-top" role="status" aria-label={`${collectedSkillsCount} of ${skills.length} skills collected, ${collectedSkillsCount}% off Lumina Labs`}>
+									<span className="tally-skills"><b key={collectedSkillsCount}>{collectedSkillsCount}</b><i>/ {skills.length}</i></span>
+									<span className="tally-bar" aria-hidden="true"><em style={{ transform: `scaleX(${collectedSkillsCount / skills.length})` }} /></span>
 									<span className="tally-off">{collectedSkillsCount}% off Lumina Labs</span>
 								</div>
 							)}

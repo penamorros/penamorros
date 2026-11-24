@@ -513,3 +513,6 @@ html.is-safari .app.color-mode .chat-float { background: rgba(236, 240, 248, .92
 	box-shadow: 0 40px 90px -30px rgba(0, 0, 0, .8), 0 0 60px -10px rgba(140, 175, 255, .25);
 }
 .app.color-mode .tc-stage.cf-circle { border-color: rgba(0, 0, 0, .2); }
+
+/* answers keep their line breaks (code, short lists) and long links wrap inside the bubble */
+.tc-text { white-space: pre-line; overflow-wrap: anywhere; }

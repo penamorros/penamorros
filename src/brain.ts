@@ -33,11 +33,15 @@ const FACTS: Fact[] = [
 
   { id: "contact", topic: "contact", say: "Email's best: manuel@manuelpenamorros.com. Or use \"Get in Touch\" right here on the page.", words: "contact email mail reach hire hiring talk meet call phone number message linkedin work together collaborate job offer" },
   { id: "resume", topic: "contact", say: "Hit \"See Resume\" on the left and you'll get the whole thing as a PDF.", words: "resume cv pdf download" },
+  { id: "story-leave", topic: "story", say: "Leaving Mexico to study was the hardest decision I've ever made. I left to learn from the world, see how things are built elsewhere, and bring all of it back home one day.", words: "why leave left leaving mexico abroad usa us united states america study studying move moved moving away home hardest decision" },
+  { id: "story-back", topic: "story", say: "One day I'll go back, not to visit but to build: companies, jobs and opportunities. Mexico shaped the person I am today, and I want to give back to the community I was born in.", words: "future plan plans goal goals dream next go back return mexico give back community years ten 10 vision mission" },
+  { id: "story-give", topic: "story", say: "As a teenager I started giving talks at schools and children's homes and volunteering. I realized small actions add up to real change.", words: "volunteer volunteering help helping talks schools children homes teenager young give back charity impact change" },
+  { id: "story-grew", topic: "story", say: "I grew up in Mexico City with every opportunity, and I saw how many people around me didn't have them. Mexico has so much talent; what it lacks is the chance to use it. That's why I build.", words: "grow grew growing up childhood family mexico city why build motivation motivated inspire inspiration purpose" },
   { id: "where", topic: "about", say: "I'm based in Austin, Texas. Before that, Mexico City.", words: "where live based from location city country home hometown austin mexico" },
 ];
 
-const TOPIC_NAMES: Record<string, string> = { lumina: "Lumina Labs", education: "my studies", bodybuilding: "bodybuilding", work: "my internships", diaita: "Diaita", skills: "my stack", projects: "my projects", values: "my values", contact: "getting in touch", about: "me" };
-const NEXT_TOPIC: Record<string, string[]> = { lumina: ["bodybuilding", "work"], education: ["lumina", "work"], bodybuilding: ["lumina", "diaita"], work: ["lumina", "skills"], diaita: ["lumina", "bodybuilding"], skills: ["projects", "work"], projects: ["lumina", "skills"], values: ["bodybuilding", "lumina"], contact: ["lumina", "projects"], about: ["education", "lumina"] };
+const TOPIC_NAMES: Record<string, string> = { story: "my story", lumina: "Lumina Labs", education: "my studies", bodybuilding: "bodybuilding", work: "my internships", diaita: "Diaita", skills: "my stack", projects: "my projects", values: "my values", contact: "getting in touch", about: "me" };
+const NEXT_TOPIC: Record<string, string[]> = { story: ["lumina", "diaita"], lumina: ["bodybuilding", "work"], education: ["lumina", "work"], bodybuilding: ["lumina", "diaita"], work: ["lumina", "skills"], diaita: ["lumina", "bodybuilding"], skills: ["projects", "work"], projects: ["lumina", "skills"], values: ["bodybuilding", "lumina"], contact: ["lumina", "projects"], about: ["education", "lumina"] };
 
 // Follow-up questions to offer, per topic: real ones this can answer.
 export const SUGGEST: Record<string, string[]> = {
@@ -52,6 +56,7 @@ export const SUGGEST: Record<string, string[]> = {
   values: ["Why bodybuilding?", "Tell me about Lumina"],
   contact: ["Can I see your resume?", "Tell me about Lumina"],
   about: ["What are you studying?", "What is Lumina Labs?"],
+  story: ["What's your plan for Mexico?", "Tell me about Lumina"],
 };
 
 const STOP = new Set("a an the is are was were be been am i you your yours me my mine we us our it its this that these those of to in on at for with and or but so do does did can could would should will shall have has had what whats how who whom which there here please tell about give know some any just really very also too like get got".split(" "));
@@ -118,9 +123,9 @@ const SAY = {
   name: ["I'm Manuel Peña-Morros! Well, his AI twin, trained on his resume."],
   about: ["I'm Manuel: founder and CEO of Lumina Labs, a Data Science student at UT Austin, and a competitive bodybuilder. What do you want to know?"],
   help: ["Ask me about Lumina Labs, my studies at UT Austin, bodybuilding, my internships or the code I write. Whatever you like!"],
-  gibberish: ["Sorry, I didn't catch that. Try me on Lumina Labs, my studies or my work!", "Hmm, I'm not sure what you mean. Want to hear about Lumina Labs?"],
-  unknown: ["I don't have that detail, sorry! Best to check my resume or write to manuel@manuelpenamorros.com.", "That's one I can't answer here. Email me at manuel@manuelpenamorros.com and I'll get back to you!", "Hmm, I don't have an answer for that. Ask me about Lumina Labs, my studies or my work?"],
-  outOfFacts: ["That's about all I've got on that here. For more, email me at manuel@manuelpenamorros.com!"],
+  gibberish: ["Ha, you lost me there! Try me on Lumina Labs, my studies or my story.", "Let's start somewhere fun: want to hear about Lumina Labs or why I'm building all this for Mexico?"],
+  unknown: ["Great question! The best way to get the full story is a quick call, press Book a call right here. Meanwhile, ask me about Lumina Labs, my studies or why I'm building all this for Mexico.", "Love that you asked. Let's talk about it properly on a call, or write to me at manuel@manuelpenamorros.com. In the meantime, want to hear about Lumina Labs?", "Good one! I'd rather tell you that one myself: book a call right here, or ask me about my projects, my studies or my work."],
+  outOfFacts: ["That's the gist! For the full story, book a call right here or email me at manuel@manuelpenamorros.com."],
 };
 
 export type Reply = { parts: string[]; topic: string; kind: string };

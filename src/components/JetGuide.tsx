@@ -92,6 +92,39 @@ const FOCUS: Record<string, Line[]> = {
 	'article-1': [{ text: 'Aventuras en Salud on TV Azteca', ask: 'Tell me about Aventuras en Salud and the TV Azteca feature.' }],
 	'article-2': [{ text: 'What El Sol de Toluca wrote', ask: 'What did El Sol de Toluca write about Aventuras en Salud?' }],
 	'article-3': [{ text: 'What the foundation launched', ask: 'What did the foundation launch with Aventuras en Salud?' }],
+	// My Story, chapter by chapter, top to bottom: every stop has its own lines (the client, 2026-11-24)
+	'story-head': [
+		{ text: 'Six chapters. Want the short version?', ask: 'Tell me your story in a minute: how did you get from Mexico City to here?' },
+		{ text: 'This is how I got here', ask: 'What are the moments that made you who you are?' },
+	],
+	'story-0': [
+		{ text: 'What Mexico City taught me', ask: 'What did growing up in Mexico City teach you?' },
+		{ text: 'My favorite thing about CDMX', ask: 'What do you love most about Mexico City?' },
+	],
+	'story-1': [
+		{ text: 'What I saw growing up', ask: 'What did you notice growing up that stayed with you?' },
+		{ text: 'Talent just needs a chance', ask: 'Why do you say Mexico has so much talent but lacks the chance to use it?' },
+	],
+	'story-2': [
+		{ text: 'Psst: brush the drawing', ask: 'What was it like giving talks at schools and children’s homes?' },
+		{ text: 'The talks I gave as a teenager', ask: 'Tell me about the talks you gave and the volunteering you did as a teenager.' },
+	],
+	'story-3': [
+		{ text: 'The hardest decision I’ve made', ask: 'Why was leaving Mexico to study the hardest decision you have made?' },
+		{ text: 'What I miss most about home', ask: 'What do you miss most about Mexico?' },
+	],
+	'story-4': [
+		{ text: 'What I’m building at UT', ask: 'What are you building and learning at UT Austin right now?' },
+		{ text: 'What a late night looks like', ask: 'What does a late night of building look like for you?' },
+	],
+	'story-5': [
+		{ text: 'My plan for Mexico', ask: 'What do you want to build when you go back to Mexico?' },
+		{ text: 'Why giving back matters to me', ask: 'Why is giving back to the community you were born in so important to you?' },
+	],
+	'story-end': [
+		{ text: 'Brush me: that’s the real me', ask: 'Who is Manuel, in three words?' },
+		{ text: 'Now let me show you what I can do', ask: 'What are you best at?' },
+	],
 	// core values (by name)
 	'Hard Work': [{ text: 'Ask me what hard work looks like for me', ask: 'What does hard work look like in your daily life?' }],
 	'Clean Code': [{ text: 'Why clean code matters to me', ask: 'Why does clean code matter to you?' }],
@@ -114,7 +147,14 @@ function focusKey(section: string): string | null {
 		}
 		return best
 	}
-	if (section === 'values') return document.querySelector('#values .value-caption-item.active h3')?.textContent?.trim() || null
+	if (section === 'values') {
+		// My Story: the chapter nearest the middle of the screen (the header, chapters I–VI, then "And that's me")
+		const el = near([...document.querySelectorAll('#values .story-head, #values .story-ch, #values .story-end')])
+		if (!el) return null
+		if (el.classList.contains('story-head')) return 'story-head'
+		if (el.classList.contains('story-end')) return 'story-end'
+		return `story-${[...document.querySelectorAll('#values .story-ch')].indexOf(el)}`
+	}
 	if (section === 'resume') {
 		// desktop: a timeline, one card open at a time — the open card is the one on show
 		const open = document.querySelector('#resume .timeline-card-entry.is-active')

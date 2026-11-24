@@ -9,7 +9,7 @@ import ScriptTitle from '../components/ScriptTitle'
 import { load, mount } from '../components/InkArt'
 import { gsap, whenBooted } from '../motion'
 
-type Chapter = { id: string; when: string; title: string; body: string; art: string }
+type Chapter = { id: string; when: string; title: string; body: string; art: string; photo?: string }
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII']
 
@@ -19,14 +19,14 @@ const CHAPTERS: Chapter[] = [
 		body: 'Mexico City raised me: its noise, its color, its traditions, its people. I grew up surrounded by family and by a culture that always taught me to be proud of where I come from.' },
 	{ id: 'two', when: 'Growing up', art: 'story4-2', title: 'Seeing both sides',
 		body: 'Growing up, I had every opportunity, and I saw how many people around me didn’t. That contrast stayed with me. Mexico has so much talent; what it lacks is the chance to use it.' },
-	{ id: 'help', when: 'Teenage years', art: 'story2-5', title: 'Learning to give back',
+	{ id: 'help', when: 'Teenage years', art: 'story2-5', photo: 'story2-5-photo', title: 'Learning to give back',
 		body: 'As a teenager I started looking for ways to help: giving talks at schools and children’s homes, volunteering, listening. I realized I could do something, and that small actions add up to real change.' },
 	{ id: 'leave', when: 'Leaving home', art: 'story3-4', title: 'Leaving to learn',
 		body: 'Leaving Mexico to study was the hardest decision I’ve ever made. I left to learn from the world, see how things are built elsewhere, and to bring everything I learn back home one day.' },
 	{ id: 'build', when: 'Austin · now', art: 'story2-6', title: 'Learning to build',
-		body: 'Today I study data science at UT Austin. Every project, every late night, every product I ship is practice for the very same goal: building tools that can change things at scale back home.' },
+		body: 'Today I study at UT Austin, in Texas. Every project, every late night, every product I ship is practice for the very same goal: building tools that can change things at scale back home.' },
 	{ id: 'back', when: 'Mexico · next', art: 'story4-6', title: 'Going back',
-		body: 'One day I’ll go back for good. Not to visit, but to build: companies, jobs and opportunities for the kids at those red lights. Mexico gave me everything. I want to return the favor.' },
+		body: 'One day I’ll go back. Not to visit, but to build: companies, jobs and opportunities. Mexico shaped the person I am today. I want to give back to the community I was born in.' },
 ]
 
 /** One drawing: laid in undrawn when its chapter is near, drawn when it arrives. */
@@ -55,7 +55,7 @@ function useInk(ref: React.RefObject<HTMLDivElement | null>, name: string) {
 	}, [ref, name])
 }
 
-function Art({ name, className = '', exact }: { name: string; className?: string; exact?: string }) {
+function Art({ name, className = '', exact, photo, cutout = false }: { name: string; className?: string; exact?: string; photo?: string; cutout?: boolean }) {
 	const ref = useRef<HTMLDivElement>(null)
 	useInk(ref, name)
 	// a drawing with fine detail (his face): once the pen has drawn it, the exact drawing fades in over the strokes
@@ -74,6 +74,7 @@ function Art({ name, className = '', exact }: { name: string; className?: string
 	return (
 		<div ref={ref} className={`story-ink ${className}`} data-name={name} aria-hidden="true">
 			{exact && <i className="story-exact" style={{ ['--src' as string]: `url(/ink/${exact}.webp)` }} />}
+			{photo && <BrushReveal host={ref} src={`/ink/${photo}.webp`} cutout={cutout} />}
 		</div>
 	)
 }
@@ -176,11 +177,11 @@ export default memo(function Story() {
 							<h3>{c.title}</h3>
 							<p>{c.body}</p>
 						</div>
-						<Art name={c.art} />
+						<Art name={c.art} photo={c.photo} />
 					</article>
 				))}
 				<article className="story-end" data-snap>
-					<Art name="story-me" className="is-me" exact="story-me-exact" />
+					<Art name="story-me" className="is-me" exact="story-me-exact" photo="story-me-photo" cutout />
 					<div className="story-text">
 						<span className="story-when"><i>VII</i>So far</span>
 						<h3>And that’s me.</h3>
@@ -191,3 +192,182 @@ export default memo(function Story() {
 		</section>
 	)
 })
+
+/**
+ * The real photo under a drawing (chapter III, and the portrait at the end), painted in like a soft brush.
+ * - When the drawing has finished sketching itself, an invisible brush paints one stroke of the photo and lets it fade:
+ *   no words, it just shows there is something there. It replays a couple of times until someone tries it.
+ * - Exactly what a visitor brushes stays, for good: leaving the drawing never takes it away, and nothing fills in by itself.
+ * - A full photo gets feathered edges instead of a frame; a cut-out figure (`cutout`) has its own shape, no background.
+ * Only with a mouse or trackpad; phones keep the drawing.
+ */
+function BrushReveal({ host, src, cutout = false }: { host: React.RefObject<HTMLDivElement | null>; src: string; cutout?: boolean }) {
+	const canvasRef = useRef<HTMLCanvasElement>(null)
+	useEffect(() => {
+		const el = host.current, cv = canvasRef.current
+		if (!el || !cv || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return
+		const layer = () => { const c = document.createElement('canvas'); return [c, c.getContext('2d')!] as const }
+		const ctx = cv.getContext('2d')!
+		const [keep, kctx] = layer()   // what the visitor has brushed: permanent
+		const [ghost, gctx] = layer()  // the teaser stroke: fades
+		const [both, bctx] = layer()   // the two together, as the mask
+		const [edge, ectx] = layer()   // feathered edges for a full photo
+		let img: HTMLImageElement | null = null
+		let W = 0, H = 0, dpr = 1, raf = 0
+		let last: { x: number; y: number } | null = null
+		let used = false
+		let teasing = false, ghostFrames = -1, teases = 0, seen = false, teaseTimer = 0
+
+		// ---- the brush: a soft round core with a few loose bristles
+		const dab = (c: CanvasRenderingContext2D, x: number, y: number) => {
+			const R = W * 0.1
+			const g = c.createRadialGradient(x, y, 0, x, y, R)
+			g.addColorStop(0, 'rgba(0,0,0,.38)'); g.addColorStop(0.6, 'rgba(0,0,0,.2)'); g.addColorStop(1, 'rgba(0,0,0,0)')
+			c.fillStyle = g
+			c.beginPath(); c.arc(x, y, R, 0, Math.PI * 2); c.fill()
+			for (let k = 0; k < 3; k++) {
+				const a = Math.random() * Math.PI * 2, d = R * (0.5 + Math.random() * 0.55), r = R * (0.12 + Math.random() * 0.16)
+				const bx = x + Math.cos(a) * d, by = y + Math.sin(a) * d
+				const b = c.createRadialGradient(bx, by, 0, bx, by, r)
+				b.addColorStop(0, 'rgba(0,0,0,.22)'); b.addColorStop(1, 'rgba(0,0,0,0)')
+				c.fillStyle = b
+				c.beginPath(); c.arc(bx, by, r, 0, Math.PI * 2); c.fill()
+			}
+		}
+		const stroke = (c: CanvasRenderingContext2D, from: { x: number; y: number }, to: { x: number; y: number }) => {
+			const n = Math.max(1, Math.ceil(Math.hypot(to.x - from.x, to.y - from.y) / (W * 0.012)))
+			for (let i = 1; i <= n; i++) dab(c, from.x + ((to.x - from.x) * i) / n, from.y + ((to.y - from.y) * i) / n)
+		}
+
+		// ---- sizes: keep what has been painted when the drawing resizes
+		const size = () => {
+			const r = el.getBoundingClientRect()
+			dpr = Math.min(2, window.devicePixelRatio || 1)
+			const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr))
+			if (w === W && h === H) return
+			let saved: HTMLCanvasElement | null = null
+			if (W && H) { saved = document.createElement('canvas'); saved.width = W; saved.height = H; saved.getContext('2d')!.drawImage(keep, 0, 0) }
+			W = w; H = h
+			for (const c of [cv, keep, ghost, both, edge]) { c.width = W; c.height = H }
+			// feathered on all four sides (eased ramps), so even the whole photo has no edge or frame
+			const ramp = (g: CanvasGradient, a: number, b: number) => {
+				for (let k = 0; k <= 8; k++) { const t = k / 8, e = t * t * (3 - 2 * t); g.addColorStop(a * t, `rgba(0,0,0,${e})`); g.addColorStop(1 - b * t, `rgba(0,0,0,${e})`) }
+			}
+			const gx = ectx.createLinearGradient(0, 0, W, 0); ramp(gx, 0.16, 0.16)
+			ectx.globalCompositeOperation = 'source-over'; ectx.fillStyle = gx; ectx.fillRect(0, 0, W, H)
+			const gy = ectx.createLinearGradient(0, 0, 0, H); ramp(gy, 0.06, 0.12)
+			ectx.globalCompositeOperation = 'destination-in'; ectx.fillStyle = gy; ectx.fillRect(0, 0, W, H)
+			ectx.globalCompositeOperation = 'source-over'
+			if (saved) kctx.drawImage(saved, 0, 0, W, H)
+			render()
+		}
+
+		// ---- drawing the frame
+		const render = () => {
+			ctx.clearRect(0, 0, W, H)
+			if (!img) return
+			bctx.clearRect(0, 0, W, H)
+			bctx.drawImage(keep, 0, 0)
+			if (ghostFrames >= 0) bctx.drawImage(ghost, 0, 0)
+			ctx.globalCompositeOperation = 'source-over'
+			ctx.drawImage(img, 0, 0, W, H)
+			ctx.globalCompositeOperation = 'destination-in'
+			ctx.drawImage(both, 0, 0)
+			if (!cutout) ctx.drawImage(edge, 0, 0)
+			ctx.globalCompositeOperation = 'source-over'
+		}
+		const tick = () => {
+			raf = 0
+			let more = teasing
+			// the teaser stroke fades back to ink once it has been drawn
+			if (!teasing && ghostFrames >= 0) {
+				gctx.globalCompositeOperation = 'destination-out'
+				gctx.fillStyle = 'rgba(0,0,0,.05)'
+				gctx.fillRect(0, 0, W, H)
+				gctx.globalCompositeOperation = 'source-over'
+				if (++ghostFrames > 80) { gctx.clearRect(0, 0, W, H); ghostFrames = -1 } else more = true
+			}
+			render()
+			if (more) raf = requestAnimationFrame(tick)
+		}
+		const wake = () => { if (!raf) raf = requestAnimationFrame(tick) }
+
+		// ---- the teaser
+		const path = cutout
+			? [[0.28, 0.16], [0.7, 0.22], [0.34, 0.36], [0.72, 0.48], [0.3, 0.6], [0.66, 0.72]]
+			: [[0.24, 0.1], [0.42, 0.06], [0.5, 0.22], [0.36, 0.36], [0.46, 0.52], [0.62, 0.42]]
+		const along = (t: number) => {
+			// Catmull-Rom through the points, so the stroke is one smooth curve
+			const n = path.length - 1, f = Math.min(n - 1e-6, t * n), i = Math.floor(f), u = f - i
+			const p0 = path[Math.max(0, i - 1)], p1 = path[i], p2 = path[i + 1], p3 = path[Math.min(n, i + 2)]
+			const c = (k: number) => 0.5 * (2 * p1[k] + (-p0[k] + p2[k]) * u + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * u * u + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * u * u * u)
+			return { x: c(0) * W, y: c(1) * H }
+		}
+		const tease = () => {
+			if (used || teasing || !img || !seen) return
+			teasing = true; teases++; ghostFrames = 0
+			gctx.clearRect(0, 0, W, H)
+			const t0 = performance.now(), dur = 1500
+			let prev = along(0)
+			const run = (now: number) => {
+				const t = Math.min(1, (now - t0) / dur)
+				const p = along(t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2)
+				stroke(gctx, prev, p)
+				prev = p
+				wake()
+				if (t < 1 && !used) requestAnimationFrame(run)
+				else window.setTimeout(() => { teasing = false; ghostFrames = 0; wake(); schedule() }, used ? 0 : 650)
+			}
+			requestAnimationFrame(run)
+		}
+		// the hint plays as soon as the drawing slides into view (the client, 2026-11-24: it took too long), then again later
+		const schedule = () => {
+			window.clearTimeout(teaseTimer)
+			if (used || teases >= 3) return
+			teaseTimer = window.setTimeout(tease, teases ? 6500 : 250)
+		}
+		const view = new IntersectionObserver(([e]) => {
+			seen = e.isIntersecting && e.intersectionRatio > 0.35
+			if (seen && !teasing) schedule()
+			else if (!seen) window.clearTimeout(teaseTimer)
+		}, { threshold: [0, 0.35, 0.6] })
+		view.observe(el)
+
+		// the photo is fetched when the chapter is near, so the first stroke already has it
+		const near = new IntersectionObserver(([e]) => {
+			if (!e.isIntersecting) return
+			near.disconnect()
+			const im = new Image()
+			im.decoding = 'async'
+			im.src = src
+			const ready = () => { img = im; render(); if (seen) schedule() }
+			im.decode().then(ready).catch(ready)
+		}, { rootMargin: '250% 0px' })
+		near.observe(el)
+
+		const ro = new ResizeObserver(size)
+		ro.observe(el)
+		size()
+
+		// ---- the visitor's brush
+		const move = (e: PointerEvent) => {
+			if (!img) return
+			const r = el.getBoundingClientRect()
+			const p = { x: (e.clientX - r.left) * dpr, y: (e.clientY - r.top) * dpr }
+			stroke(kctx, last ?? p, p)
+			last = p
+			if (!used) { used = true; window.clearTimeout(teaseTimer) }
+			wake()
+		}
+		const leave = () => { last = null }
+		el.addEventListener('pointermove', move)
+		el.addEventListener('pointerleave', leave)
+		return () => {
+			near.disconnect(); ro.disconnect(); view.disconnect(); window.clearTimeout(teaseTimer)
+			el.removeEventListener('pointermove', move)
+			el.removeEventListener('pointerleave', leave)
+			cancelAnimationFrame(raf)
+		}
+	}, [host, src, cutout])
+	return <canvas ref={canvasRef} className="story-brush" />
+}

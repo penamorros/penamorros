@@ -26,31 +26,43 @@ const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x))
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 // Real answers use the existing Netlify function and server-side key, including through Vite's local proxy.
-async function liveReply(history: Message[]): Promise<string | null> {
+// One request can fail on a bad connection, so it is tried twice before the offline answers take over.
+async function askOnce(history: Message[]): Promise<string | null> {
+	const ctrl = new AbortController()
+	const timer = window.setTimeout(() => ctrl.abort(), 15000)
 	try {
 		const response = await fetch('/.netlify/functions/chat', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
+			signal: ctrl.signal,
 			body: JSON.stringify({
 				model: 'gpt-5.6-terra',
-				messages: [{ role: 'system', content: CHAT_SYSTEM_PROMPT }, ...history],
-				max_tokens: 200,
-				temperature: 0.4
+				// only the words go to the server (the meet flag is the page's own)
+				messages: [{ role: 'system', content: CHAT_SYSTEM_PROMPT }, ...history.map((m) => ({ role: m.role, content: m.content }))],
+				max_tokens: 500
 			})
 		})
 		const responseText = await response.text()
-		if (!responseText) return null
-		let data: any
+		if (!response.ok || !responseText) return null
+		let data: { choices?: Array<{ message?: { content?: unknown } }> }
 		try {
 			data = JSON.parse(responseText)
 		} catch {
 			return null
 		}
-		if (!response.ok || !data.choices?.[0]) return null
-		return data.choices[0].message.content as string
+		const content = data.choices?.[0]?.message?.content
+		if (typeof content !== 'string') return null
+		// plain text in the bubble even if the model slips into markdown
+		const clean = content.replace(/\*\*(.+?)\*\*/g, '$1').replace(/(^|\s)[*_](\S.*?\S)[*_](?=\s|[.,!?]|$)/g, '$1$2').replace(/^\s*[-*•]\s+/gm, '').replace(/^#+\s*/gm, '').trim()
+		return clean || null
 	} catch {
 		return null
+	} finally {
+		window.clearTimeout(timer)
 	}
+}
+async function liveReply(history: Message[]): Promise<string | null> {
+	return (await askOnce(history)) ?? (await wait(600), await askOnce(history))
 }
 
 // His answer arrives word by word, each word fading in out of a soft blur, about 1.6 s for a long one.
@@ -231,16 +243,14 @@ export default memo(function Hero({ scrollTo, interactive }: Props) {
 				analytics.trackChatEvent('ai_response_received', { responseLength: live.length, sessionId: chatSessionId })
 				saveChatMessage({ role: 'assistant', content: live, sessionId: chatSessionId })
 			}
-		} else if (isLiveSite) {
-			const content = "Sorry, I'm having trouble connecting right now. Try again in a moment."
-			parts = [content]
-			saveChatMessage({ role: 'assistant', content, sessionId: chatSessionId })
 		} else {
+			// no connection: he still answers, from the facts the page knows offline (src/brain.ts), never with an apology
 			brain.current ||= new Brain()
 			const r = brain.current.reply(text)
 			parts = r.parts
 			kind = r.kind
 			topic = r.topic
+			if (isLiveSite) saveChatMessage({ role: 'assistant', content: parts.join(' '), sessionId: chatSessionId })
 		}
 
 		// a long answer comes as two messages, each with its own typing

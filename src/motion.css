@@ -1869,3 +1869,26 @@ body,
 	75% { transform: translate(-50%, -45%) scale(1.03, .98); }
 	100% { transform: translate(-50%, -45%) scale(1, 1); }
 }
+
+/* ---------- the skills tally, top centre and big (the client, 2026-11-23) */
+.flappy-tally.is-top {
+	top: 14px;
+	bottom: auto;
+	flex-direction: column;
+	gap: .42rem;
+	padding: .55rem 1.15rem .62rem;
+	border-radius: 14px;
+	background: rgba(8, 10, 16, .82);
+	border-color: rgba(200, 216, 255, .22);
+}
+.flappy-tally.is-top .tally-skills { display: flex; align-items: baseline; gap: .35rem; line-height: 1; }
+.flappy-tally.is-top .tally-skills b { font-size: 1.9rem; letter-spacing: -.02em; }
+.flappy-tally.is-top .tally-skills i { font-style: normal; font-size: .9rem; color: rgba(255, 255, 255, .6); }
+.flappy-tally.is-top .tally-bar { position: relative; display: block; width: 120px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+.flappy-tally.is-top .tally-bar em { position: absolute; inset: 0; border-radius: inherit; background: #8fb0ff; transform-origin: left center; transition: transform .45s var(--ease-out); }
+.flappy-tally.is-top .tally-off { padding-left: 0; border-left: 0; font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; }
+.app.color-mode .flappy-tally.is-top { background: rgba(255, 255, 255, .9); border-color: rgba(0, 0, 0, .14); }
+.app.color-mode .flappy-tally.is-top .tally-skills i { color: rgba(0, 0, 0, .55); }
+.app.color-mode .flappy-tally.is-top .tally-bar { background: rgba(0, 0, 0, .1); }
+.app.color-mode .flappy-tally.is-top .tally-bar em { background: #2350c8; }
+@media (max-width: 700px) { .flappy-tally.is-top .tally-skills b { font-size: 1.5rem; } .flappy-tally.is-top .tally-bar { width: 90px; } }
